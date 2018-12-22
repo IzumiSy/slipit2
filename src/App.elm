@@ -1,4 +1,4 @@
-module App exposing (Model, Msg, update, view, subscriptions)
+module App exposing (Model, Msg, update, view, subscriptions, init)
 
 import Browser exposing (element)
 import Html exposing (..)
@@ -11,25 +11,32 @@ type alias Bookmark =
     description: String
   }
 
+newBookmark : (String, String, String) -> Bookmark
+newBookmark (url, title, description) = { url = url, title = title, description = description }
+
+emptyBookmark : () -> Bookmark
+emptyBookmark _ = { url = "", title = "", description = "" }
+
 
 type alias Model =
   {
-    bookmarks: List Bookmark
+    bookmarks: List Bookmark,
+    newBookmark: Bookmark
   }
-
-
-type Msg
-  = Msg1 | Msg2
-
 
 init : () -> (Model, Cmd Msg)
 init _ =
   (
     {
-      bookmarks = []
+      bookmarks = [],
+      newBookmark = emptyBookmark ()
     },
     Cmd.none
   )
+
+
+type Msg
+  = Msg1 | Msg2
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
