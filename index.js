@@ -20,3 +20,20 @@ firestore.settings({
 const app = Elm.App.init({
   node: document.getElementById('main')
 });
+
+app.ports.startLoggingIn.subscribe(login => {
+  firebase.auth()
+    .signInWithEmailAndPassword(login.email, login.password)
+    .then(({ user }) => {
+      console.log(user)
+      app.ports.logInSucceeded.send({
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName
+      })
+    })
+    .catch(err => {
+      console.warn(err)
+      app.ports.logInFailed.send(err)
+    })
+})
