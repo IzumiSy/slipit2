@@ -46,9 +46,6 @@ type alias LoginError =
     message: String
   }
 
-emptyLoginError : () -> LoginError
-emptyLoginError _ = { code = "", message = "" }
-
 
 type LoginStatus
   = NotLoggedIn | LoggingIn | LogInSucceeded | LogInFailed
