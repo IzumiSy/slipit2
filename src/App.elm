@@ -7,8 +7,10 @@ import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import Json.Decode as JD
+import Json.Decode as Decode exposing (field, string)
+import String.Interpolate exposing (interpolate)
 import Url
+import Http
 
 
 -- Model
@@ -20,6 +22,7 @@ type alias Model =
     url: Url.Url,
     bookmarks: List Bookmark,
     newBookmark: Bookmark,
+    fetchedWebPageTitle: Maybe String,
     newLogin: LoginForm,
     logInStatus: LoginStatus,
     logInError: Maybe LoginError,
@@ -34,6 +37,7 @@ init _ url navKey =
       url = url,
       bookmarks = [],
       newBookmark = emptyBookmark (),
+      fetchedWebPageTitle = Nothing,
       newLogin = emptyLogin (),
       logInStatus = NotLoggedIn,
       logInError = Nothing,
@@ -54,6 +58,9 @@ type Msg =
   | FailsLoggingIn LoginError
   | SignsOut
   | SignedOut ()
+  | UpdateNewBookmarkUrl String
+  | StartFetchingWebPageTitle
+  | WebPageTitleFetched (Result Http.Error (List ScrapingResult))
   | LinkClicked Browser.UrlRequest
   | UrlChanged Url.Url
 
@@ -79,6 +86,18 @@ update msg model =
     FailsLoggingIn err ->
       ({ model | logInStatus = LogInFailed, logInError = Just err }, Cmd.none)
 
+    UpdateNewBookmarkUrl url ->
+      let updated = model.newBookmark |> setUrl url
+      in ({ model | newBookmark = updated }, Cmd.none)
+    StartFetchingWebPageTitle ->
+      (model, fetchWebPageTitle model.newBookmark.url)
+    WebPageTitleFetched result ->
+      case result of
+        Ok titles ->
+          ({ model | fetchedWebPageTitle = List.head ( List.map (\x -> x.text) titles ) }, Cmd.none)
+        Err err ->
+          (model, Cmd.none)
+
     LinkClicked urlRequest ->
       case urlRequest of
         Browser.Internal url ->
@@ -87,6 +106,33 @@ update msg model =
           (model, Nav.load href)
     UrlChanged url ->
       ({ model | url = url}, Cmd.none)
+
+
+-- HTTP
+
+
+fetchWebPageTitle : String -> Cmd Msg
+fetchWebPageTitle targetUrl =
+  Http.get {
+    url = interpolate "http://motyar.info/webscrapemaster/api/?url={0}&xpath=title" [targetUrl],
+    expect = Http.expectJson WebPageTitleFetched webPageFetchingDecoder
+  }
+
+type alias ScrapingResult =
+  {
+    text: String,
+    html: String
+  }
+
+resultDecoder : Decode.Decoder ScrapingResult
+resultDecoder =
+  Decode.map2 ScrapingResult
+    (field "text" string)
+    (field "html" string)
+
+webPageFetchingDecoder : Decode.Decoder (List ScrapingResult)
+webPageFetchingDecoder =
+  Decode.list resultDecoder
 
 
 -- View
@@ -100,21 +146,39 @@ view model =
     body =
       case model.currentUser of
         Just user ->
-          [homeView user]
+          [homeView user model.fetchedWebPageTitle]
         Nothing ->
           [loginView model]
   }
 
-homeView : User -> Html Msg
-homeView user =
-  div [] [
+homeView : User -> Maybe String -> Html Msg
+homeView user fetchedWebPageTitle =
+  let
+    fetchedTitle = case fetchedWebPageTitle of
+      Just title -> title
+      Nothing -> "n/a"
+  in
     div [] [
-      text (String.append "Current user: " user.email )
-    ],
-    div [] [
-      button [onClick SignsOut] [text "sign out"]
+      div [] [text (String.append "Current user: " user.email)],
+      div [] [button [onClick SignsOut] [text "sign out"]],
+      p [] [text "new bookmark"],
+      div [] [
+        Html.form[onSubmitWithPrevented StartFetchingWebPageTitle] [
+          div [] [
+            label [] [
+              text "url:",
+              input [placeholder "Url to bookmark", onInput UpdateNewBookmarkUrl] []
+            ]
+          ],
+          div [] [
+            button [] [text "fetch"]
+          ]
+        ]
+      ],
+      div [] [
+        text (interpolate "Title: {0}" [fetchedTitle])
+      ]
     ]
-  ]
 
 loginView : Model -> Html Msg
 loginView model =
@@ -137,7 +201,7 @@ loginView model =
   ]
 
 onSubmitWithPrevented msg =
-    Html.Events.custom "submit" (JD.succeed { message = msg, stopPropagation = True, preventDefault = True })
+    Html.Events.custom "submit" (Decode.succeed { message = msg, stopPropagation = True, preventDefault = True })
 
 viewLink : String -> Html msg
 viewLink path =
