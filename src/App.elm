@@ -44,8 +44,6 @@ init _ url navKey =
 
 
 -- Msg
--- メッセージはステートの変更をトリガするものなので全て命名は命令形にする
--- また、主語はアプリケーション自身なので原型の三人称単数現在形とする
 
 
 type Msg =
@@ -54,6 +52,8 @@ type Msg =
   | StartsLoggingIn
   | SucceedsInLoggingIn User
   | FailsLoggingIn LoginError
+  | SignsOut
+  | SignedOut ()
   | LinkClicked Browser.UrlRequest
   | UrlChanged Url.Url
 
@@ -70,6 +70,10 @@ update msg model =
 
     StartsLoggingIn ->
       ({ model | logInStatus = LoggingIn }, startLoggingIn model.newLogin)
+    SignsOut ->
+      (model, signsOut ())
+    SignedOut _ ->
+      ({ model | currentUser = Nothing }, Cmd.none)
     SucceedsInLoggingIn user ->
       ({ model | logInStatus = LogInSucceeded, currentUser = Just user }, Cmd.none)
     FailsLoggingIn err ->
@@ -93,33 +97,47 @@ view : Model -> Browser.Document Msg
 view model =
   {
     title = "This is title",
-    body = [
-      Html.form [onSubmitWithPrevented StartsLoggingIn] [
-        div [] [
-          label [] [
-            text "email:",
-            input [type_ "email", placeholder "Your email", value model.newLogin.email, onInput UpdatesLoginEmail] []
-          ]
-        ],
-        div [] [
-          label [] [
-            text "password:",
-            input [type_ "password", placeholder "Your password", value model.newLogin.password, onInput UpdatesLoginPassword] []
-          ]
-        ],
-        div [] [
-          button [] [text "login"]
-        ],
-        div [] [
-          viewLink "/home"
-        ]
-      ]
-    ]
+    body =
+      case model.currentUser of
+        Just user ->
+          [homeView user]
+        Nothing ->
+          [loginView model]
   }
+
+homeView : User -> Html Msg
+homeView user =
+  div [] [
+    div [] [
+      text (String.append "Current user: " user.email )
+    ],
+    div [] [
+      button [onClick SignsOut] [text "sign out"]
+    ]
+  ]
+
+loginView : Model -> Html Msg
+loginView model =
+  Html.form [onSubmitWithPrevented StartsLoggingIn] [
+    div [] [
+      label [] [
+        text "email:",
+        input [type_ "email", placeholder "Your email", value model.newLogin.email, onInput UpdatesLoginEmail] []
+      ]
+    ],
+    div [] [
+      label [] [
+        text "password:",
+        input [type_ "password", placeholder "Your password", value model.newLogin.password, onInput UpdatesLoginPassword] []
+      ]
+    ],
+    div [] [
+      button [] [text "login"]
+    ]
+  ]
 
 onSubmitWithPrevented msg =
     Html.Events.custom "submit" (JD.succeed { message = msg, stopPropagation = True, preventDefault = True })
-
 
 viewLink : String -> Html msg
 viewLink path =
@@ -133,7 +151,8 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch [
       logInFailed FailsLoggingIn,
-      logInSucceeded SucceedsInLoggingIn
+      logInSucceeded SucceedsInLoggingIn,
+      signedOut SignedOut
     ]
 
 

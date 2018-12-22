@@ -21,17 +21,27 @@ const app = Elm.App.init({
   node: document.getElementById('main')
 });
 
+firebase.auth().onAuthStateChanged(fbUser => {
+  if (fbUser) {
+    const user = {
+      uid: fbUser.uid,
+      email: fbUser.email,
+      displayName: fbUser.displayName
+    }
+    console.info("currentUser:", user)
+    app.ports.logInSucceeded.send(user)
+  } else {
+    app.ports.signedOut.send(null)
+  }
+})
+
+app.ports.signsOut.subscribe(() => {
+  firebase.auth().signOut().catch(err => console.error(err))
+})
+
 app.ports.startLoggingIn.subscribe(login => {
   firebase.auth()
     .signInWithEmailAndPassword(login.email, login.password)
-    .then(({ user }) => {
-      console.log(user)
-      app.ports.logInSucceeded.send({
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName
-      })
-    })
     .catch(err => {
       console.warn(err)
       app.ports.logInFailed.send(err)
