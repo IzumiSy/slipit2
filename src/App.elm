@@ -170,14 +170,10 @@ homeView user fetchedWebPageTitle =
               input [placeholder "Url to bookmark", onInput UpdateNewBookmarkUrl] []
             ]
           ],
-          div [] [
-            button [] [text "fetch"]
-          ]
+          div [] [button [] [text "fetch"]]
         ]
       ],
-      div [] [
-        text (interpolate "Title: {0}" [fetchedTitle])
-      ]
+      div [] [text (interpolate "Title: {0}" [fetchedTitle])]
     ]
 
 loginView : Model -> Html Msg
@@ -195,9 +191,7 @@ loginView model =
         input [type_ "password", placeholder "Your password", value model.newLogin.password, onInput UpdatesLoginPassword] []
       ]
     ],
-    div [] [
-      button [] [text "login"]
-    ]
+    div [] [button [] [text "login"]]
   ]
 
 onSubmitWithPrevented msg =
