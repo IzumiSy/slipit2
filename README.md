@@ -11,6 +11,13 @@ $ cp .env.sample .env
 $ vi .env
 ```
 
+### Function
+Install `firebase-tools` if you still haven't installed it, and do login.
+```bash
+$ npm install -g firebase-tools
+$ firebase login
+```
+
 ## Run
 ```bash
 $ npm start
