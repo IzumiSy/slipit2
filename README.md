@@ -5,6 +5,11 @@ The serverless replacement of [Slip.it](https://github.com/IzumiSy/slipit)
 ```bash
 $ npm install
 ```
+Also you need to set your own env in `.env` file
+```bash
+$ cp .env.sample .env
+$ vi .env
+```
 
 ## Run
 ```bash
