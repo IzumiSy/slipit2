@@ -66,6 +66,8 @@ type Msg =
   | SignsOut
   | SignedOut ()
   | UpdateNewBookmarkUrl String
+  | UpdateNewBookmarkTitle String
+  | UpdateNewBookmarkDescription String
   | StartFetchingWebPageTitle
   | WebPageTitleFetched (Result Http.Error (List ScrapingResult))
   | LinkClicked Browser.UrlRequest
@@ -96,6 +98,13 @@ update msg model =
     UpdateNewBookmarkUrl url ->
       let updated = model.newBookmark |> setUrl url
       in ({ model | newBookmark = updated }, Cmd.none)
+    UpdateNewBookmarkTitle title ->
+      let updated = model.newBookmark |> setTitle title
+      in ({ model | newBookmark = updated }, Cmd.none)
+    UpdateNewBookmarkDescription desc ->
+      let updated = model.newBookmark |> setDescription desc
+      in ({ model | newBookmark = updated }, Cmd.none)
+
     StartFetchingWebPageTitle ->
       (model, fetchWebPageTitle model.appConfig.functionUrl model.newBookmark.url)
     WebPageTitleFetched result ->
@@ -167,7 +176,8 @@ homeView user fetchedWebPageTitle =
     div [] [
       div [] [text (String.append "Current user: " user.email)],
       div [] [button [onClick SignsOut] [text "sign out"]],
-      p [] [text "new bookmark"],
+
+      p [] [text "Fetch webpage title"],
       div [] [
         Html.form[onSubmitWithPrevented StartFetchingWebPageTitle] [
           div [] [
@@ -179,7 +189,27 @@ homeView user fetchedWebPageTitle =
           div [] [button [] [text "fetch"]]
         ]
       ],
-      div [] [text (interpolate "Title: {0}" [fetchedTitle])]
+
+      p [] [text "New bookmark"],
+      div [] [
+        Html.form[] [
+          div [] [
+            label [] [
+              text "title:",
+              input [placeholder "Title", onInput UpdateNewBookmarkTitle] []
+            ]
+          ],
+          div [] [
+            label [] [
+              text "description:",
+              input [placeholder "Description", onInput UpdateNewBookmarkDescription] []
+            ]
+          ],
+          div [] [button [] [text "create"]]
+        ]
+      ]
+
+      -- div [] [text (interpolate "Title: {0}" [fetchedTitle])]
     ]
 
 loginView : Model -> Html Msg
