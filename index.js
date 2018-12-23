@@ -18,7 +18,10 @@ firestore.settings({
 })
 
 const app = Elm.App.init({
-  node: document.getElementById('main')
+  node: document.getElementById('main'),
+  flags: {
+    functionUrl: process.env.FUNCTION_URL
+  }
 });
 
 firebase.auth().onAuthStateChanged(fbUser => {

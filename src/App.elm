@@ -16,10 +16,16 @@ import Http
 -- Model
 
 
+type alias AppConfig =
+  {
+    functionUrl: String
+  }
+
 type alias Model =
   {
     navKey: Nav.Key,
     url: Url.Url,
+    appConfig: AppConfig,
     bookmarks: List Bookmark,
     newBookmark: Bookmark,
     fetchedWebPageTitle: Maybe String,
@@ -29,12 +35,13 @@ type alias Model =
     currentUser: Maybe User
   }
 
-init : () -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
-init _ url navKey =
+init : AppConfig -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
+init config url navKey =
   (
     {
       navKey = navKey,
       url = url,
+      appConfig = config,
       bookmarks = [],
       newBookmark = emptyBookmark (),
       fetchedWebPageTitle = Nothing,
@@ -90,7 +97,7 @@ update msg model =
       let updated = model.newBookmark |> setUrl url
       in ({ model | newBookmark = updated }, Cmd.none)
     StartFetchingWebPageTitle ->
-      (model, fetchWebPageTitle model.newBookmark.url)
+      (model, fetchWebPageTitle model.appConfig.functionUrl model.newBookmark.url)
     WebPageTitleFetched result ->
       case result of
         Ok titles ->
@@ -110,11 +117,10 @@ update msg model =
 
 -- HTTP
 
-
-fetchWebPageTitle : String -> Cmd Msg
-fetchWebPageTitle targetUrl =
+fetchWebPageTitle : String -> String -> Cmd Msg
+fetchWebPageTitle functionUrl targetUrl =
   Http.get {
-    url = interpolate "http://motyar.info/webscrapemaster/api/?url={0}&xpath=title" [targetUrl],
+    url = interpolate "{0}?url={1}" [functionUrl, targetUrl],
     expect = Http.expectJson WebPageTitleFetched webPageFetchingDecoder
   }
 
