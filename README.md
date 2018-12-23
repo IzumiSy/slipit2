@@ -15,6 +15,7 @@ $ vi .env
 Install `firebase-tools` if you still haven't installed it, and do login.
 ```bash
 $ npm install -g firebase-tools
+$ cd function
 $ firebase login
 ```
 
