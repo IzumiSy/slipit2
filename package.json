@@ -1,8 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "start": "parcel index.html --out-dir dist",
-    "build": "parcel build index.html --out-dir dist"
+    "start": "parcel index.html --out-dir dist --log-level 4",
+    "build": "NODE_ENV=production parcel build index.html --out-dir dist"
   },
   "devDependencies": {
     "elm-hot": "^1.0.1",
