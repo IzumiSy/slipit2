@@ -1,5 +1,28 @@
 module Models exposing (..)
 
+import Browser.Navigation as Nav
+import Url
+
+
+type alias Model =
+  {
+    navKey: Nav.Key,
+    url: Url.Url,
+    appConfig: AppConfig,
+    bookmarks: List Bookmark,
+    newBookmark: Bookmark,
+    fetchedWebPageTitle: Maybe String,
+    newLogin: LoginForm,
+    logInStatus: LoginStatus,
+    logInError: Maybe LoginError,
+    currentUser: Maybe User
+  }
+
+type alias AppConfig =
+  {
+    functionUrl: String
+  }
+
 
 type alias Bookmark =
   {
@@ -8,8 +31,6 @@ type alias Bookmark =
     description: String
   }
 
-newBookmark (url, title, description) = { url = url, title = title, description = description }
-
 emptyBookmark _ = { url = "", title = "", description = "" }
 
 setUrl v bookmark = { bookmark | url = v }
@@ -17,6 +38,12 @@ setUrl v bookmark = { bookmark | url = v }
 setTitle v bookmark = { bookmark | title = v }
 
 setDescription v bookmark = { bookmark | description = v }
+
+
+type alias BookmarkError =
+  {
+    message: String
+  }
 
 
 type alias LoginForm =
@@ -49,3 +76,18 @@ type alias User =
     email: String,
     displayName: Maybe String
   }
+
+
+type alias ScrapingResult =
+  {
+    text: String,
+    html: String
+  }
+
+{--
+ type alias ScrapingResult =
+  {
+    text: String,
+    html: String
+  }
+-}
