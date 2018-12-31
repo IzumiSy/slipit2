@@ -31,65 +31,73 @@ init config url navKey =
   )
 
 
+-- Update
+
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    Msgs.UpdatesLoginEmail email ->
+    UpdatesLoginEmail email ->
       let updated = model.newLogin |> setEmail email
       in ({ model | newLogin = updated }, Cmd.none)
-    Msgs.UpdatesLoginPassword password ->
+    UpdatesLoginPassword password ->
       let updated = model.newLogin |> setPassword password
       in ({ model | newLogin = updated }, Cmd.none)
 
-    Msgs.StartsLoggingIn ->
+    StartsLoggingIn ->
       ({ model | logInStatus = LoggingIn }, startLoggingIn model.newLogin)
-    Msgs.SignsOut ->
+    SignsOut ->
       (model, signsOut ())
-    Msgs.SignedOut _ ->
+    SignedOut _ ->
       ({ model | currentUser = Nothing }, Cmd.none)
-    Msgs.SucceedsInLoggingIn user ->
+    SucceedsInLoggingIn user ->
       ({ model | logInStatus = LogInSucceeded, currentUser = Just user }, Cmd.none)
-    Msgs.FailsLoggingIn err ->
+    FailsLoggingIn err ->
       ({ model | logInStatus = LogInFailed, logInError = Just err }, Cmd.none)
 
-    Msgs.UpdateNewBookmarkUrl url ->
+    UpdateNewBookmarkUrl url ->
       let updated = model.newBookmark |> setUrl url
       in ({ model | newBookmark = updated }, Cmd.none)
-    Msgs.UpdateNewBookmarkTitle title ->
+    UpdateNewBookmarkTitle title ->
       let updated = model.newBookmark |> setTitle title
       in ({ model | newBookmark = updated }, Cmd.none)
-    Msgs.UpdateNewBookmarkDescription desc ->
+    UpdateNewBookmarkDescription desc ->
       let updated = model.newBookmark |> setDescription desc
       in ({ model | newBookmark = updated }, Cmd.none)
-    Msgs.CreatesNewbookmark->
-      (model, createsNewBookmark model.newBookmark)
+    CreatesNewbookmark->
+      case model.currentUser of
+        Just user ->
+          (model, createsNewBookmark (model.newBookmark, user))
+        Nothing ->
+          (model, signsOut ())
 
-    Msgs.StartFetchingWebPageTitle ->
+    StartFetchingWebPageTitle ->
       (model, fetchWebPageTitle model.appConfig.functionUrl model.newBookmark.url)
-    Msgs.WebPageTitleFetched result ->
+    WebPageTitleFetched result ->
       case result of
         Ok titles ->
           ({ model | fetchedWebPageTitle = List.head ( List.map (\x -> x.text) titles ) }, Cmd.none)
         Err err ->
           (model, Cmd.none)
 
-    Msgs.LinkClicked urlRequest ->
+    LinkClicked urlRequest ->
       case urlRequest of
         Browser.Internal url ->
           (model, Nav.pushUrl model.navKey (Url.toString url))
         Browser.External href ->
           (model, Nav.load href)
-    Msgs.UrlChanged url ->
+    UrlChanged url ->
       ({ model | url = url}, Cmd.none)
 
 
 -- HTTP
 
+
 fetchWebPageTitle : String -> String -> Cmd Msg
 fetchWebPageTitle functionUrl targetUrl =
   Http.get {
     url = interpolate "{0}?url={1}" [functionUrl, targetUrl],
-    expect = Http.expectJson Msgs.WebPageTitleFetched webPageFetchingDecoder
+    expect = Http.expectJson WebPageTitleFetched webPageFetchingDecoder
   }
 
 resultDecoder : Decode.Decoder ScrapingResult
@@ -109,9 +117,9 @@ webPageFetchingDecoder =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch [
-      logInFailed Msgs.FailsLoggingIn,
-      logInSucceeded Msgs.SucceedsInLoggingIn,
-      signedOut Msgs.SignedOut
+      logInFailed FailsLoggingIn,
+      logInSucceeded SucceedsInLoggingIn,
+      signedOut SignedOut
     ]
 
 
@@ -124,6 +132,6 @@ main =
       view = view,
       update = update,
       subscriptions = subscriptions,
-      onUrlChange = Msgs.UrlChanged,
-      onUrlRequest = Msgs.LinkClicked
+      onUrlChange = UrlChanged,
+      onUrlRequest = LinkClicked
     }

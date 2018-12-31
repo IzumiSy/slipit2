@@ -83,11 +83,3 @@ type alias ScrapingResult =
     text: String,
     html: String
   }
-
-{--
- type alias ScrapingResult =
-  {
-    text: String,
-    html: String
-  }
--}

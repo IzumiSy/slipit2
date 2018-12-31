@@ -50,3 +50,8 @@ app.ports.startLoggingIn.subscribe(login => {
       app.ports.logInFailed.send(err)
     })
 })
+
+// TODO: あとでつくる
+app.ports.createsNewBookmark.subscribe(newBookmark => {
+  console.log(newBookmark)
+})

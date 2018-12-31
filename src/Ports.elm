@@ -9,7 +9,7 @@ port startLoggingIn : LoginForm -> Cmd msg
 
 port signsOut : () -> Cmd msg
 
-port createsNewBookmark : Bookmark -> Cmd msg
+port createsNewBookmark : (Bookmark, User) -> Cmd msg
 
 -- Incomings
 

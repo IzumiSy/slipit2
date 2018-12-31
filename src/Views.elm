@@ -38,7 +38,7 @@ homeView user fetchedWebPageTitle =
 
       p [] [text "Fetch webpage title"],
       div [] [
-        Html.form[onSubmitWithPrevented StartFetchingWebPageTitle] [
+        Html.form [onSubmitWithPrevented StartFetchingWebPageTitle] [
           div [] [
             label [] [
               text "url:",
@@ -51,7 +51,7 @@ homeView user fetchedWebPageTitle =
 
       p [] [text "New bookmark"],
       div [] [
-        Html.form[] [
+        Html.form [onSubmitWithPrevented CreatesNewbookmark] [
           div [] [
             label [] [
               text "title:",
