@@ -20,8 +20,8 @@ view model =
       case model.logInStatus of
         NotLoggedIn -> [loginView model]
         LoggingIn -> [loginView model]
-        LoggedIn result -> 
-          case result of 
+        LoggedIn result ->
+          case result of
             Ok userData -> [homeView userData model]
             Err err -> [loginView model]
   }
@@ -29,8 +29,8 @@ view model =
 homeView : UserData -> Model -> Html Msg
 homeView userData model =
   let
-    fetchedTitle = 
-      case model.titleFetchingStatus of 
+    fetchedTitle =
+      case model.titleFetchingStatus of
         TitleNotFetched -> "n/a"
         TitleFetching -> "Fetching..."
         TitleFetched result ->
@@ -82,21 +82,27 @@ homeView userData model =
 -- TODO: ログインエラーの文言を表示する
 loginView : Model -> Html Msg
 loginView model =
-  Html.form [onSubmitWithPrevented StartsLoggingIn] [
-    div [] [
-      label [] [
-        text "email:",
-        input [type_ "email", placeholder "Your email", value model.newLogin.email, onInput UpdatesLoginEmail] []
-      ]
-    ],
-    div [] [
-      label [] [
-        text "password:",
-        input [type_ "password", placeholder "Your password", value model.newLogin.password, onInput UpdatesLoginPassword] []
-      ]
-    ],
-    div [] [button [] [text "login"]]
-  ]
+  let
+    loggingIn =
+      case model.logInStatus of
+        LoggingIn -> True
+        _ -> False
+  in
+    Html.form [onSubmitWithPrevented StartsLoggingIn] [
+      div [] [
+        label [] [
+          text "email:",
+          input [type_ "email", placeholder "Your email", value model.newLogin.email, onInput UpdatesLoginEmail] []
+        ]
+      ],
+      div [] [
+        label [] [
+          text "password:",
+          input [type_ "password", placeholder "Your password", value model.newLogin.password, onInput UpdatesLoginPassword] []
+        ]
+      ],
+      div [] [button [disabled loggingIn] [text (if loggingIn then "logging in..." else "login")]]
+    ]
 
 onSubmitWithPrevented msg =
     Html.Events.custom "submit" (Decode.succeed { message = msg, stopPropagation = True, preventDefault = True })

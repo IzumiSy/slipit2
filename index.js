@@ -26,13 +26,17 @@ const app = Elm.App.init({
 
 firebase.auth().onAuthStateChanged(fbUser => {
   if (fbUser) {
-    const user = {
-      uid: fbUser.uid,
-      email: fbUser.email,
-      displayName: fbUser.displayName
+    const userData = {
+      bookmarks: [], // TODO: ここは取得するのをあとでつくる
+      currentUser: {
+        uid: fbUser.uid,
+        email: fbUser.email,
+        displayName: fbUser.displayName
+      }
     }
-    console.info("currentUser:", user)
-    app.ports.logInSucceeded.send(user)
+
+    console.info("currentUser:", userData)
+    app.ports.logInSucceeded.send(userData)
   } else {
     app.ports.signedOut.send(null)
   }

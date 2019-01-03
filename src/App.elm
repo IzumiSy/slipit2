@@ -33,9 +33,9 @@ init config url navKey =
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-  let 
+  let
     authenticateAsUser = authenticate model
-  in 
+  in
     case msg of
       UpdatesLoginEmail email ->
         let updated = model.newLogin |> setEmail email
@@ -72,14 +72,14 @@ update msg model =
       StartFetchingWebPageTitle ->
         (model, fetchWebPageTitle model.appConfig.functionUrl model.newBookmark.url)
       WebPageTitleFetched result ->
-        let 
-          r = 
+        let
+          r =
             Result.mapError (\err ->
               case err of
                 Http.BadBody errMsg -> TitleFetchingError errMsg
                 _ -> TitleFetchingError "Unexpected error"
             ) result
-        in 
+        in
           ({ model | titleFetchingStatus = TitleFetched r }, Cmd.none)
 
       LinkClicked urlRequest ->
@@ -94,8 +94,8 @@ update msg model =
 authenticate : Model -> (UserData -> (Model, Cmd Msg)) -> (Model, Cmd Msg)
 authenticate model cb =
   case model.logInStatus of
-    NotLoggedIn -> (model, signsOut ()) 
-    LoggingIn -> (model, Cmd.none) 
+    NotLoggedIn -> (model, signsOut ())
+    LoggingIn -> (model, Cmd.none)
     LoggedIn result ->
       case result of
         Ok userData -> cb userData
