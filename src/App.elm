@@ -19,13 +19,10 @@ init config url navKey =
       navKey = navKey,
       url = url,
       appConfig = config,
-      bookmarks = [],
-      newBookmark = emptyBookmark (),
-      fetchedWebPageTitle = Nothing,
       newLogin = emptyLogin (),
+      newBookmark = emptyBookmark (),
       logInStatus = NotLoggedIn,
-      logInError = Nothing,
-      currentUser = Nothing
+      titleFetchingStatus = TitleNotFetched
     },
     Cmd.none
   )
@@ -36,58 +33,73 @@ init config url navKey =
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-  case msg of
-    UpdatesLoginEmail email ->
-      let updated = model.newLogin |> setEmail email
-      in ({ model | newLogin = updated }, Cmd.none)
-    UpdatesLoginPassword password ->
-      let updated = model.newLogin |> setPassword password
-      in ({ model | newLogin = updated }, Cmd.none)
+  let 
+    authenticateAsUser = authenticate model
+  in 
+    case msg of
+      UpdatesLoginEmail email ->
+        let updated = model.newLogin |> setEmail email
+        in ({ model | newLogin = updated }, Cmd.none)
+      UpdatesLoginPassword password ->
+        let updated = model.newLogin |> setPassword password
+        in ({ model | newLogin = updated }, Cmd.none)
 
-    StartsLoggingIn ->
-      ({ model | logInStatus = LoggingIn }, startLoggingIn model.newLogin)
-    SignsOut ->
-      (model, signsOut ())
-    SignedOut _ ->
-      ({ model | currentUser = Nothing }, Cmd.none)
-    SucceedsInLoggingIn user ->
-      ({ model | logInStatus = LogInSucceeded, currentUser = Just user }, Cmd.none)
-    FailsLoggingIn err ->
-      ({ model | logInStatus = LogInFailed, logInError = Just err }, Cmd.none)
+      StartsLoggingIn ->
+        ({ model | logInStatus = LoggingIn }, startLoggingIn model.newLogin)
+      SucceedsInLoggingIn userData ->
+        ({ model | logInStatus = LoggedIn (Result.Ok userData) }, Cmd.none)
+      FailsLoggingIn err ->
+        ({ model | logInStatus = LoggedIn (Result.Err err) }, Cmd.none)
+      SignsOut ->
+        (model, signsOut ())
+      SignedOut _ ->
+        ({ model | logInStatus = NotLoggedIn }, Cmd.none)
 
-    UpdateNewBookmarkUrl url ->
-      let updated = model.newBookmark |> setUrl url
-      in ({ model | newBookmark = updated }, Cmd.none)
-    UpdateNewBookmarkTitle title ->
-      let updated = model.newBookmark |> setTitle title
-      in ({ model | newBookmark = updated }, Cmd.none)
-    UpdateNewBookmarkDescription desc ->
-      let updated = model.newBookmark |> setDescription desc
-      in ({ model | newBookmark = updated }, Cmd.none)
-    CreatesNewbookmark->
-      case model.currentUser of
-        Just user ->
-          (model, createsNewBookmark (model.newBookmark, user))
-        Nothing ->
-          (model, signsOut ())
+      UpdateNewBookmarkUrl url ->
+        let updated = model.newBookmark |> setUrl url
+        in ({ model | newBookmark = updated }, Cmd.none)
+      UpdateNewBookmarkTitle title ->
+        let updated = model.newBookmark |> setTitle title
+        in ({ model | newBookmark = updated }, Cmd.none)
+      UpdateNewBookmarkDescription desc ->
+        let updated = model.newBookmark |> setDescription desc
+        in ({ model | newBookmark = updated }, Cmd.none)
+      CreatesNewbookmark->
+        authenticateAsUser (\userData ->
+          (model, createsNewBookmark (model.newBookmark, userData.currentUser))
+        )
 
-    StartFetchingWebPageTitle ->
-      (model, fetchWebPageTitle model.appConfig.functionUrl model.newBookmark.url)
-    WebPageTitleFetched result ->
+      StartFetchingWebPageTitle ->
+        (model, fetchWebPageTitle model.appConfig.functionUrl model.newBookmark.url)
+      WebPageTitleFetched result ->
+        let 
+          r = 
+            Result.mapError (\err ->
+              case err of
+                Http.BadBody errMsg -> TitleFetchingError errMsg
+                _ -> TitleFetchingError "Unexpected error"
+            ) result
+        in 
+          ({ model | titleFetchingStatus = TitleFetched r }, Cmd.none)
+
+      LinkClicked urlRequest ->
+        case urlRequest of
+          Browser.Internal url ->
+            (model, Nav.pushUrl model.navKey (Url.toString url))
+          Browser.External href ->
+            (model, Nav.load href)
+      UrlChanged url ->
+        ({ model | url = url}, Cmd.none)
+
+authenticate : Model -> (UserData -> (Model, Cmd Msg)) -> (Model, Cmd Msg)
+authenticate model cb =
+  case model.logInStatus of
+    NotLoggedIn -> (model, signsOut ()) 
+    LoggingIn -> (model, Cmd.none) 
+    LoggedIn result ->
       case result of
-        Ok titles ->
-          ({ model | fetchedWebPageTitle = List.head ( List.map (\x -> x.text) titles ) }, Cmd.none)
-        Err err ->
-          (model, Cmd.none)
-
-    LinkClicked urlRequest ->
-      case urlRequest of
-        Browser.Internal url ->
-          (model, Nav.pushUrl model.navKey (Url.toString url))
-        Browser.External href ->
-          (model, Nav.load href)
-    UrlChanged url ->
-      ({ model | url = url}, Cmd.none)
+        Ok userData -> cb userData
+        Err err -> ({ model | logInStatus = LoggedIn (Result.Err err) }, Cmd.none)
 
 
 -- HTTP
@@ -97,18 +109,8 @@ fetchWebPageTitle : String -> String -> Cmd Msg
 fetchWebPageTitle functionUrl targetUrl =
   Http.get {
     url = interpolate "{0}?url={1}" [functionUrl, targetUrl],
-    expect = Http.expectJson WebPageTitleFetched webPageFetchingDecoder
+    expect = Http.expectString WebPageTitleFetched
   }
-
-resultDecoder : Decode.Decoder ScrapingResult
-resultDecoder =
-  Decode.map2 ScrapingResult
-    (field "text" string)
-    (field "html" string)
-
-webPageFetchingDecoder : Decode.Decoder (List ScrapingResult)
-webPageFetchingDecoder =
-  Decode.list resultDecoder
 
 
 -- Subscription

@@ -9,40 +9,15 @@ type alias Model =
     navKey: Nav.Key,
     url: Url.Url,
     appConfig: AppConfig,
-    bookmarks: List Bookmark,
-    newBookmark: Bookmark,
-    fetchedWebPageTitle: Maybe String,
     newLogin: LoginForm,
+    newBookmark: Bookmark,
     logInStatus: LoginStatus,
-    logInError: Maybe LoginError,
-    currentUser: Maybe User
+    titleFetchingStatus: TitleFetchingStatus
   }
 
 type alias AppConfig =
   {
     functionUrl: String
-  }
-
-
-type alias Bookmark =
-  {
-    url: String,
-    title: String,
-    description: String
-  }
-
-emptyBookmark _ = { url = "", title = "", description = "" }
-
-setUrl v bookmark = { bookmark | url = v }
-
-setTitle v bookmark = { bookmark | title = v }
-
-setDescription v bookmark = { bookmark | description = v }
-
-
-type alias BookmarkError =
-  {
-    message: String
   }
 
 
@@ -67,7 +42,16 @@ type alias LoginError =
 
 
 type LoginStatus
-  = NotLoggedIn | LoggingIn | LogInSucceeded | LogInFailed
+  = NotLoggedIn
+    | LoggingIn
+    | LoggedIn (Result LoginError UserData)
+
+
+type alias UserData =
+  {
+    bookmarks: List Bookmark,
+    currentUser: User
+  }
 
 
 type alias User =
@@ -78,8 +62,33 @@ type alias User =
   }
 
 
-type alias ScrapingResult =
+type alias NewBookmarkError =
   {
-    text: String,
-    html: String
+    message: String
   }
+
+type alias Bookmark =
+  {
+    url: String,
+    title: String,
+    description: String
+  }
+
+emptyBookmark _ = { url = "", title = "", description = "" }
+
+setUrl v bookmark = { bookmark | url = v }
+
+setTitle v bookmark = { bookmark | title = v }
+
+setDescription v bookmark = { bookmark | description = v }
+
+
+type TitleFetchingStatus
+  = TitleNotFetched
+    | TitleFetching
+    | TitleFetched (Result TitleFetchingError String)
+
+type TitleFetchingError = TitleFetchingError String
+
+unwrapTitleFetchingError : TitleFetchingError -> String
+unwrapTitleFetchingError (TitleFetchingError msg) = msg

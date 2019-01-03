@@ -11,7 +11,7 @@ type Msg =
   UpdatesLoginEmail String
   | UpdatesLoginPassword String
   | StartsLoggingIn
-  | SucceedsInLoggingIn User
+  | SucceedsInLoggingIn UserData
   | FailsLoggingIn LoginError
   | SignsOut
   | SignedOut ()
@@ -20,6 +20,6 @@ type Msg =
   | UpdateNewBookmarkDescription String
   | CreatesNewbookmark
   | StartFetchingWebPageTitle
-  | WebPageTitleFetched (Result Http.Error (List ScrapingResult))
+  | WebPageTitleFetched (Result Http.Error String)
   | LinkClicked Browser.UrlRequest
   | UrlChanged Url.Url

@@ -15,9 +15,9 @@ port createsNewBookmark : (Bookmark, User) -> Cmd msg
 
 port creatingNewBookmarkSucceeded : (Bookmark -> msg) -> Sub msg
 
-port creatinNewBookmarkFailed : (BookmarkError -> msg) -> Sub msg
+port creatinNewBookmarkFailed : (NewBookmarkError -> msg) -> Sub msg
 
-port logInSucceeded : (User -> msg) -> Sub msg
+port logInSucceeded : (UserData -> msg) -> Sub msg
 
 port logInFailed : (LoginError -> msg) -> Sub msg
 

@@ -10,7 +10,6 @@ import Browser
 
 
 -- View
--- TODO: ログインエラーを表示する
 
 
 view : Model -> Browser.Document Msg
@@ -18,22 +17,31 @@ view model =
   {
     title = "This is title",
     body =
-      case model.currentUser of
-        Just user ->
-          [homeView user model.fetchedWebPageTitle]
-        Nothing ->
-          [loginView model]
+      case model.logInStatus of
+        NotLoggedIn -> [loginView model]
+        LoggingIn -> [loginView model]
+        LoggedIn result -> 
+          case result of 
+            Ok userData -> [homeView userData model]
+            Err err -> [loginView model]
   }
 
-homeView : User -> Maybe String -> Html Msg
-homeView user fetchedWebPageTitle =
+homeView : UserData -> Model -> Html Msg
+homeView userData model =
   let
-    fetchedTitle = case fetchedWebPageTitle of
-      Just title -> title
-      Nothing -> "n/a"
+    fetchedTitle = 
+      case model.titleFetchingStatus of 
+        TitleNotFetched -> "n/a"
+        TitleFetching -> "Fetching..."
+        TitleFetched result ->
+          case result of
+            Ok title -> title
+            Err err -> String.append "Error: " (unwrapTitleFetchingError err)
+
+    currentUser = userData.currentUser
   in
     div [] [
-      div [] [text (String.append "Current user: " user.email)],
+      div [] [text (String.append "Current user: " currentUser.email)],
       div [] [button [onClick SignsOut] [text "sign out"]],
 
       p [] [text "Fetch webpage title"],
@@ -71,6 +79,7 @@ homeView user fetchedWebPageTitle =
       -- div [] [text (interpolate "Title: {0}" [fetchedTitle])]
     ]
 
+-- TODO: ログインエラーの文言を表示する
 loginView : Model -> Html Msg
 loginView model =
   Html.form [onSubmitWithPrevented StartsLoggingIn] [
