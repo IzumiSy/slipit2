@@ -9,8 +9,13 @@
     "logs": "firebase functions:log"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "firebase-admin": "~6.0.0",
-    "firebase-functions": "^2.1.0"
+    "firebase-functions": "^2.1.0",
+    "http-status-code": "^2.1.0",
+    "jsdom": "^13.1.0",
+    "request": "^2.88.0",
+    "valid-url": "^1.0.9"
   },
   "private": true
 }
