@@ -1,4 +1,4 @@
-const HttpStatus = require('http-status-code')
+const HttpStatus = require('http-status-codes')
 const { JSDOM } = require('jsdom')
 const functions = require('firebase-functions');
 const urlValidator = require('valid-url')
