@@ -70,17 +70,24 @@ update msg model =
         )
 
       StartFetchingWebPageTitle ->
-        (model, fetchWebPageTitle model.appConfig.functionUrl model.newBookmark.url)
+        ({ model | titleFetchingStatus = TitleFetching }, fetchWebPageTitle model.appConfig.functionUrl model.newBookmark.url)
       WebPageTitleFetched result ->
         let
-          r =
+          mappedResult =
             Result.mapError (\err ->
               case err of
                 Http.BadBody errMsg -> TitleFetchingError errMsg
                 _ -> TitleFetchingError "Unexpected error"
             ) result
+
+          title =
+            case mappedResult of
+              Ok text -> text
+              _ -> model.newBookmark.title
+
+          updated = model.newBookmark |> setTitle title
         in
-          ({ model | titleFetchingStatus = TitleFetched r }, Cmd.none)
+          ({ model | newBookmark = updated, titleFetchingStatus = TitleFetched mappedResult }, Cmd.none)
 
       LinkClicked urlRequest ->
         case urlRequest of

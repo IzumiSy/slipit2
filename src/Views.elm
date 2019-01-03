@@ -29,14 +29,18 @@ view model =
 homeView : UserData -> Model -> Html Msg
 homeView userData model =
   let
-    fetchedTitle =
+    titleFetchingErrorM =
       case model.titleFetchingStatus of
-        TitleNotFetched -> "n/a"
-        TitleFetching -> "Fetching..."
         TitleFetched result ->
           case result of
-            Ok title -> title
-            Err err -> String.append "Error: " (unwrapTitleFetchingError err)
+            Err err -> Just (String.append "Error: " (unwrapTitleFetchingError err))
+            _ -> Nothing
+        _ -> Nothing
+
+    fetchButtonText =
+      case model.titleFetchingStatus of
+        TitleFetching -> "Fetching..."
+        _ -> "Fetch"
 
     currentUser = userData.currentUser
   in
@@ -44,35 +48,33 @@ homeView userData model =
       div [] [text (String.append "Current user: " currentUser.email)],
       div [] [button [onClick SignsOut] [text "sign out"]],
 
-      p [] [text "Fetch webpage title"],
-      div [] [
-        Html.form [onSubmitWithPrevented StartFetchingWebPageTitle] [
-          div [] [
-            label [] [
-              text "url:",
-              input [placeholder "Url to bookmark", onInput UpdateNewBookmarkUrl] []
-            ]
-          ],
-          div [] [button [] [text "fetch"]]
-        ]
-      ],
-
       p [] [text "New bookmark"],
       div [] [
         Html.form [onSubmitWithPrevented CreatesNewbookmark] [
           div [] [
             label [] [
+              text "url:",
+              input [placeholder "Url to bookmark", required True, value model.newBookmark.url, onInput UpdateNewBookmarkUrl] []
+            ]
+          ],
+          div [] [
+            label [] [
               text "title:",
-              input [placeholder "Title", onInput UpdateNewBookmarkTitle] []
+              input [placeholder "Title", value model.newBookmark.title, onInput UpdateNewBookmarkTitle] []
             ]
           ],
           div [] [
             label [] [
               text "description:",
-              input [placeholder "Description", onInput UpdateNewBookmarkDescription] []
+              input [placeholder "Description", value model.newBookmark.description, onInput UpdateNewBookmarkDescription] []
             ]
           ],
-          div [] [button [] [text "create"]]
+          div [] [
+            div [] [
+              button [type_ "button", onClick StartFetchingWebPageTitle] [text fetchButtonText]
+            ],
+            div [] [button [type_ "submit"] [text "create"]]
+          ]
         ]
       ]
 
@@ -92,13 +94,13 @@ loginView model =
       div [] [
         label [] [
           text "email:",
-          input [type_ "email", placeholder "Your email", value model.newLogin.email, onInput UpdatesLoginEmail] []
+          input [type_ "email", placeholder "Your email", required True, value model.newLogin.email, onInput UpdatesLoginEmail] []
         ]
       ],
       div [] [
         label [] [
           text "password:",
-          input [type_ "password", placeholder "Your password", value model.newLogin.password, onInput UpdatesLoginPassword] []
+          input [type_ "password", placeholder "Your password", required True, value model.newLogin.password, onInput UpdatesLoginPassword] []
         ]
       ],
       div [] [button [disabled loggingIn] [text (if loggingIn then "logging in..." else "login")]]
