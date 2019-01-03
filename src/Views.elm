@@ -36,12 +36,10 @@ homeView userData model =
             Err err -> Just (String.append "Error: " (unwrapTitleFetchingError err))
             _ -> Nothing
         _ -> Nothing
-
     fetchButtonText =
       case model.titleFetchingStatus of
         TitleFetching -> "Fetching..."
         _ -> "Fetch"
-
     currentUser = userData.currentUser
   in
     div [] [

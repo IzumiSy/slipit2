@@ -79,12 +79,10 @@ update msg model =
                 Http.BadBody errMsg -> TitleFetchingError errMsg
                 _ -> TitleFetchingError "Unexpected error"
             ) result
-
           title =
             case mappedResult of
               Ok text -> text
               _ -> model.newBookmark.title
-
           updated = model.newBookmark |> setTitle title
         in
           ({ model | newBookmark = updated, titleFetchingStatus = TitleFetched mappedResult }, Cmd.none)
