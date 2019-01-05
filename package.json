@@ -11,6 +11,8 @@
     "parcel-bundler": "^1.11.0"
   },
   "dependencies": {
-    "firebase": "^5.7.1"
+    "firebase": "^5.7.1",
+    "jquery": "^3.3.1",
+    "semantic-ui-css": "^2.4.1"
   }
 }

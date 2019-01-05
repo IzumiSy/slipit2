@@ -2,6 +2,9 @@ const firebase = require('firebase/app')
 const { Elm } = require("./src/App.elm")
 require('firebase/auth')
 require('firebase/firestore')
+window.jQuery = require('jquery')
+require('semantic-ui-css/semantic.min.css')
+require('semantic-ui-css/semantic.min.js')
 require('./index.css')
 
 firebase.initializeApp({

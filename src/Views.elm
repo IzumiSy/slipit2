@@ -87,33 +87,60 @@ homeView userData =
 
 loadingView : Html Msg
 loadingView =
-  div [] [
-    text "logging in..."
+  div [class "ui full height stackable grid"] [
+    div [class "three column row"] [
+      div [class "column"] [],
+      div [class "column"] [
+        div [class "ui active text loader"] [
+          text "Loading..."
+        ]
+      ],
+      div [class "column"] []
+    ]
   ]
 
--- TODO: ログインエラーの文言を表示する
 loginView : LogInForm -> Html Msg
 loginView form =
-  Html.form [onSubmitWithPrevented StartsLoggingIn] [
-    div [] [
-      label [] [
-        text "email:",
-        input [type_ "email", placeholder "Your email", required True, value form.email, onInput UpdatesLoginEmail] []
-      ]
-    ],
-    div [] [
-      label [] [
-        text "password:",
-        input [type_ "password", placeholder "Your password", required True, value form.password, onInput UpdatesLoginPassword] []
-      ]
-    ],
-    div [] [
-      button [] [text "login"]
-    ],
-
-    div [] [
-      p [class "error"] [
-        text (Maybe.withDefault "" (Maybe.map (\err -> err.message) form.error))
+  div [class "login ui full height middle aligned center aligned grid"] [
+    div [class "column"] [
+      h2 [class "ui teal image header"] [
+        div [class "content"] [
+          text "Log in to Slip.it"
+        ] 
+      ],
+      Html.form [onSubmitWithPrevented StartsLoggingIn, class "ui large warning form"] [
+        div [class "ui stackable grid"] [
+          div [class "three column row"] [
+            div [class "column"] [],
+            div [class "column"] [
+              div [class "ui segment"] [
+                Maybe.withDefault (div [] []) (
+                  Maybe.map (\err -> 
+                    div [class "ui warning message"] [
+                      div [class "header"] [
+                        div [] [text err.message]
+                      ]
+                    ]
+                  ) form.error
+                ),
+                div [class "field"] [
+                  div [class "ui left icon input"] [
+                    i [class "user icon"] [],
+                    input [type_ "email", placeholder "Your email", required True, value form.email, onInput UpdatesLoginEmail] []
+                  ]
+                ],
+                div [class "field"] [
+                  div [class "ui left icon input"] [
+                    i [class "lock icon"] [],
+                    input [type_ "password", placeholder "Your password", required True, value form.password, onInput UpdatesLoginPassword] []
+                  ]
+                ],
+                button [class "ui fluid large teal submit button"] [text "login"]
+              ]
+            ],
+            div [class "column"] []
+          ]
+        ]
       ]
     ]
   ]
