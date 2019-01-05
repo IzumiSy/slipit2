@@ -47,8 +47,17 @@ homeView userData =
       div [] [text (String.append "Current user: " currentUser.email)],
       div [] [button [onClick SignsOut] [text "sign out"]],
 
-      p [] [text "New bookmark"],
       div [] [
+        p [] [text "Your bookmarks"],
+        ul [] (
+          List.map (\bookmark ->
+            li [] [text bookmark.title] 
+          ) userData.bookmarks 
+        )
+      ],
+
+      div [] [
+        p [] [text "New bookmark"],
         Html.form [onSubmitWithPrevented CreatesNewbookmark] [
           div [] [
             label [] [
