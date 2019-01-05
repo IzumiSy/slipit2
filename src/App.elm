@@ -124,9 +124,7 @@ update msg model =
       UrlChanged url ->
         ({ model | url = url}, Cmd.none)
 
-type alias Authenticator = Model -> (UserData -> (Model, Cmd Msg)) -> (Model, Cmd Msg)
-
-authenticater: Authenticator
+authenticater: Model -> (UserData -> (Model, Cmd Msg)) -> (Model, Cmd Msg)
 authenticater model cb =
   case model.logInStatus of
     NotLoggedIn _ -> (model, signsOut ())
