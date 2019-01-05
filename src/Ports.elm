@@ -23,7 +23,7 @@ port fetchingBookmarksSucceeded : (List Bookmark -> msg) -> Sub msg
 
 port fetchingBookmarksFailed : (BookmarksFetchingError -> msg) -> Sub msg 
 
-port logInSucceeded : (UserData -> msg) -> Sub msg
+port logInSucceeded : (InitialUserData -> msg) -> Sub msg
 
 port logInFailed : (LoginError -> msg) -> Sub msg
 

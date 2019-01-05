@@ -47,7 +47,7 @@ firebase.auth().onAuthStateChanged((fbUser) => {
           displayName: fbUser.displayName
         }
       }
-      console.info("currentUser:", userData)
+      console.info('currentUser:', userData)
       app.ports.logInSucceeded.send(userData)
     })
     .catch(err => {

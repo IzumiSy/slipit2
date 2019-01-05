@@ -11,7 +11,7 @@ type Msg =
   UpdatesLoginEmail String
   | UpdatesLoginPassword String
   | StartsLoggingIn
-  | SucceedsInLoggingIn UserData
+  | SucceedsInLoggingIn InitialUserData
   | FailsLoggingIn LoginError
   | SignsOut
   | SignedOut ()

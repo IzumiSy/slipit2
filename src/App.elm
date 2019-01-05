@@ -19,9 +19,7 @@ init config url navKey =
       navKey = navKey,
       url = url,
       appConfig = config,
-      newBookmark = emptyBookmark (),
-      logInStatus = LoggingIn,
-      titleFetchingStatus = TitleNotFetched
+      logInStatus = LoggingIn
     },
     Cmd.none
   )
@@ -46,8 +44,8 @@ update msg model =
           NotLoggedIn form -> 
             ({ model | logInStatus = LoggingIn }, startLoggingIn form)
           _ -> (model, Cmd.none)
-      SucceedsInLoggingIn userData ->
-        ({ model | logInStatus = LoggedIn (Result.Ok userData) }, Cmd.none)
+      SucceedsInLoggingIn initialUserData ->
+          ({ model | logInStatus = LoggedIn (Result.Ok (fromInitialUserData initialUserData)) }, Cmd.none)
       FailsLoggingIn err ->
         ({ model | logInStatus = LoggedIn (Result.Err err) }, Cmd.none)
       SignsOut ->
@@ -56,18 +54,30 @@ update msg model =
         ({ model | logInStatus = NotLoggedIn (emptyLogin ()) }, Cmd.none)
 
       UpdateNewBookmarkUrl url ->
-        let updated = model.newBookmark |> setUrl url
-        in ({ model | newBookmark = updated }, Cmd.none)
+        updateUserData model (\userData ->
+          let 
+            updated = userData.newBookmark |> setUrl url
+          in 
+            ({ userData | newBookmark = updated }, Cmd.none)
+        )
       UpdateNewBookmarkTitle title ->
-        let updated = model.newBookmark |> setTitle title
-        in ({ model | newBookmark = updated }, Cmd.none)
+        updateUserData model (\userData ->
+          let 
+            updated = userData.newBookmark |> setTitle title
+          in 
+            ({ userData | newBookmark = updated }, Cmd.none)
+        )
       UpdateNewBookmarkDescription desc ->
-        let updated = model.newBookmark |> setDescription desc
-        in ({ model | newBookmark = updated }, Cmd.none)
+        updateUserData model (\userData ->
+          let 
+            updated = userData.newBookmark |> setDescription desc
+          in 
+            ({ userData | newBookmark = updated }, Cmd.none)
+        )
 
       CreatesNewbookmark ->
         fetchUserData (\userData ->
-          (model, createsNewBookmark (model.newBookmark, userData.currentUser))
+          (model, createsNewBookmark (userData.newBookmark, userData.currentUser))
         )
       CreatingNewBookmarkSucceeded _ ->
         fetchUserData (\userData ->
@@ -77,29 +87,31 @@ update msg model =
         (model, Cmd.none)
 
       FetchingBookmarksSucceeded bookmarks ->
-        updateUserData model (\userData ->
-          { userData | bookmarks = bookmarks } 
-        ) 
+        updateUserData model (\userData -> ({ userData | bookmarks = bookmarks }, Cmd.none)) 
       FetchingBookmarksFailed err ->
         (model, Cmd.none)
 
       StartFetchingWebPageTitle ->
-        ({ model | titleFetchingStatus = TitleFetching }, fetchWebPageTitle model.appConfig.functionUrl model.newBookmark.url)
+        updateUserData model (\userData ->
+          ({ userData | titleFetchingStatus = TitleFetching }, fetchWebPageTitle model.appConfig.functionUrl userData.newBookmark.url)
+        ) 
       WebPageTitleFetched result ->
-        let
-          mappedResult =
-            Result.mapError (\err ->
-              case err of
-                Http.BadBody errMsg -> TitleFetchingError errMsg
-                _ -> TitleFetchingError "Unexpected error"
-            ) result
-          title =
-            case mappedResult of
-              Ok text -> text
-              _ -> model.newBookmark.title
-          updated = model.newBookmark |> setTitle title
-        in
-          ({ model | newBookmark = updated, titleFetchingStatus = TitleFetched mappedResult }, Cmd.none)
+        updateUserData model (\userData ->
+          let
+            mappedResult =
+              Result.mapError (\err ->
+                case err of
+                  Http.BadBody errMsg -> TitleFetchingError errMsg
+                  _ -> TitleFetchingError "Unexpected error"
+              ) result
+            title =
+              case mappedResult of
+                Ok text -> text
+                _ -> userData.newBookmark.title
+            updated = userData.newBookmark |> setTitle title
+          in
+            ({ userData | newBookmark = updated, titleFetchingStatus = TitleFetched mappedResult }, Cmd.none)
+        )
 
       LinkClicked urlRequest ->
         case urlRequest of
@@ -120,13 +132,13 @@ authenticate model cb =
         Ok userData -> cb userData
         Err err -> ({ model | logInStatus = LoggedIn (Result.Err err) }, Cmd.none)
 
-updateUserData : Model -> (UserData -> UserData) -> (Model, Cmd Msg)
+updateUserData : Model -> (UserData -> (UserData, Cmd Msg)) -> (Model, Cmd Msg)
 updateUserData model updater =
   authenticate model (\userData -> 
     let
-      updatedUserData = updater userData
+      (updatedUserData, msg) = updater userData
     in
-      ({ model | logInStatus = LoggedIn (Ok updatedUserData) }, Cmd.none)
+      ({ model | logInStatus = LoggedIn (Ok updatedUserData) }, msg)
   ) 
 
 updateLoginForm : Model -> (LoginForm -> LoginForm) -> (Model, Cmd Msg)

@@ -23,22 +23,22 @@ view model =
         LoggedIn result ->
           case result of
             -- Errの場合ではここではなくUpdate側でログイン画面に戻るMsgを発行する
-            Ok userData -> [homeView userData model]
+            Ok userData -> [homeView userData]
             Err _ -> [loadingView]
   }
 
-homeView : UserData -> Model -> Html Msg
-homeView userData model =
+homeView : UserData -> Html Msg
+homeView userData =
   let
     titleFetchingErrorM =
-      case model.titleFetchingStatus of
+      case userData.titleFetchingStatus of
         TitleFetched result ->
           case result of
             Err err -> Just (String.append "Error: " (unwrapTitleFetchingError err))
             _ -> Nothing
         _ -> Nothing
     fetchButtonText =
-      case model.titleFetchingStatus of
+      case userData.titleFetchingStatus of
         TitleFetching -> "Fetching..."
         _ -> "Fetch"
     currentUser = userData.currentUser
@@ -53,19 +53,19 @@ homeView userData model =
           div [] [
             label [] [
               text "url:",
-              input [placeholder "Url to bookmark", required True, value model.newBookmark.url, onInput UpdateNewBookmarkUrl] []
+              input [placeholder "Url to bookmark", required True, value userData.newBookmark.url, onInput UpdateNewBookmarkUrl] []
             ]
           ],
           div [] [
             label [] [
               text "title:",
-              input [placeholder "Title", value model.newBookmark.title, onInput UpdateNewBookmarkTitle] []
+              input [placeholder "Title", value userData.newBookmark.title, onInput UpdateNewBookmarkTitle] []
             ]
           ],
           div [] [
             label [] [
               text "description:",
-              input [placeholder "Description", value model.newBookmark.description, onInput UpdateNewBookmarkDescription] []
+              input [placeholder "Description", value userData.newBookmark.description, onInput UpdateNewBookmarkDescription] []
             ]
           ],
           div [] [

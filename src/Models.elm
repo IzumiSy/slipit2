@@ -9,9 +9,7 @@ type alias Model =
     navKey: Nav.Key,
     url: Url.Url,
     appConfig: AppConfig,
-    newBookmark: Bookmark,
-    logInStatus: LoginStatus,
-    titleFetchingStatus: TitleFetchingStatus
+    logInStatus: LoginStatus
   }
 
 type alias AppConfig =
@@ -42,10 +40,27 @@ type LoginStatus
     | LoggedIn (Result LoginError UserData)
 
 
-type alias UserData =
+type alias InitialUserData =
   {
     bookmarks: List Bookmark,
     currentUser: User
+  }
+
+type alias UserData =
+  {
+    newBookmark: Bookmark,
+    bookmarks: List Bookmark,
+    currentUser: User,
+    titleFetchingStatus: TitleFetchingStatus
+  }
+
+fromInitialUserData : InitialUserData -> UserData
+fromInitialUserData initialUserData =
+  {
+    newBookmark = emptyBookmark (),
+    bookmarks = initialUserData.bookmarks,
+    currentUser = initialUserData.currentUser,
+    titleFetchingStatus = TitleNotFetched
   }
 
 
