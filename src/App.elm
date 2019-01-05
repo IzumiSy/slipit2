@@ -31,13 +31,15 @@ init config url navKey =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   let
-    fetchUserData = authenticate model
+    fetchUserData = authenticater model
+    updateUserData = userDataUpdater model
+    updateLoginForm = loginFormUpdater model
   in
     case msg of
       UpdatesLoginEmail email ->
-        updateLoginForm model (\form -> { form | email = email })
+        updateLoginForm (\form -> { form | email = email })
       UpdatesLoginPassword password ->
-        updateLoginForm model (\form -> { form | password = password })
+        updateLoginForm (\form -> { form | password = password })
 
       StartsLoggingIn ->
         case model.logInStatus of
@@ -54,21 +56,21 @@ update msg model =
         ({ model | logInStatus = NotLoggedIn (emptyLogin ()) }, Cmd.none)
 
       UpdateNewBookmarkUrl url ->
-        updateUserData model (\userData ->
+        updateUserData (\userData ->
           let 
             updated = userData.newBookmark |> setUrl url
           in 
             ({ userData | newBookmark = updated }, Cmd.none)
         )
       UpdateNewBookmarkTitle title ->
-        updateUserData model (\userData ->
+        updateUserData (\userData ->
           let 
             updated = userData.newBookmark |> setTitle title
           in 
             ({ userData | newBookmark = updated }, Cmd.none)
         )
       UpdateNewBookmarkDescription desc ->
-        updateUserData model (\userData ->
+        updateUserData (\userData ->
           let 
             updated = userData.newBookmark |> setDescription desc
           in 
@@ -87,16 +89,16 @@ update msg model =
         (model, Cmd.none)
 
       FetchingBookmarksSucceeded bookmarks ->
-        updateUserData model (\userData -> ({ userData | bookmarks = bookmarks }, Cmd.none)) 
+        updateUserData (\userData -> ({ userData | bookmarks = bookmarks }, Cmd.none)) 
       FetchingBookmarksFailed err ->
         (model, Cmd.none)
 
       StartFetchingWebPageTitle ->
-        updateUserData model (\userData ->
+        updateUserData (\userData ->
           ({ userData | titleFetchingStatus = TitleFetching }, fetchWebPageTitle model.appConfig.functionUrl userData.newBookmark.url)
         ) 
       WebPageTitleFetched result ->
-        updateUserData model (\userData ->
+        updateUserData (\userData ->
           let
             mappedResult =
               Result.mapError (\err ->
@@ -122,8 +124,10 @@ update msg model =
       UrlChanged url ->
         ({ model | url = url}, Cmd.none)
 
-authenticate : Model -> (UserData -> (Model, Cmd Msg)) -> (Model, Cmd Msg)
-authenticate model cb =
+type alias Authenticator = Model -> (UserData -> (Model, Cmd Msg)) -> (Model, Cmd Msg)
+
+authenticater: Authenticator
+authenticater model cb =
   case model.logInStatus of
     NotLoggedIn _ -> (model, signsOut ())
     LoggingIn -> (model, Cmd.none)
@@ -132,17 +136,17 @@ authenticate model cb =
         Ok userData -> cb userData
         Err err -> ({ model | logInStatus = LoggedIn (Result.Err err) }, Cmd.none)
 
-updateUserData : Model -> (UserData -> (UserData, Cmd Msg)) -> (Model, Cmd Msg)
-updateUserData model updater =
-  authenticate model (\userData -> 
+userDataUpdater : Model -> (UserData -> (UserData, Cmd Msg)) -> (Model, Cmd Msg)
+userDataUpdater model updater =
+  authenticater model (\userData -> 
     let
       (updatedUserData, msg) = updater userData
     in
       ({ model | logInStatus = LoggedIn (Ok updatedUserData) }, msg)
   ) 
 
-updateLoginForm : Model -> (LoginForm -> LoginForm) -> (Model, Cmd Msg)
-updateLoginForm model updater =
+loginFormUpdater : Model -> (LoginForm -> LoginForm) -> (Model, Cmd Msg)
+loginFormUpdater model updater =
   case model.logInStatus of 
     NotLoggedIn form -> ({ model | logInStatus = NotLoggedIn (updater form)}, Cmd.none)
     _ -> (model, Cmd.none)
