@@ -19,9 +19,8 @@ init config url navKey =
       navKey = navKey,
       url = url,
       appConfig = config,
-      newLogin = emptyLogin (),
       newBookmark = emptyBookmark (),
-      logInStatus = NotLoggedIn,
+      logInStatus = LoggingIn,
       titleFetchingStatus = TitleNotFetched
     },
     Cmd.none
@@ -38,14 +37,15 @@ update msg model =
   in
     case msg of
       UpdatesLoginEmail email ->
-        let updated = model.newLogin |> setEmail email
-        in ({ model | newLogin = updated }, Cmd.none)
+        updateLoginForm model (\form -> { form | email = email })
       UpdatesLoginPassword password ->
-        let updated = model.newLogin |> setPassword password
-        in ({ model | newLogin = updated }, Cmd.none)
+        updateLoginForm model (\form -> { form | password = password })
 
       StartsLoggingIn ->
-        ({ model | logInStatus = LoggingIn }, startLoggingIn model.newLogin)
+        case model.logInStatus of
+          NotLoggedIn form -> 
+            ({ model | logInStatus = LoggingIn }, startLoggingIn form)
+          _ -> (model, Cmd.none)
       SucceedsInLoggingIn userData ->
         ({ model | logInStatus = LoggedIn (Result.Ok userData) }, Cmd.none)
       FailsLoggingIn err ->
@@ -53,7 +53,7 @@ update msg model =
       SignsOut ->
         (model, signsOut ())
       SignedOut _ ->
-        ({ model | logInStatus = NotLoggedIn }, Cmd.none)
+        ({ model | logInStatus = NotLoggedIn (emptyLogin ()) }, Cmd.none)
 
       UpdateNewBookmarkUrl url ->
         let updated = model.newBookmark |> setUrl url
@@ -113,7 +113,7 @@ update msg model =
 authenticate : Model -> (UserData -> (Model, Cmd Msg)) -> (Model, Cmd Msg)
 authenticate model cb =
   case model.logInStatus of
-    NotLoggedIn -> (model, signsOut ())
+    NotLoggedIn _ -> (model, signsOut ())
     LoggingIn -> (model, Cmd.none)
     LoggedIn result ->
       case result of
@@ -128,6 +128,12 @@ updateUserData model updater =
     in
       ({ model | logInStatus = LoggedIn (Ok updatedUserData) }, Cmd.none)
   ) 
+
+updateLoginForm : Model -> (LoginForm -> LoginForm) -> (Model, Cmd Msg)
+updateLoginForm model updater =
+  case model.logInStatus of 
+    NotLoggedIn form -> ({ model | logInStatus = NotLoggedIn (updater form)}, Cmd.none)
+    _ -> (model, Cmd.none)
 
 
 -- HTTP

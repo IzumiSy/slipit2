@@ -9,7 +9,6 @@ type alias Model =
     navKey: Nav.Key,
     url: Url.Url,
     appConfig: AppConfig,
-    newLogin: LoginForm,
     newBookmark: Bookmark,
     logInStatus: LoginStatus,
     titleFetchingStatus: TitleFetchingStatus
@@ -29,10 +28,6 @@ type alias LoginForm =
 
 emptyLogin _ = { email = "", password = "" }
 
-setEmail v login = { login | email = v }
-
-setPassword v login = { login | password = v }
-
 
 type alias LoginError =
   {
@@ -42,7 +37,7 @@ type alias LoginError =
 
 
 type LoginStatus
-  = NotLoggedIn
+  = NotLoggedIn LoginForm
     | LoggingIn
     | LoggedIn (Result LoginError UserData)
 

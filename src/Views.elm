@@ -18,12 +18,13 @@ view model =
     title = "This is title",
     body =
       case model.logInStatus of
-        NotLoggedIn -> [loginView model]
-        LoggingIn -> [loginView model]
+        NotLoggedIn form -> [loginView form]
+        LoggingIn -> [loadingView]
         LoggedIn result ->
           case result of
+            -- Errの場合ではここではなくUpdate側でログイン画面に戻るMsgを発行する
             Ok userData -> [homeView userData model]
-            Err err -> [loginView model]
+            Err _ -> [loadingView]
   }
 
 homeView : UserData -> Model -> Html Msg
@@ -79,30 +80,30 @@ homeView userData model =
       -- div [] [text (interpolate "Title: {0}" [fetchedTitle])]
     ]
 
+loadingView : Html Msg
+loadingView =
+  div [] [
+    text "logging in..."
+  ]
+
 -- TODO: ログインエラーの文言を表示する
-loginView : Model -> Html Msg
-loginView model =
-  let
-    loggingIn =
-      case model.logInStatus of
-        LoggingIn -> True
-        _ -> False
-  in
-    Html.form [onSubmitWithPrevented StartsLoggingIn] [
-      div [] [
-        label [] [
-          text "email:",
-          input [type_ "email", placeholder "Your email", required True, value model.newLogin.email, onInput UpdatesLoginEmail] []
-        ]
-      ],
-      div [] [
-        label [] [
-          text "password:",
-          input [type_ "password", placeholder "Your password", required True, value model.newLogin.password, onInput UpdatesLoginPassword] []
-        ]
-      ],
-      div [] [button [disabled loggingIn] [text (if loggingIn then "logging in..." else "login")]]
-    ]
+loginView : LoginForm -> Html Msg
+loginView form =
+  Html.form [onSubmitWithPrevented StartsLoggingIn] [
+    div [] [
+      label [] [
+        text "email:",
+        input [type_ "email", placeholder "Your email", required True, value form.email, onInput UpdatesLoginEmail] []
+      ]
+    ],
+    div [] [
+      label [] [
+        text "password:",
+        input [type_ "password", placeholder "Your password", required True, value form.password, onInput UpdatesLoginPassword] []
+      ]
+    ],
+    div [] [button [] [text "login"]]
+  ]
 
 onSubmitWithPrevented msg =
     Html.Events.custom "submit" (Decode.succeed { message = msg, stopPropagation = True, preventDefault = True })
