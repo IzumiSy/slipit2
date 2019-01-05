@@ -34,7 +34,7 @@ init config url navKey =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   let
-    authenticateAsUser = authenticate model
+    fetchUserData = authenticate model
   in
     case msg of
       UpdatesLoginEmail email ->
@@ -64,10 +64,24 @@ update msg model =
       UpdateNewBookmarkDescription desc ->
         let updated = model.newBookmark |> setDescription desc
         in ({ model | newBookmark = updated }, Cmd.none)
-      CreatesNewbookmark->
-        authenticateAsUser (\userData ->
+
+      CreatesNewbookmark ->
+        fetchUserData (\userData ->
           (model, createsNewBookmark (model.newBookmark, userData.currentUser))
         )
+      CreatingNewBookmarkSucceeded _ ->
+        fetchUserData (\userData ->
+          (model, fetchesBookmarks userData.currentUser)
+        )
+      CreatingNewBookmarkFailed err ->
+        (model, Cmd.none)
+
+      FetchingBookmarksSucceeded bookmarks ->
+        updateUserData model (\userData ->
+          { userData | bookmarks = bookmarks } 
+        ) 
+      FetchingBookmarksFailed err ->
+        (model, Cmd.none)
 
       StartFetchingWebPageTitle ->
         ({ model | titleFetchingStatus = TitleFetching }, fetchWebPageTitle model.appConfig.functionUrl model.newBookmark.url)
@@ -106,6 +120,15 @@ authenticate model cb =
         Ok userData -> cb userData
         Err err -> ({ model | logInStatus = LoggedIn (Result.Err err) }, Cmd.none)
 
+updateUserData : Model -> (UserData -> UserData) -> (Model, Cmd Msg)
+updateUserData model updater =
+  authenticate model (\userData -> 
+    let
+      updatedUserData = updater userData
+    in
+      ({ model | logInStatus = LoggedIn (Ok updatedUserData) }, Cmd.none)
+  ) 
+
 
 -- HTTP
 
@@ -126,7 +149,11 @@ subscriptions model =
     Sub.batch [
       logInFailed FailsLoggingIn,
       logInSucceeded SucceedsInLoggingIn,
-      signedOut SignedOut
+      signedOut SignedOut,
+      creatingNewBookmarkSucceeded CreatingNewBookmarkSucceeded,
+      creatingNewBookmarkFailed CreatingNewBookmarkFailed,
+      fetchingBookmarksSucceeded FetchingBookmarksSucceeded,
+      fetchingBookmarksFailed FetchingBookmarksFailed
     ]
 
 

@@ -12,8 +12,8 @@ firebase.initializeApp({
   messagingSenderId: process.env.FB_MSG_SENDER_ID
 });
 
-const firestore = firebase.firestore();
-firestore.settings({
+const database = firebase.firestore();
+database.settings({
   timestampsInSnapshots: true
 })
 
@@ -24,22 +24,35 @@ const app = Elm.App.init({
   }
 });
 
-firebase.auth().onAuthStateChanged(fbUser => {
-  if (fbUser) {
-    const userData = {
-      bookmarks: [], // TODO: ここは取得するのをあとでつくる
-      currentUser: {
-        uid: fbUser.uid,
-        email: fbUser.email,
-        displayName: fbUser.displayName
-      }
-    }
+const fetchAllBookmarks = (userId) =>
+  database
+    .collection('users')
+    .doc(userId)
+    .collection('bookmarks')
+    .get()
 
-    console.info("currentUser:", userData)
-    app.ports.logInSucceeded.send(userData)
-  } else {
+firebase.auth().onAuthStateChanged((fbUser) => {
+  if (!fbUser) {
     app.ports.signedOut.send(null)
+    return
   }
+
+  fetchAllBookmarks(fbUser.uid)
+    .then(({ docs }) => {
+      const userData = {
+        bookmarks: docs.map(doc => doc.data()),
+        currentUser: {
+          uid: fbUser.uid,
+          email: fbUser.email,
+          displayName: fbUser.displayName
+        }
+      }
+      console.info("currentUser:", userData)
+      app.ports.logInSucceeded.send(userData)
+    })
+    .catch(err => {
+      // TODO: あとでつくる
+    })
 })
 
 app.ports.signsOut.subscribe(() => {
@@ -55,7 +68,30 @@ app.ports.startLoggingIn.subscribe(login => {
     })
 })
 
-// TODO: あとでつくる
-app.ports.createsNewBookmark.subscribe(newBookmark => {
-  console.log(newBookmark)
+app.ports.createsNewBookmark.subscribe(([newBookmark, currentUser]) => {
+  database
+    .collection('users')
+    .doc(currentUser.uid)
+    .collection('bookmarks')
+    .doc(newBookmark.url)
+    .set(newBookmark)
+    .then(_ => {
+      app.ports.creatingNewBookmarkSucceeded.send(newBookmark) 
+    })
+    .catch(fbError => {
+      console.warn(fbError)
+      app.ports.createNewBookmarkFailed.send({
+        message: "Failed create new bookmark"
+      })
+    })
+})
+
+app.ports.fetchesBookmarks.subscribe(currentUser => {
+  fetchAllBookmarks(currentUser.uid)
+    .then(({ docs }) => {
+      app.ports.fetchingBookmarksSucceeded.send(docs.map(doc => doc.data()))
+    }) 
+    .catch(err => {
+      // TODO: あとでつくる
+    })
 })

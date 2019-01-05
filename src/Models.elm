@@ -62,7 +62,12 @@ type alias User =
   }
 
 
-type alias NewBookmarkError =
+type alias BookmarkCreatingError =
+  {
+    message: String
+  }
+
+type alias BookmarksFetchingError =
   {
     message: String
   }

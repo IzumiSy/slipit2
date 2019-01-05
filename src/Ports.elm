@@ -11,11 +11,17 @@ port signsOut : () -> Cmd msg
 
 port createsNewBookmark : (Bookmark, User) -> Cmd msg
 
+port fetchesBookmarks : User -> Cmd msg
+
 -- Incomings
 
 port creatingNewBookmarkSucceeded : (Bookmark -> msg) -> Sub msg
 
-port creatinNewBookmarkFailed : (NewBookmarkError -> msg) -> Sub msg
+port creatingNewBookmarkFailed : (BookmarkCreatingError -> msg) -> Sub msg
+
+port fetchingBookmarksSucceeded : (List Bookmark -> msg) -> Sub msg
+
+port fetchingBookmarksFailed : (BookmarksFetchingError -> msg) -> Sub msg 
 
 port logInSucceeded : (UserData -> msg) -> Sub msg
 

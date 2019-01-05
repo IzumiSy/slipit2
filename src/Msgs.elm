@@ -19,6 +19,10 @@ type Msg =
   | UpdateNewBookmarkTitle String
   | UpdateNewBookmarkDescription String
   | CreatesNewbookmark
+  | CreatingNewBookmarkSucceeded Bookmark
+  | CreatingNewBookmarkFailed BookmarkCreatingError
+  | FetchingBookmarksSucceeded (List Bookmark)
+  | FetchingBookmarksFailed BookmarksFetchingError
   | StartFetchingWebPageTitle
   | WebPageTitleFetched (Result Http.Error String)
   | LinkClicked Browser.UrlRequest
