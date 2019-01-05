@@ -5,7 +5,7 @@ import Models exposing (..)
 
 -- Outgoings
 
-port startLoggingIn : LoginForm -> Cmd msg
+port startLoggingIn : LogInForm -> Cmd msg
 
 port signsOut : () -> Cmd msg
 
@@ -25,6 +25,6 @@ port fetchingBookmarksFailed : (BookmarksFetchingError -> msg) -> Sub msg
 
 port logInSucceeded : (InitialUserData -> msg) -> Sub msg
 
-port logInFailed : (LoginError -> msg) -> Sub msg
+port logInFailed : (LogInForm -> msg) -> Sub msg
 
 port signedOut : (() -> msg) -> Sub msg

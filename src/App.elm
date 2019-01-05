@@ -47,13 +47,13 @@ update msg model =
             ({ model | logInStatus = LoggingIn }, startLoggingIn form)
           _ -> (model, Cmd.none)
       SucceedsInLoggingIn initialUserData ->
-          ({ model | logInStatus = LoggedIn (Result.Ok (fromInitialUserData initialUserData)) }, Cmd.none)
-      FailsLoggingIn err ->
-        ({ model | logInStatus = LoggedIn (Result.Err err) }, Cmd.none)
+        ({ model | logInStatus = LoggedIn (fromInitialUserData initialUserData) }, Cmd.none)
+      FailsLoggingIn loginFormWithErr ->
+        ({ model | logInStatus = NotLoggedIn loginFormWithErr }, Cmd.none)
       SignsOut ->
         (model, signsOut ())
       SignedOut _ ->
-        ({ model | logInStatus = NotLoggedIn (emptyLogin ()) }, Cmd.none)
+        ({ model | logInStatus = NotLoggedIn emptyLogin }, Cmd.none)
 
       UpdateNewBookmarkUrl url ->
         updateUserData (\userData ->
@@ -78,20 +78,20 @@ update msg model =
         )
 
       CreatesNewbookmark ->
-        fetchUserData (\userData ->
-          (model, createsNewBookmark (userData.newBookmark, userData.currentUser))
+        updateUserData (\userData ->
+          ({ userData | newBookmarkCreatingStatus = NewBookmarkCreating }, createsNewBookmark (userData.newBookmark, userData.currentUser))
         )
-      CreatingNewBookmarkSucceeded _ ->
-        fetchUserData (\userData ->
-          (model, fetchesBookmarks userData.currentUser)
+      CreatingNewBookmarkSucceeded createdBookmark ->
+        updateUserData (\userData ->
+          ({ userData | newBookmarkCreatingStatus = NewBookmarkCreated (Ok createdBookmark)}, fetchesBookmarks userData.currentUser)
         )
       CreatingNewBookmarkFailed err ->
-        (model, Cmd.none)
+        (model, Cmd.none) -- TODO: あとでつくる
 
       FetchingBookmarksSucceeded bookmarks ->
         updateUserData (\userData -> ({ userData | bookmarks = bookmarks }, Cmd.none)) 
       FetchingBookmarksFailed err ->
-        (model, Cmd.none)
+        (model, Cmd.none) -- TODO: あとでつくる
 
       StartFetchingWebPageTitle ->
         updateUserData (\userData ->
@@ -129,10 +129,7 @@ authenticater model cb =
   case model.logInStatus of
     NotLoggedIn _ -> (model, signsOut ())
     LoggingIn -> (model, Cmd.none)
-    LoggedIn result ->
-      case result of
-        Ok userData -> cb userData
-        Err err -> ({ model | logInStatus = LoggedIn (Result.Err err) }, Cmd.none)
+    LoggedIn userData -> cb userData
 
 userDataUpdater : Model -> (UserData -> (UserData, Cmd Msg)) -> (Model, Cmd Msg)
 userDataUpdater model updater =
@@ -140,10 +137,10 @@ userDataUpdater model updater =
     let
       (updatedUserData, msg) = updater userData
     in
-      ({ model | logInStatus = LoggedIn (Ok updatedUserData) }, msg)
+      ({ model | logInStatus = LoggedIn updatedUserData }, msg)
   ) 
 
-loginFormUpdater : Model -> (LoginForm -> LoginForm) -> (Model, Cmd Msg)
+loginFormUpdater : Model -> (LogInForm -> LogInForm) -> (Model, Cmd Msg)
 loginFormUpdater model updater =
   case model.logInStatus of 
     NotLoggedIn form -> ({ model | logInStatus = NotLoggedIn (updater form)}, Cmd.none)

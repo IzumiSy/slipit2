@@ -2,6 +2,7 @@ const firebase = require('firebase/app')
 const { Elm } = require("./src/App.elm")
 require('firebase/auth')
 require('firebase/firestore')
+require('./index.css')
 
 firebase.initializeApp({
   apiKey: process.env.FB_API_KEY,
@@ -62,9 +63,9 @@ app.ports.signsOut.subscribe(() => {
 app.ports.startLoggingIn.subscribe(login => {
   firebase.auth()
     .signInWithEmailAndPassword(login.email, login.password)
-    .catch(err => {
-      console.warn(err)
-      app.ports.logInFailed.send(err)
+    .catch(error => {
+      console.warn(error)
+      app.ports.logInFailed.send(Object.assign(login, { error }))
     })
 })
 

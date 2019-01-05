@@ -18,14 +18,12 @@ type alias AppConfig =
   }
 
 
-type alias LoginForm =
+type alias LogInForm =
   {
     email: String,
-    password: String
+    password: String,
+    error: Maybe LoginError
   }
-
-emptyLogin _ = { email = "", password = "" }
-
 
 type alias LoginError =
   {
@@ -33,11 +31,14 @@ type alias LoginError =
     message: String
   }
 
+emptyLogin = { email = "", password = "", error = Nothing }
+
+setError err login = { login | error = Just err }
 
 type LoginStatus
-  = NotLoggedIn LoginForm
+  = NotLoggedIn LogInForm
     | LoggingIn
-    | LoggedIn (Result LoginError UserData)
+    | LoggedIn UserData
 
 
 type alias InitialUserData =
@@ -48,18 +49,20 @@ type alias InitialUserData =
 
 type alias UserData =
   {
-    newBookmark: Bookmark,
     bookmarks: List Bookmark,
     currentUser: User,
+    newBookmark: NewBookmarkForm,
+    newBookmarkCreatingStatus: NewBookmarkCreatingStatus,
     titleFetchingStatus: TitleFetchingStatus
   }
 
 fromInitialUserData : InitialUserData -> UserData
 fromInitialUserData initialUserData =
   {
-    newBookmark = emptyBookmark (),
     bookmarks = initialUserData.bookmarks,
     currentUser = initialUserData.currentUser,
+    newBookmark = emptyBookmark,
+    newBookmarkCreatingStatus = NewBookmarkNotCreated,
     titleFetchingStatus = TitleNotFetched
   }
 
@@ -71,11 +74,6 @@ type alias User =
     displayName: Maybe String
   }
 
-
-type alias BookmarkCreatingError =
-  {
-    message: String
-  }
 
 type alias BookmarksFetchingError =
   {
@@ -89,14 +87,6 @@ type alias Bookmark =
     description: String
   }
 
-emptyBookmark _ = { url = "", title = "", description = "" }
-
-setUrl v bookmark = { bookmark | url = v }
-
-setTitle v bookmark = { bookmark | title = v }
-
-setDescription v bookmark = { bookmark | description = v }
-
 
 type TitleFetchingStatus
   = TitleNotFetched
@@ -107,3 +97,29 @@ type TitleFetchingError = TitleFetchingError String
 
 unwrapTitleFetchingError : TitleFetchingError -> String
 unwrapTitleFetchingError (TitleFetchingError msg) = msg
+
+
+type alias NewBookmarkForm =
+  {
+    url: String,
+    title: String,
+    description: String
+  }
+
+emptyBookmark = { url = "", title = "", description = "" }
+
+setUrl v bookmark = { bookmark | url = v }
+
+setTitle v bookmark = { bookmark | title = v }
+
+setDescription v bookmark = { bookmark | description = v }
+
+type NewBookmarkCreatingStatus
+  = NewBookmarkNotCreated
+    | NewBookmarkCreating
+    | NewBookmarkCreated (Result BookmarkCreatingError Bookmark)
+
+type alias BookmarkCreatingError =
+  {
+    message: String
+  }

@@ -12,7 +12,7 @@ type Msg =
   | UpdatesLoginPassword String
   | StartsLoggingIn
   | SucceedsInLoggingIn InitialUserData
-  | FailsLoggingIn LoginError
+  | FailsLoggingIn LogInForm
   | SignsOut
   | SignedOut ()
   | UpdateNewBookmarkUrl String

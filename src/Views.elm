@@ -20,11 +20,7 @@ view model =
       case model.logInStatus of
         NotLoggedIn form -> [loginView form]
         LoggingIn -> [loadingView]
-        LoggedIn result ->
-          case result of
-            -- Errの場合ではここではなくUpdate側でログイン画面に戻るMsgを発行する
-            Ok userData -> [homeView userData]
-            Err _ -> [loadingView]
+        LoggedIn userData -> [homeView userData]
   }
 
 homeView : UserData -> Html Msg
@@ -96,7 +92,7 @@ loadingView =
   ]
 
 -- TODO: ログインエラーの文言を表示する
-loginView : LoginForm -> Html Msg
+loginView : LogInForm -> Html Msg
 loginView form =
   Html.form [onSubmitWithPrevented StartsLoggingIn] [
     div [] [
@@ -111,7 +107,15 @@ loginView form =
         input [type_ "password", placeholder "Your password", required True, value form.password, onInput UpdatesLoginPassword] []
       ]
     ],
-    div [] [button [] [text "login"]]
+    div [] [
+      button [] [text "login"]
+    ],
+
+    div [] [
+      p [class "error"] [
+        text (Maybe.withDefault "" (Maybe.map (\err -> err.message) form.error))
+      ]
+    ]
   ]
 
 onSubmitWithPrevented msg =
