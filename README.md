@@ -5,6 +5,10 @@ The serverless replacement of [Slip.it](https://github.com/IzumiSy/slipit) aimin
 ```bash
 $ npm install
 ```
+After installing deps, you have to log into Firebase
+```bash
+$ npx firebase login
+```
 Also you need to set your own env in `.env` file
 ```bash
 $ cp .env.sample .env
@@ -24,15 +28,14 @@ $ npm run build
 # Function
 
 ## Setup
-Install `firebase-tools` beforehand if you still haven't installed it, and do login after that.
-```bash
-$ npm install -g firebase-tools
-$ firebase login
-```
 Install dependencies
 ```bash
 $ cd function/functions
 $ npm install
+```
+After installing deps, you have to choose your project to run
+```bash
+$ npx firebase use [YourOwnProjectId]
 ```
 
 ## Run
