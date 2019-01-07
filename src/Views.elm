@@ -6,6 +6,7 @@ import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode
+import String.Interpolate exposing(interpolate)
 import Browser
 
 
@@ -39,18 +40,26 @@ homeView userData =
         _ -> "Fetch"
     currentUser = userData.currentUser
   in
-    div [] [
+    div [class "ui main container"] [
+      h2 [class "ui dividing header"] [
+        text (interpolate "Bookmarks ({0})" [String.fromInt (List.length userData.bookmarks)]),
+        button [class "positive ui right floated small button"] [
+          text "Add a new bookmark"
+        ]
+      ],
+
+      div [class "ui four stackable cards bookmark-list"] (List.map (\bookmark ->
+        a [class "bookmark-item card", href bookmark.url] [
+          div [class "main content"] [
+            div [class "header"] [text bookmark.title],
+            div [class "description"] [text bookmark.description]
+          ],
+          div [class "extra content"] [text bookmark.url]
+        ] 
+      ) userData.bookmarks),
+
       div [] [text (String.append "Current user: " currentUser.email)],
       div [] [button [onClick SignsOut] [text "sign out"]],
-
-      div [] [
-        p [] [text "Your bookmarks"],
-        ul [] (
-          List.map (\bookmark ->
-            li [] [text bookmark.title] 
-          ) userData.bookmarks 
-        )
-      ],
 
       div [] [
         p [] [text "New bookmark"],
