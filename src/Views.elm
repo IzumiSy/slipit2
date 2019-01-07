@@ -16,7 +16,7 @@ import Browser
 view : Model -> Browser.Document Msg
 view model =
   {
-    title = "This is title",
+    title = "Slip.it",
     body =
       case model.logInStatus of
         NotLoggedIn form -> [loginView form model.appConfig.logoImagePath]
@@ -123,47 +123,46 @@ loginView form logoImagePath =
           h5 [] [text "Your online bookmarks never be social."]
         ] 
       ],
-      Html.form [onSubmitWithPrevented StartsLoggingIn, class "ui large warning form"] [
-        div [class "ui stackable grid"] [
-          div [class "three column row"] [
-            div [class "column"] [],
-            div [class "column"] [
-              div [class "ui segment"] [
-                Maybe.withDefault (div [] []) (
-                  Maybe.map (\err -> 
-                    div [class "ui warning message"] [
-                      div [class "header"] [
-                        div [] [text err.message]
-                      ]
+      div [class "ui three column stackable grid"] [
+        div [class "column"] [],
+        div [class "column"] [
+          div [class "ui segment"] [
+            Html.form [onSubmitWithPrevented StartsLoggingIn, class "ui large warning form"] [
+              Maybe.withDefault (div [] []) (
+                Maybe.map (\err -> 
+                  div [class "ui warning message"] [
+                    div [class "header"] [
+                      div [] [text err.message]
                     ]
-                  ) form.error
-                ),
-                div [class "field"] [
-                  div [class "ui left icon input"] [
-                    i [class "user icon"] [],
-                    input [type_ "email", placeholder "Your email", required True, value form.email, onInput UpdatesLoginEmail] []
                   ]
-                ],
-                div [class "field"] [
-                  div [class "ui left icon input"] [
-                    i [class "lock icon"] [],
-                    input [type_ "password", placeholder "Your password", required True, value form.password, onInput UpdatesLoginPassword] []
-                  ]
-                ],
-                button [class "ui fluid large teal submit button"] [text "login"]
+                ) form.error
+              ),
+              div [class "field"] [
+                div [class "ui left icon input"] [
+                  i [class "user icon"] [],
+                  input [type_ "email", placeholder "Your email", required True, value form.email, onInput UpdatesLoginEmail] []
+                ]
               ],
-              div [class "ui message registration"] [
-                text "New to Slip.it?",
-                viewLink "sign_up" "Create a new account"
+              div [class "field"] [
+                div [class "ui left icon input"] [
+                  i [class "lock icon"] [],
+                  input [type_ "password", placeholder "Your password", required True, value form.password, onInput UpdatesLoginPassword] []
+                ]
               ],
-              div [class "ui password"] [
-                viewLink "reset_password" "Forgot your own password?"
-              ],
-              div [class "ui disabled header"] [
-                h5 [] [text "© 2019 IzumiSy."]
-              ]
+              button [class "ui fluid large teal submit button"] [text "login"]
+            ]
+          ],
+          div [class "column"] [
+            div [class "ui message registration"] [
+              text "New to Slip.it?",
+              viewLink "sign_up" "Create a new account"
             ],
-            div [class "column"] []
+            div [class "ui password"] [
+              viewLink "reset_password" "Forgot your own password?"
+            ],
+            div [class "ui disabled header"] [
+              h5 [] [text "© 2019 IzumiSy."]
+            ]
           ]
         ]
       ]
