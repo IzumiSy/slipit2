@@ -14,7 +14,8 @@ type alias Model =
 
 type alias AppConfig =
   {
-    functionUrl: String
+    functionUrl: String,
+    logoImagePath: String
   }
 
 

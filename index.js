@@ -5,7 +5,8 @@ require('firebase/firestore')
 window.jQuery = require('jquery')
 require('semantic-ui-css/semantic.min.css')
 require('semantic-ui-css/semantic.min.js')
-require('./index.css')
+require('./index.scss')
+const logoImage = require('./logo_small.png')
 
 firebase.initializeApp({
   apiKey: process.env.FB_API_KEY,
@@ -24,7 +25,8 @@ database.settings({
 const app = Elm.App.init({
   node: document.getElementById('main'),
   flags: {
-    functionUrl: process.env.FUNCTION_URL
+    functionUrl: process.env.FUNCTION_URL,
+    logoImagePath: logoImage 
   }
 });
 

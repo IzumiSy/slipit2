@@ -9,7 +9,8 @@
     "elm-hot": "^1.0.1",
     "firebase-tools": "^6.2.2",
     "node-elm-compiler": "^5.0.1",
-    "parcel-bundler": "^1.11.0"
+    "parcel-bundler": "^1.11.0",
+    "sass": "^1.15.3"
   },
   "dependencies": {
     "firebase": "^5.7.1",

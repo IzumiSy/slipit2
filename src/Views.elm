@@ -18,7 +18,7 @@ view model =
     title = "This is title",
     body =
       case model.logInStatus of
-        NotLoggedIn form -> [loginView form]
+        NotLoggedIn form -> [loginView form model.appConfig.logoImagePath]
         LoggingIn -> [loadingView]
         LoggedIn userData -> [homeView userData]
   }
@@ -99,13 +99,15 @@ loadingView =
     ]
   ]
 
-loginView : LogInForm -> Html Msg
-loginView form =
+loginView : LogInForm -> String -> Html Msg
+loginView form logoImagePath =
   div [class "login ui full height middle aligned center aligned grid"] [
     div [class "column"] [
-      h2 [class "ui teal image header"] [
+      h2 [class "ui grey image header"] [
+        img [class "image", src logoImagePath] [],
         div [class "content"] [
-          text "Log in to Slip.it"
+          text "Log in to Slip.it",
+          h5 [] [text "Your online bookmarks never be social."]
         ] 
       ],
       Html.form [onSubmitWithPrevented StartsLoggingIn, class "ui large warning form"] [
@@ -136,6 +138,16 @@ loginView form =
                   ]
                 ],
                 button [class "ui fluid large teal submit button"] [text "login"]
+              ],
+              div [class "ui message registration"] [
+                text "New to Slip.it?",
+                viewLink "sign_up" "Create a new account"
+              ],
+              div [class "ui password"] [
+                viewLink "reset_password" "Forgot your own password?"
+              ],
+              div [class "ui disabled header"] [
+                h5 [] [text "© 2019 IzumiSy."]
               ]
             ],
             div [class "column"] []
@@ -148,6 +160,6 @@ loginView form =
 onSubmitWithPrevented msg =
     Html.Events.custom "submit" (Decode.succeed { message = msg, stopPropagation = True, preventDefault = True })
 
-viewLink : String -> Html msg
-viewLink path =
-  li [] [ a [ href path ] [ text path ] ]
+viewLink : String -> String -> Html msg
+viewLink path title =
+  a [ href path ] [ text title ]
