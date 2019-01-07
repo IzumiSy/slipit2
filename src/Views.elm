@@ -48,15 +48,7 @@ homeView userData =
         ]
       ],
 
-      div [class "ui four stackable cards bookmark-list"] (List.map (\bookmark ->
-        a [class "bookmark-item card", href bookmark.url] [
-          div [class "main content"] [
-            div [class "header"] [text bookmark.title],
-            div [class "description"] [text bookmark.description]
-          ],
-          div [class "extra content"] [text bookmark.url]
-        ] 
-      ) userData.bookmarks),
+      div [class "ui four stackable cards bookmark-list"] (renderBookmarkItems userData.bookmarks),
 
       div [] [text (String.append "Current user: " currentUser.email)],
       div [] [button [onClick SignsOut] [text "sign out"]],
@@ -93,6 +85,18 @@ homeView userData =
 
       -- div [] [text (interpolate "Title: {0}" [fetchedTitle])]
     ]
+
+renderBookmarkItems : List Bookmark -> List (Html Msg)
+renderBookmarkItems bookmarks =
+  (List.map (\bookmark ->
+    a [class "bookmark-item card", href bookmark.url] [
+      div [class "main content"] [
+        div [class "header"] [text bookmark.title],
+        div [class "description"] [text bookmark.description]
+      ],
+      div [class "extra content"] [text bookmark.url]
+    ] 
+  ) bookmarks)
 
 loadingView : Html Msg
 loadingView =
