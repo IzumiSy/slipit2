@@ -37,6 +37,7 @@ After installing deps, you have to choose your project to run
 ```bash
 $ npx firebase use [YourOwnProjectId]
 ```
+Log into Firebase beforehand by `npx firebase login` to run function if you haven't.
 
 ## Run
 ```bash
