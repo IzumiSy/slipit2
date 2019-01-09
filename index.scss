@@ -1,3 +1,9 @@
+@mixin mobile {
+  @media (max-width: 480px) {
+    @content;
+  }
+}
+
 html, body {
   height: 100%;
   font-family: "Lato", "Helvetica Neue", Arial, Helvetica, sans-serif;
@@ -24,9 +30,9 @@ h2.login-header {
     width: auto;
     display: inline-block;
 
-   @media (max-width: 600px) {
-      margin-bottom: 20px;  
-   }
+    @include mobile {
+      margin-bottom: 20px;
+    }
   }
 
   img.image + .content {
@@ -34,6 +40,12 @@ h2.login-header {
     text-align: left;
     display: inline-block;
     vertical-align: bottom;
+
+    @include mobile {
+      text-align: center;
+      margin-bottom: 20px;
+      display: block;
+    }
 
     > h5 {
       margin: 0;
@@ -70,14 +82,8 @@ h2.login-header {
   transform: translateY(-50%);
 }
 
-.hide-sm {
-  @media (max-width: 600px) {
-    display: none !important;
-  }
-}
-
 .centered-sm {
-  @media (max-width: 600px) {
+  @include mobile {
     text-align: center !important;
   }
 }
