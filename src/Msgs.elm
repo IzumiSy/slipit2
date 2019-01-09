@@ -24,6 +24,6 @@ type Msg =
   | FetchingBookmarksSucceeded (List Bookmark)
   | FetchingBookmarksFailed BookmarksFetchingError
   | StartFetchingWebPageTitle
-  | WebPageTitleFetched (Result Http.Error String)
+  | NewUrlFetched (Result Http.Error UrlFetcherResult)
   | LinkClicked Browser.UrlRequest
   | UrlChanged Url.Url

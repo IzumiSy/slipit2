@@ -95,24 +95,24 @@ update msg model =
 
       StartFetchingWebPageTitle ->
         updateUserData (\userData ->
-          ({ userData | titleFetchingStatus = TitleFetching }, fetchWebPageTitle model.appConfig.functionUrl userData.newBookmark.url)
+          ({ userData | urlFetchingStatus = UrlFetching }, fetchUrl model.appConfig.functionUrl userData.newBookmark.url)
         ) 
-      WebPageTitleFetched result ->
+      NewUrlFetched result ->
         updateUserData (\userData ->
           let
             mappedResult =
               Result.mapError (\err ->
                 case err of
-                  Http.BadBody errMsg -> TitleFetchingError errMsg
-                  _ -> TitleFetchingError "Unexpected error"
+                  Http.BadBody errMsg -> UrlFetchingError errMsg
+                  _ -> UrlFetchingError "Unexpected error"
               ) result
-            title =
+            (title, description) =
               case mappedResult of
-                Ok text -> text
-                _ -> userData.newBookmark.title
-            updated = userData.newBookmark |> setTitle title
+                Ok r -> (r.title, r.description)
+                _ -> (userData.newBookmark.title, userData.newBookmark.description)
+            updated = userData.newBookmark |> setTitle title |> setDescription description
           in
-            ({ userData | newBookmark = updated, titleFetchingStatus = TitleFetched mappedResult }, Cmd.none)
+            ({ userData | newBookmark = updated, urlFetchingStatus = UrlFetched mappedResult }, Cmd.none)
         )
 
       LinkClicked urlRequest ->
@@ -150,12 +150,18 @@ loginFormUpdater model updater =
 -- HTTP
 
 
-fetchWebPageTitle : String -> String -> Cmd Msg
-fetchWebPageTitle functionUrl targetUrl =
+fetchUrl : String -> String -> Cmd Msg
+fetchUrl functionUrl targetUrl =
   Http.get {
     url = interpolate "{0}?url={1}" [functionUrl, targetUrl],
-    expect = Http.expectString WebPageTitleFetched
+    expect = Http.expectJson NewUrlFetched urlFetcherDecoder
   }
+
+urlFetcherDecoder : Decode.Decoder UrlFetcherResult
+urlFetcherDecoder =
+  Decode.map2 UrlFetcherResult
+    (field "title" string)
+    (field "description" string)
 
 
 -- Subscription

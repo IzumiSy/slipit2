@@ -54,7 +54,7 @@ type alias UserData =
     currentUser: User,
     newBookmark: NewBookmarkForm,
     newBookmarkCreatingStatus: NewBookmarkCreatingStatus,
-    titleFetchingStatus: TitleFetchingStatus
+    urlFetchingStatus: UrlFetchingStatus
   }
 
 fromInitialUserData : InitialUserData -> UserData
@@ -64,7 +64,7 @@ fromInitialUserData initialUserData =
     currentUser = initialUserData.currentUser,
     newBookmark = emptyBookmark,
     newBookmarkCreatingStatus = NewBookmarkNotCreated,
-    titleFetchingStatus = TitleNotFetched
+    urlFetchingStatus = UrlNotFetched
   }
 
 
@@ -89,15 +89,21 @@ type alias Bookmark =
   }
 
 
-type TitleFetchingStatus
-  = TitleNotFetched
-    | TitleFetching
-    | TitleFetched (Result TitleFetchingError String)
+type alias UrlFetcherResult =
+  {
+    title: String,
+    description: String
+  }
 
-type TitleFetchingError = TitleFetchingError String
+type UrlFetchingStatus
+  = UrlNotFetched
+    | UrlFetching
+    | UrlFetched (Result UrlFetchingError UrlFetcherResult)
 
-unwrapTitleFetchingError : TitleFetchingError -> String
-unwrapTitleFetchingError (TitleFetchingError msg) = msg
+type UrlFetchingError = UrlFetchingError String
+
+unwrapUrlFetchingError : UrlFetchingError -> String
+unwrapUrlFetchingError (UrlFetchingError msg) = msg
 
 
 type alias NewBookmarkForm =

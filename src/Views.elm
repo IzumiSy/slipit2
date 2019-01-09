@@ -28,15 +28,15 @@ homeView : UserData -> Html Msg
 homeView userData =
   let
     titleFetchingErrorM =
-      case userData.titleFetchingStatus of
-        TitleFetched result ->
-          case result of
-            Err err -> Just (String.append "Error: " (unwrapTitleFetchingError err))
+      case userData.urlFetchingStatus of
+        UrlFetched fetchedResult ->
+          case fetchedResult of
+            Err err -> Just (String.append "Error: " (unwrapUrlFetchingError err))
             _ -> Nothing
         _ -> Nothing
     fetchButtonText =
-      case userData.titleFetchingStatus of
-        TitleFetching -> "Fetching..."
+      case userData.urlFetchingStatus of
+        UrlFetching -> "Fetching..."
         _ -> "Fetch"
     currentUser = userData.currentUser
   in
