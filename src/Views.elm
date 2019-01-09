@@ -114,58 +114,51 @@ loadingView =
 
 loginView : LogInForm -> String -> Html Msg
 loginView form logoImagePath =
-  div [class "login ui full height middle aligned center aligned grid"] [
-    div [class "column"] [
-      h2 [class "ui grey image header"] [
-        img [class "image", src logoImagePath] [],
-        div [class "content"] [
-          text "Log in to Slip.it",
-          h5 [] [text "Your online bookmarks never be social."]
-        ] 
-      ],
-      div [class "ui three column stackable grid"] [
-        div [class "column"] [],
-        div [class "column"] [
-          div [class "ui segment"] [
-            Html.form [onSubmitWithPrevented StartsLoggingIn, class "ui large warning form"] [
-              Maybe.withDefault (div [] []) (
-                Maybe.map (\err -> 
-                  div [class "ui warning message"] [
-                    div [class "header"] [
-                      div [] [text err.message]
-                    ]
-                  ]
-                ) form.error
-              ),
-              div [class "field"] [
-                div [class "ui left icon input"] [
-                  i [class "user icon"] [],
-                  input [type_ "email", placeholder "Your email", required True, value form.email, onInput UpdatesLoginEmail] []
-                ]
-              ],
-              div [class "field"] [
-                div [class "ui left icon input"] [
-                  i [class "lock icon"] [],
-                  input [type_ "password", placeholder "Your password", required True, value form.password, onInput UpdatesLoginPassword] []
-                ]
-              ],
-              button [class "ui fluid large teal submit button"] [text "login"]
+  div [class "siimple-grid"] [
+    div [class "siimple-grid-row"] [
+      div [class "siimple-grid-col siimple-grid-col--4"] [],
+      div [class "siimple-grid-col siimple-grid-col--4 vertically-centered"] [
+        div [class "login"] [
+          h2 [class "login-header"] [
+            img [class "image", src logoImagePath] [],
+            div [class "content siimple--float-right"] [
+              text "Log in to Slip.it",
+              h5 [] [text "Your online bookmarks never be social."]
+            ] 
+          ],
+          Html.form [onSubmitWithPrevented StartsLoggingIn, class "siimple-form login-fields"] [
+            Maybe.withDefault (div [] []) (
+              Maybe.map (\err -> 
+                div [class "siimple-alert siimple-alert--warning"] [text err.message]
+              ) form.error
+            ),
+            div [class "siimple-form-field"] [
+              div [class "siimple-form-field-label"] [text "E-mail"],
+              input [type_ "email", class "siimple-input siimple-input--fluid", placeholder "Your email", required True, value form.email, onInput UpdatesLoginEmail] []
+            ],
+            div [class "siimple-form-field"] [
+              div [class "siimple-form-field-label"] [text "Password"],
+              input [type_ "password", class "siimple-input siimple-input--fluid", placeholder "Your password", required True, value form.password, onInput UpdatesLoginPassword] []
+            ],
+            div [class "siimple-form-field"] [
+              button [class "siimple-btn siimple-btn--teal siimple-btn--fluid"] [text "Login"]
             ]
           ],
-          div [class "column"] [
-            div [class "ui message registration"] [
+          div [class "siimple-grid-row siimple--text-center"] [
+            div [class "signup-guidance"] [
               text "New to Slip.it?",
               viewLink "sign_up" "Create a new account"
             ],
-            div [class "ui password"] [
+            div [] [
               viewLink "reset_password" "Forgot your own password?"
             ],
-            div [class "ui disabled header"] [
+            div [] [
               h5 [] [text "© 2019 IzumiSy."]
             ]
           ]
         ]
-      ]
+      ],
+      div [class "siimple-grid-col siimple-grid-col--4"] []
     ]
   ]
 

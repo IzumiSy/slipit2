@@ -1,5 +1,7 @@
 html, body {
   height: 100%;
+  font-family: "Lato", "Helvetica Neue", Arial, Helvetica, sans-serif;
+  line-height: 1.4285em;
 }
 
 .full.height {
@@ -10,14 +12,23 @@ html, body {
   color: red;
 }
 
-h2.ui.header {
+h2.login-header {
   margin-bottom: 25px;
+  font-size: 1.71428571rem;
+
+  img.image {
+    height: 2.5em;
+    width: auto;
+    display: inline-block;
+  }
 
   img.image + .content {
     text-align: left;
+    display: inline-block;
 
     > h5 {
-      margin-top: 5px; 
+      margin-top: 10px; 
+      font-size: 1rem;
     }
   }
 }
@@ -26,4 +37,29 @@ h2.ui.header {
   > a {
     padding-left: 5px;
   }
+}
+
+.signup-guidance {
+  padding: 15px;
+  background-color: #eef2f7;
+  margin-bottom: 10px;
+  border-radius: 5px;
+
+  > a {
+    margin-left: 5px;
+  }
+}
+
+.login {
+  padding: 0 30px;
+}
+
+.siimple-form.login-fields {
+  margin-bottom: 40px;
+}
+
+.vertically-centered {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
 }

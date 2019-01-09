@@ -13,6 +13,9 @@
     "sass": "^1.15.3"
   },
   "dependencies": {
-    "firebase": "^5.7.1"
+    "firebase": "^5.7.1",
+    "jquery": "^3.3.1",
+    "semantic-ui-css": "^2.4.1",
+    "siimple": "^3.2.0"
   }
 }
