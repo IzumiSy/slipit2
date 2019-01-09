@@ -10,7 +10,7 @@ exports.fetchTitle = functions.https.onRequest((req, res) => {
   cors({ origin: true })(req, res, () => {
     const targetUrl = req.query.url
 
-    console.info('Fetch: ', req.query.url)
+    console.info('Fetch:', req.query.url)
 
     if (!targetUrl || !urlValidator.isUri(targetUrl)) {
       res.status(HttpStatus.BAD_REQUEST).end()
@@ -25,10 +25,13 @@ exports.fetchTitle = functions.https.onRequest((req, res) => {
       try {
         const dom = new JSDOM(body)
         const $title = dom.window.document.querySelector('title')
-        if ($title) {
-          res.send($title.textContent).end()
-        }
-        res.send('')
+        const $description = dom.window.document.querySelector('meta[name="description"]')
+        const result = { title: "", description: "" }
+
+        if ($title) result.title = $title.textContent
+        if ($description) result.description = $description.content
+
+        res.send(result)
       } catch (err) {
         console.error(err)
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).end()
