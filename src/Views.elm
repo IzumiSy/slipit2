@@ -116,8 +116,8 @@ loginView : LogInForm -> String -> Html Msg
 loginView form logoImagePath =
   div [class "siimple-grid"] [
     div [class "siimple-grid-row"] [
-      div [class "siimple-grid-col siimple-grid-col--4"] [],
-      div [class "siimple-grid-col siimple-grid-col--4 vertically-centered"] [
+      div [class "siimple-grid-col siimple-grid-col--4 siimple-grid-col--lg-2 siimple-grid-col--md-1 siimple-grid-col--sm-12"] [],
+      div [class "siimple-grid-col siimple-grid-col--4 siimple-grid-col--lg-8 siimple-grid-col--md-10 siimple-grid-col--sm-12"] [
         div [class "login"] [
           h2 [class "login-header"] [
             img [class "image", src logoImagePath] [],
@@ -158,7 +158,7 @@ loginView form logoImagePath =
           ]
         ]
       ],
-      div [class "siimple-grid-col siimple-grid-col--4"] []
+      div [class "siimple-grid-col siimple-grid-col--4 siimple-grid-col--lg-2 siimple-grid-col--md-1 siimple-grid-col--sm-12-hide"] []
     ]
   ]
 
