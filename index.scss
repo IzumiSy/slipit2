@@ -16,12 +16,8 @@ html, body {
   line-height: 1.4285em;
 }
 
-.full.height {
-  height: 100%;
-}
-
-.error {
-  color: red;
+.main-container {
+  max-width: 1200px;
 }
 
 h2.login-header {

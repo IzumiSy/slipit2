@@ -40,20 +40,22 @@ homeView userData =
         _ -> "Fetch"
     currentUser = userData.currentUser
   in
-    div [class "ui main container"] [
-      h2 [class "ui dividing header"] [
-        text (interpolate "Bookmarks ({0})" [String.fromInt (List.length userData.bookmarks)]),
-        button [class "positive ui right floated small button"] [
-          text "Add a new bookmark"
+    div [class "main-container siimple-grid"] [
+      div [class "siimple-grid-row"] [
+        div [] [text (String.append "Current user: " currentUser.email)],
+        div [] [button [onClick SignsOut] [text "sign out"]]
+      ],
+
+      div [class "siimple-gird-row"] [
+        h2 [] [
+          text (interpolate "Bookmarks ({0})" [String.fromInt (List.length userData.bookmarks)]),
+          button [class "siimple-btn siimple-btn--teal siimple--float-right"] [text "Add a new bookmark"]
         ]
       ],
 
-      div [class "ui four stackable cards bookmark-list"] (renderBookmarkItems userData.bookmarks),
+      div [class "bookmark-list siimple-gird-row"] (renderBookmarkItems userData.bookmarks),
 
-      div [] [text (String.append "Current user: " currentUser.email)],
-      div [] [button [onClick SignsOut] [text "sign out"]],
-
-      div [] [
+      div [class "siimple-grid-row"] [
         p [] [text "New bookmark"],
         Html.form [onSubmitWithPrevented CreatesNewbookmark] [
           div [] [
@@ -89,26 +91,22 @@ homeView userData =
 renderBookmarkItems : List Bookmark -> List (Html Msg)
 renderBookmarkItems bookmarks =
   (List.map (\bookmark ->
-    a [class "bookmark-item card", href bookmark.url] [
-      div [class "main content"] [
-        div [class "header"] [text bookmark.title],
-        div [class "description"] [text bookmark.description]
-      ],
-      div [class "extra content"] [text bookmark.url]
-    ] 
+    div [class "siimple-grid-col siimple-grid-col--3 siimple-grid-col--lg-4 siimple-grid-col--md-6 siimple-grid-col--xs-12"] [
+      a [class "bookmark-item siimple-card", href bookmark.url] [
+        div [class "siimple-card-body"] [
+          div [class "siimple-card-title"] [text bookmark.title],
+          div [class "siimple-card-subtitle"] [text bookmark.url],
+          text bookmark.description
+        ]
+      ] 
+    ]
   ) bookmarks)
 
 loadingView : Html Msg
 loadingView =
-  div [class "ui full height stackable grid"] [
-    div [class "three column row"] [
-      div [class "column"] [],
-      div [class "column"] [
-        div [class "ui active text loader"] [
-          text "Loading..."
-        ]
-      ],
-      div [class "column"] []
+  div [class "siimple-grid"] [
+    div [class "siimple-grid-row"] [
+      div [] [text "Loading..."]
     ]
   ]
 
