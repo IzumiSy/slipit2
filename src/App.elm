@@ -8,6 +8,8 @@ import Browser
 import Browser.Navigation as Nav
 import Json.Decode as Decode exposing (field, string)
 import String.Interpolate exposing (interpolate)
+import Url.Parser as Parser exposing (Parser, (</>), (<?>), oneOf, s)
+import Url.Parser.Query as Query
 import Url
 import Http
 
@@ -19,10 +21,33 @@ init config url navKey =
       navKey = navKey,
       url = url,
       appConfig = config,
-      logInStatus = LoggingIn
+      logInStatus = LoggingIn,
+      route = Nothing
     },
     Cmd.none
   )
+
+
+-- Routing
+
+
+parser : Parser (Routes -> a) a
+parser =
+  oneOf [
+    Parser.map NewBookmark (s "new_bookmark" <?> Query.string "url" <?> Query.string "title" <?> Query.string "description"),
+    Parser.map Bookmarks (s "bookmarks"),
+    Parser.map SignIn (s "sign_in"),
+    Parser.map SignUp (s "sign_up"),
+    Parser.map ResetPassword (s "reset_password")
+  ]
+
+fromUrl : Url.Url -> Maybe Routes
+fromUrl url =
+  { url | path = Maybe.withDefault "" url.fragment, fragment = Nothing } |> Parser.parse parser
+
+pushUrl : Model -> String -> Cmd Msg
+pushUrl model path =
+  Nav.pushUrl model.navKey ("#/" ++ path)
 
 
 -- Update
@@ -34,6 +59,7 @@ update msg model =
     fetchUserData = authenticater model
     updateUserData = userDataUpdater model
     updateLoginForm = loginFormUpdater model
+    navigateTo = pushUrl model
   in
     case msg of
       UpdatesLoginEmail email ->
@@ -47,13 +73,13 @@ update msg model =
             ({ model | logInStatus = LoggingIn }, startLoggingIn form)
           _ -> (model, Cmd.none)
       SucceedsInLoggingIn initialUserData ->
-        ({ model | logInStatus = LoggedIn (fromInitialUserData initialUserData) }, Cmd.none)
+        ({ model | logInStatus = LoggedIn (fromInitialUserData initialUserData) }, navigateTo "bookmarks")
       FailsLoggingIn loginFormWithErr ->
-        ({ model | logInStatus = NotLoggedIn loginFormWithErr }, Cmd.none)
+        ({ model | logInStatus = NotLoggedIn loginFormWithErr }, navigateTo "sign_in")
       SignsOut ->
         (model, signsOut ())
       SignedOut _ ->
-        ({ model | logInStatus = NotLoggedIn emptyLogin }, Cmd.none)
+        ({ model | logInStatus = NotLoggedIn emptyLogin }, navigateTo "sign_in")
 
       UpdateNewBookmarkUrl url ->
         updateUserData (\userData ->
@@ -115,14 +141,41 @@ update msg model =
             ({ userData | newBookmark = updated, urlFetchingStatus = UrlFetched mappedResult }, Cmd.none)
         )
 
+      -- ログインの状況を見てリダイレクトを処理する。ログインしているのにログインページを見せたりする必要はない。
+      UrlChanged url ->
+        let
+          routeM = fromUrl url
+          redirectMsg =
+            case model.logInStatus of
+              NotLoggedIn _ ->
+                Maybe.withDefault Cmd.none (Maybe.map (\route ->
+                  case route of
+                    Bookmarks -> navigateTo "sign_in"
+                    _ -> Cmd.none
+                ) routeM)
+              LoggingIn ->
+                navigateTo "sign_in"
+              LoggedIn _ ->
+                Maybe.withDefault Cmd.none (Maybe.map (\route ->
+                  case route of
+                    SignIn -> navigateTo "bookmarks" 
+                    SignUp -> navigateTo "bookmarks"
+                    ResetPassword -> navigateTo "bookmarks"
+                    _ -> Cmd.none
+                ) routeM)        
+          in
+            ({ model | url = url, route = fromUrl url }, redirectMsg)
+
       LinkClicked urlRequest ->
         case urlRequest of
-          Browser.Internal url ->
-            (model, Nav.pushUrl model.navKey (Url.toString url))
           Browser.External href ->
             (model, Nav.load href)
-      UrlChanged url ->
-        ({ model | url = url}, Cmd.none)
+          Browser.Internal url ->
+            case url.fragment of
+              Nothing ->
+                (model, Cmd.none)
+              Just _ ->
+                (model, Nav.pushUrl model.navKey (Url.toString url))
 
 authenticater: Model -> (UserData -> (Model, Cmd Msg)) -> (Model, Cmd Msg)
 authenticater model cb =

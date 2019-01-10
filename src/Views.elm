@@ -15,14 +15,53 @@ import Browser
 
 view : Model -> Browser.Document Msg
 view model =
-  {
-    title = "Slip.it",
-    body =
-      case model.logInStatus of
-        NotLoggedIn form -> [loginView form model.appConfig.logoImagePath]
-        LoggingIn -> [loadingView]
-        LoggedIn userData -> [homeView userData]
-  }
+  let 
+    (suffix, page) =
+      case model.route of
+        Just route ->
+          case route of
+            Bookmarks ->
+              (
+                "Bookmarks", 
+                case model.logInStatus of
+                  LoggedIn userData -> [homeView userData]
+                  _ -> [div [] [text "Need to log in"]]
+              )
+            NewBookmark urlM titleM descriptionM ->
+              (
+                "New Bookmark",
+                [div [] []]
+              )
+            SignIn ->
+              (
+                "Sign In",
+                case model.logInStatus of
+                  NotLoggedIn form -> [loginView form model.appConfig.logoImagePath]
+                  _ -> [div [] [text "Already logged in"]]
+              )
+            SignUp ->
+              (
+                "Sign Up",
+                [div [] []]
+              )
+            ResetPassword ->
+              (
+                "Reset Password",
+                [div [] []]
+              )
+        Nothing ->
+          (
+            "Not Found",
+            [div [] [text "Not Found"]]
+          )
+  in
+    {
+      title = "Slip.it | " ++ suffix,
+      body = 
+        case model.logInStatus of
+          LoggingIn -> [loadingView]
+          _ -> page
+    }
 
 homeView : UserData -> Html Msg
 homeView userData =
@@ -165,4 +204,4 @@ onSubmitWithPrevented msg =
 
 viewLink : String -> String -> Html msg
 viewLink path title =
-  a [ href path ] [ text title ]
+  a [ href ("#/" ++ path) ] [ text title ]

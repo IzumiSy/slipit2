@@ -4,12 +4,21 @@ import Browser.Navigation as Nav
 import Url
 
 
+type Routes
+  = Bookmarks
+    | NewBookmark (Maybe String) (Maybe String) (Maybe String)
+    | SignIn
+    | SignUp
+    | ResetPassword
+
+
 type alias Model =
   {
     navKey: Nav.Key,
     url: Url.Url,
     appConfig: AppConfig,
-    logInStatus: LoginStatus
+    logInStatus: LoginStatus,
+    route: Maybe Routes
   }
 
 type alias AppConfig =
