@@ -1,5 +1,11 @@
-@mixin mobile {
+@mixin xs {
   @media (max-width: 480px) {
+    @content;
+  }
+}
+
+@mixin over-sm {
+  @media (min-width: 600px) {
     @content;
   }
 }
@@ -30,7 +36,7 @@ h2.login-header {
     width: auto;
     display: inline-block;
 
-    @include mobile {
+    @include xs {
       margin-bottom: 20px;
     }
   }
@@ -41,7 +47,7 @@ h2.login-header {
     display: inline-block;
     vertical-align: bottom;
 
-    @include mobile {
+    @include xs {
       text-align: center;
       margin-bottom: 20px;
       display: block;
@@ -52,6 +58,15 @@ h2.login-header {
       margin-top: 10px;
       font-size: 1rem;
     }
+  }
+}
+
+.login {
+  max-width: 460px;
+  margin: 0 auto;
+
+  @include over-sm {
+    margin-top: 24px;
   }
 }
 
@@ -82,8 +97,8 @@ h2.login-header {
   transform: translateY(-50%);
 }
 
-.centered-sm {
-  @include mobile {
+.centered-xs {
+  @include xs {
     text-align: center !important;
   }
 }

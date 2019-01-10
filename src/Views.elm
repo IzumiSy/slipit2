@@ -121,7 +121,7 @@ loginView form logoImagePath =
         div [class "login"] [
           h2 [class "login-header"] [
             img [class "image", src logoImagePath] [],
-            div [class "content centered-sm"] [
+            div [class "content centered-xs"] [
               text "Log in to Slip.it",
               h5 [] [text "Your online bookmarks never be social."]
             ] 
