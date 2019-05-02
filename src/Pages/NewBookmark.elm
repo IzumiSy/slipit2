@@ -1,4 +1,4 @@
-module Pages.Bookmarks exposing (Model, Msg, init, view)
+module Pages.NewBookmark exposing (Model, Msg, init, view)
 
 import Flag exposing (Flag)
 import Html exposing (..)
@@ -41,4 +41,4 @@ init flag session =
 
 view : Model -> Html msg
 view model =
-    div [] [ text "bookmarks" ]
+    div [] [ text "new bookmark" ]

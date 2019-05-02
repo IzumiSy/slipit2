@@ -9,6 +9,7 @@ import Http
 import Json.Decode as Decode exposing (field, string)
 import Models exposing (..)
 import Pages.Bookmarks as Bookmarks
+import Pages.NewBookmark as NewBookmark
 import Pages.NotFound as NotFound
 import Pages.ResetPassword as ResetPassword
 import Pages.SignIn as SignIn
@@ -31,6 +32,7 @@ type Model
     | SignUp SignUp.Model
     | ResetPassword ResetPassword.Model
     | Bookmarks Bookmarks.Model
+    | NewBookmark NewBookmark.Model
 
 
 init : Flag -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -47,12 +49,10 @@ initPage flag session maybeRoute =
             NotFound (NotFound.init flag session)
 
         Just Route.Bookmarks ->
-            -- TODO: work on it later
-            NotFound (NotFound.init flag session)
+            Bookmarks (Bookmarks.init flag session)
 
         Just (Route.NewBookmark _ _ _) ->
-            -- TODO: work on it later
-            NotFound (NotFound.init flag session)
+            NewBookmark (NewBookmark.init flag session)
 
         Just Route.ResetPassword ->
             ResetPassword (ResetPassword.init flag session)
@@ -82,6 +82,9 @@ toSession page =
         Bookmarks model ->
             model.session
 
+        NewBookmark model ->
+            model.session
+
 
 toFlag : Model -> Flag
 toFlag page =
@@ -99,6 +102,9 @@ toFlag page =
             model.flag
 
         Bookmarks model ->
+            model.flag
+
+        NewBookmark model ->
             model.flag
 
 
@@ -130,6 +136,9 @@ view page =
         Bookmarks model ->
             model |> Bookmarks.view |> mapMsg GotBookmarksMsg "Bookmarks"
 
+        NewBookmark model ->
+            model |> NewBookmark.view |> mapMsg GotNewBookmarkMsg "New Bookmark"
+
 
 
 ------- Msg ------
@@ -158,6 +167,7 @@ type
     | GotSignUpMsg SignUp.Msg
     | GotResetPasswordMsg ResetPassword.Msg
     | GotBookmarksMsg Bookmarks.Msg
+    | GotNewBookmarkMsg NewBookmark.Msg
 
 
 
@@ -241,6 +251,9 @@ updateSession page newSession =
 
         Bookmarks model ->
             model |> Session.update newSession |> Bookmarks
+
+        NewBookmark model ->
+            model |> Session.update newSession |> NewBookmark
 
 
 
