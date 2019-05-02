@@ -1,4 +1,12 @@
-module Session exposing (Session, init, mapAsLoggedIn, mapAsNotLoggedIn, toNavKey, update)
+module Session exposing
+    ( Session
+    , init
+    , isLoggedIn
+    , mapAsLoggedIn
+    , mapAsNotLoggedIn
+    , toNavKey
+    , update
+    )
 
 import Bookmark exposing (Bookmark)
 import Browser.Navigation as Nav
@@ -59,6 +67,19 @@ toNavKey session =
 
         LoggedIn _ navKey _ ->
             navKey
+
+
+isLoggedIn : Session -> Bool
+isLoggedIn session =
+    case session of
+        NotLoggedIn _ _ ->
+            False
+
+        LoggingIn _ _ ->
+            False
+
+        LoggedIn _ _ _ ->
+            True
 
 
 type alias Sessionable a =

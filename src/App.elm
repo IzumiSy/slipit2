@@ -8,6 +8,7 @@ import Html.Attributes exposing (..)
 import Http
 import Json.Decode as Decode exposing (field, string)
 import Models exposing (..)
+import Pages.Bookmarks as Bookmarks
 import Pages.NotFound as NotFound
 import Pages.ResetPassword as ResetPassword
 import Pages.SignIn as SignIn
@@ -29,17 +30,38 @@ type Model
     | SignIn SignIn.Model
     | SignUp SignUp.Model
     | ResetPassword ResetPassword.Model
+    | Bookmarks Bookmarks.Model
 
 
-init : Flag -> Url.Url -> Nav.Key -> ( Model, Cmd msg )
+init : Flag -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flag url navKey =
-    let
-        session =
-            Session.init url navKey
-    in
-    ( initPage (SignIn (SignIn.init flag session)) (Route.fromUrl url)
+    ( initPage flag (Session.init url navKey) (Route.fromUrl url)
     , Cmd.none
     )
+
+
+initPage : Flag -> Session -> Maybe Route.Routes -> Model
+initPage flag session maybeRoute =
+    case maybeRoute of
+        Nothing ->
+            NotFound (NotFound.init flag session)
+
+        Just Route.Bookmarks ->
+            -- TODO: work on it later
+            NotFound (NotFound.init flag session)
+
+        Just (Route.NewBookmark _ _ _) ->
+            -- TODO: work on it later
+            NotFound (NotFound.init flag session)
+
+        Just Route.ResetPassword ->
+            ResetPassword (ResetPassword.init flag session)
+
+        Just Route.SignIn ->
+            SignIn (SignIn.init flag session)
+
+        Just Route.SignUp ->
+            SignUp (SignUp.init flag session)
 
 
 toSession : Model -> Session
@@ -55,6 +77,9 @@ toSession page =
             model.session
 
         ResetPassword model ->
+            model.session
+
+        Bookmarks model ->
             model.session
 
 
@@ -73,6 +98,9 @@ toFlag page =
         ResetPassword model ->
             model.flag
 
+        Bookmarks model ->
+            model.flag
+
 
 
 ------ View ------
@@ -87,7 +115,7 @@ view page =
             }
     in
     case page of
-        NotFound model ->
+        NotFound _ ->
             { title = "Slip.it | Not Found", body = [ NotFound.view ] }
 
         ResetPassword model ->
@@ -98,6 +126,9 @@ view page =
 
         SignIn model ->
             model |> SignIn.view |> mapMsg GotSignInMsg "Sign In"
+
+        Bookmarks model ->
+            model |> Bookmarks.view |> mapMsg GotBookmarksMsg "Bookmarks"
 
 
 
@@ -126,6 +157,7 @@ type
     | GotSignInMsg SignIn.Msg
     | GotSignUpMsg SignUp.Msg
     | GotResetPasswordMsg ResetPassword.Msg
+    | GotBookmarksMsg Bookmarks.Msg
 
 
 
@@ -134,66 +166,62 @@ type
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model ) of
-        ( LinkClicked urlRequest, _ ) ->
-            case urlRequest of
-                Browser.External href ->
-                    ( model, Nav.load href )
+    let
+        updated =
+            case ( msg, model ) of
+                ( LinkClicked urlRequest, _ ) ->
+                    case urlRequest of
+                        Browser.External href ->
+                            ( model, Nav.load href )
 
-                Browser.Internal url ->
-                    ( model, Nav.pushUrl (model |> toSession |> Session.toNavKey) (Url.toString url) )
+                        Browser.Internal url ->
+                            ( model, Nav.pushUrl (model |> toSession |> Session.toNavKey) (Url.toString url) )
 
-        ( UrlChanged url, _ ) ->
-            ( url |> Route.fromUrl |> initPage model, Cmd.none )
+                ( UrlChanged url, _ ) ->
+                    ( url |> Route.fromUrl |> initPage (model |> toFlag) (model |> toSession), Cmd.none )
 
-        ( SignedOut _, _ ) ->
-            ( model |> toSession |> Session.mapAsNotLoggedIn |> updateSession model, Cmd.none )
+                ( SignedOut _, _ ) ->
+                    ( model |> toSession |> Session.mapAsNotLoggedIn |> updateSession model, Cmd.none )
 
-        ( GotSignInMsg pageMsg, SignIn pageModel ) ->
-            SignIn.update pageMsg pageModel |> updateWith SignIn GotSignInMsg
+                ( GotSignInMsg pageMsg, SignIn pageModel ) ->
+                    SignIn.update pageMsg pageModel |> updateWith SignIn GotSignInMsg
 
-        ( GotSignUpMsg pageMsg, SignUp pageModel ) ->
-            SignUp.update pageMsg pageModel |> updateWith SignUp GotSignUpMsg
+                ( GotSignUpMsg pageMsg, SignUp pageModel ) ->
+                    SignUp.update pageMsg pageModel |> updateWith SignUp GotSignUpMsg
 
-        ( GotResetPasswordMsg pageMsg, ResetPassword pageModel ) ->
-            ResetPassword.update pageMsg pageModel |> updateWith ResetPassword GotResetPasswordMsg
+                ( GotResetPasswordMsg pageMsg, ResetPassword pageModel ) ->
+                    ResetPassword.update pageMsg pageModel |> updateWith ResetPassword GotResetPasswordMsg
 
-        ( _, _ ) ->
-            ( model, Cmd.none )
+                ( _, _ ) ->
+                    ( model, Cmd.none )
+    in
+    updated
+        |> logInGuard
+
+
+logInGuard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+logInGuard ( page, cmd ) =
+    case page of
+        SignIn _ ->
+            ( page, cmd )
+
+        SignUp _ ->
+            ( page, cmd )
+
+        ResetPassword _ ->
+            ( page, cmd )
+
+        _ ->
+            if page |> toSession |> Session.isLoggedIn then
+                ( page, cmd )
+
+            else
+                ( page, Route.replaceUrl (page |> toSession |> Session.toNavKey) Route.SignIn )
 
 
 updateWith : (pageModel -> Model) -> (pageMsg -> Msg) -> ( pageModel, Cmd pageMsg ) -> ( Model, Cmd Msg )
 updateWith toModel toMsg ( subModel, subCmd ) =
     ( toModel subModel, Cmd.map toMsg subCmd )
-
-
-initPage : Model -> Maybe Route.Routes -> Model
-initPage currentModel maybeRoute =
-    let
-        flag =
-            currentModel |> toFlag
-
-        session =
-            currentModel |> toSession
-    in
-    case maybeRoute of
-        Nothing ->
-            NotFound (NotFound.init flag session)
-
-        Just Route.Bookmarks ->
-            currentModel
-
-        Just (Route.NewBookmark _ _ _) ->
-            currentModel
-
-        Just Route.ResetPassword ->
-            ResetPassword (ResetPassword.init flag session)
-
-        Just Route.SignIn ->
-            SignIn (SignIn.init flag session)
-
-        Just Route.SignUp ->
-            SignUp (SignUp.init flag session)
 
 
 updateSession : Model -> Session -> Model
@@ -210,6 +238,9 @@ updateSession page newSession =
 
         ResetPassword model ->
             model |> Session.update newSession |> ResetPassword
+
+        Bookmarks model ->
+            model |> Session.update newSession |> Bookmarks
 
 
 
@@ -238,9 +269,6 @@ updateSession page newSession =
 
            SignsOut ->
                ( model, signsOut () )
-
-           SignedOut _ ->
-               ( { model | logInStatus = NotLoggedIn emptyLogin }, navigateTo "sign_in" )
 
            UpdateNewBookmarkUrl url ->
                updateUserData

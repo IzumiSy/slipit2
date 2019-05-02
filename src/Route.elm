@@ -1,4 +1,4 @@
-module Route exposing (Routes(..), fromUrl, parser, replaceUrl)
+module Route exposing (Routes(..), fromUrl, load, parser, replaceUrl)
 
 import Browser.Navigation as Nav
 import Url
@@ -35,6 +35,11 @@ fromUrl url =
 replaceUrl : Nav.Key -> Routes -> Cmd msg
 replaceUrl navKey route =
     Nav.replaceUrl navKey (routeToString route)
+
+
+load : Routes -> Cmd msg
+load route =
+    route |> routeToString |> Nav.load
 
 
 routeToString : Routes -> String
