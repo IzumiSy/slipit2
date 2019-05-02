@@ -7,7 +7,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
 import Json.Decode as Decode exposing (field, string)
-import Models exposing (..)
 import Pages.Bookmarks as Bookmarks
 import Pages.NewBookmark as NewBookmark
 import Pages.NotFound as NotFound
