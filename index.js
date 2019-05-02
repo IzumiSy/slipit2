@@ -1,10 +1,10 @@
-const firebase = require('firebase/app')
-const { Elm } = require("./src/App.elm")
-require('firebase/auth')
-require('firebase/firestore')
-require('siimple')
-require('./index.scss')
-const logoImage = require('./logo_small.png')
+const firebase = require("firebase/app");
+const { Elm } = require("./src/App.elm");
+require("firebase/auth");
+require("firebase/firestore");
+require("siimple");
+require("./index.scss");
+const logoImage = require("./logo_small.png");
 
 firebase.initializeApp({
   apiKey: process.env.FB_API_KEY,
@@ -16,26 +16,26 @@ firebase.initializeApp({
 });
 
 const app = Elm.App.init({
-  node: document.getElementById('main'),
+  node: document.getElementById("main"),
   flags: {
     functionUrl: process.env.FUNCTION_URL,
-    logoImagePath: logoImage 
+    logoImagePath: logoImage
   }
 });
 
 const database = firebase.firestore();
 
-const fetchAllBookmarks = (userId) =>
+const fetchAllBookmarks = userId =>
   database
-    .collection('users')
+    .collection("users")
     .doc(userId)
-    .collection('bookmarks')
-    .get()
+    .collection("bookmarks")
+    .get();
 
-firebase.auth().onAuthStateChanged((fbUser) => {
+firebase.auth().onAuthStateChanged(fbUser => {
   if (!fbUser) {
-    app.ports.loggedOut.send(null)
-    return
+    app.ports.loggedOut.send(null);
+    return;
   }
 
   fetchAllBookmarks(fbUser.uid)
@@ -47,26 +47,30 @@ firebase.auth().onAuthStateChanged((fbUser) => {
           email: fbUser.email,
           displayName: fbUser.displayName
         }
-      }
-      console.info('currentUser:', userData)
-      app.ports.loggedIn.send(userData)
+      };
+      console.info("currentUser:", userData);
+      app.ports.loggedIn.send(userData);
     })
     .catch(err => {
       // TODO: あとでつくる
-    })
-})
+    });
+});
 
 app.ports.logsOut.subscribe(() => {
-  firebase.auth().signOut().catch(err => console.error(err))
-})
+  firebase
+    .auth()
+    .signOut()
+    .catch(err => console.error(err));
+});
 
 app.ports.startsLoggingIn.subscribe(login => {
-  firebase.auth()
+  firebase
+    .auth()
     .signInWithEmailAndPassword(login.email, login.password)
     .catch(error => {
-      app.ports.loggingInFailed.send(error)
-    })
-})
+      app.ports.loggingInFailed.send(error);
+    });
+});
 
 /*
 app.ports.createsNewBookmark.subscribe(([newBookmark, currentUser]) => {
