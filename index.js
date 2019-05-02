@@ -34,7 +34,7 @@ const fetchAllBookmarks = (userId) =>
 
 firebase.auth().onAuthStateChanged((fbUser) => {
   if (!fbUser) {
-    app.ports.signedOut.send(null)
+    app.ports.loggedOut.send(null)
     return
   }
 
@@ -49,28 +49,26 @@ firebase.auth().onAuthStateChanged((fbUser) => {
         }
       }
       console.info('currentUser:', userData)
-      app.ports.logInSucceeded.send(userData)
+      app.ports.loggedIn.send(userData)
     })
     .catch(err => {
       // TODO: あとでつくる
     })
 })
 
-console.log(app.ports)
-
-app.ports.signsOut.subscribe(() => {
+app.ports.logsOut.subscribe(() => {
   firebase.auth().signOut().catch(err => console.error(err))
 })
 
-app.ports.startLoggingIn.subscribe(login => {
+app.ports.startsLoggingIn.subscribe(login => {
   firebase.auth()
     .signInWithEmailAndPassword(login.email, login.password)
     .catch(error => {
-      console.warn(error)
-      app.ports.logInFailed.send(Object.assign(login, { error }))
+      app.ports.loggingInFailed.send(error)
     })
 })
 
+/*
 app.ports.createsNewBookmark.subscribe(([newBookmark, currentUser]) => {
   database
     .collection('users')
@@ -98,3 +96,4 @@ app.ports.fetchesBookmarks.subscribe(currentUser => {
       // TODO: あとでつくる
     })
 })
+*/

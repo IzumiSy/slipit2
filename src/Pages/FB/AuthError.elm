@@ -1,4 +1,4 @@
-module Pages.FB.AuthError exposing (Error, Payload, fold, init, toMessage)
+module Pages.FB.AuthError exposing (Error, Payload, fold, init, new, toMessage)
 
 
 type alias Payload =
@@ -13,6 +13,11 @@ type Error
 init : Error
 init =
     None
+
+
+new : Payload -> Error
+new payload =
+    Some payload
 
 
 fold : a -> (Payload -> a) -> Error -> a

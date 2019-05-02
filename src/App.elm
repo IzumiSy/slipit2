@@ -159,8 +159,9 @@ type
        | NewUrlFetched (Result Http.Error UrlFetcherResult)
     -}
     = Noop
-    | SignsOut
-    | SignedOut ()
+    | LogsOut
+    | LoggedOut ()
+    | LoggedIn Session.UserData
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | GotSignInMsg SignIn.Msg
@@ -190,8 +191,13 @@ update msg model =
                 ( UrlChanged url, _ ) ->
                     ( url |> Route.fromUrl |> initPage (model |> toFlag) (model |> toSession), Cmd.none )
 
-                ( SignedOut _, _ ) ->
+                ( LoggedOut _, _ ) ->
                     ( model |> toSession |> Session.mapAsNotLoggedIn |> updateSession model, Cmd.none )
+
+                ( LoggedIn { bookmarks, currentUser }, _ ) ->
+                    ( model |> toSession |> Session.mapAsLoggedIn bookmarks currentUser |> updateSession model
+                    , Route.replaceUrl (model |> toSession |> Session.toNavKey) Route.Bookmarks
+                    )
 
                 ( GotSignInMsg pageMsg, SignIn pageModel ) ->
                     SignIn.update pageMsg pageModel |> updateWith SignIn GotSignInMsg
@@ -201,6 +207,9 @@ update msg model =
 
                 ( GotResetPasswordMsg pageMsg, ResetPassword pageModel ) ->
                     ResetPassword.update pageMsg pageModel |> updateWith ResetPassword GotResetPasswordMsg
+
+                ( GotBookmarksMsg pageMsg, Bookmarks pageModel ) ->
+                    Bookmarks.update pageMsg pageModel |> updateWith Bookmarks GotBookmarksMsg
 
                 ( _, _ ) ->
                     ( model, Cmd.none )
@@ -274,15 +283,6 @@ updateSession page newSession =
                Route.pushUrl model.navKey
        in
        case msg of
-           SucceedsInLoggingIn initialUserData ->
-               ( { model | logInStatus = LoggedIn (fromInitialUserData initialUserData) }, navigateTo "bookmarks" )
-
-           FailsLoggingIn loginFormWithErr ->
-               ( { model | logInStatus = NotLoggedIn loginFormWithErr }, navigateTo "sign_in" )
-
-           SignsOut ->
-               ( model, signsOut () )
-
            UpdateNewBookmarkUrl url ->
                updateUserData
                    (\userData ->
@@ -418,42 +418,6 @@ updateSession page newSession =
                                    )
                in
                ( { model | url = url, route = Route.fromUrl url }, redirectMsg )
-
-
-
-   authenticater : Model -> (UserData -> ( Model, Cmd Msg )) -> ( Model, Cmd Msg )
-   authenticater model cb =
-       case model.logInStatus of
-           NotLoggedIn _ ->
-               ( model, signsOut () )
-
-           LoggingIn ->
-               ( model, Cmd.none )
-
-           LoggedIn userData ->
-               cb userData
-
-
-   userDataUpdater : Model -> (UserData -> ( UserData, Cmd Msg )) -> ( Model, Cmd Msg )
-   userDataUpdater model updater =
-       authenticater model
-           (\userData ->
-               let
-                   ( updatedUserData, msg ) =
-                       updater userData
-               in
-               ( { model | logInStatus = LoggedIn updatedUserData }, msg )
-           )
-
-
-   loginFormUpdater : Model -> (LogInForm -> LogInForm) -> ( Model, Cmd Msg )
-   loginFormUpdater model updater =
-       case model.logInStatus of
-           NotLoggedIn form ->
-               ( { model | logInStatus = NotLoggedIn (updater form) }, Cmd.none )
-
-           _ ->
-               ( model, Cmd.none )
 -}
 -- HTTP
 {-
@@ -475,18 +439,28 @@ updateSession page newSession =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions page =
+    let
+        pageSubscriptions =
+            case page of
+                SignIn model ->
+                    Sub.map GotSignInMsg (SignIn.subscriptions model)
+
+                _ ->
+                    Sub.none
+    in
     Sub.batch
         {-
-           [ logInFailed FailsLoggingIn
-           , logInSucceeded SucceedsInLoggingIn
-           , creatingNewBookmarkSucceeded CreatingNewBookmarkSucceeded
+           [ creatingNewBookmarkSucceeded CreatingNewBookmarkSucceeded
            , creatingNewBookmarkFailed CreatingNewBookmarkFailed
            , fetchingBookmarksSucceeded FetchingBookmarksSucceeded
            , fetchingBookmarksFailed FetchingBookmarksFailed
            ]
         -}
-        [ signedOut SignedOut ]
+        [ loggedOut LoggedOut
+        , loggedIn LoggedIn
+        , pageSubscriptions
+        ]
 
 
 
@@ -508,19 +482,13 @@ subscriptions model =
 
 
    port fetchingBookmarksFailed : (BookmarksFetchingError -> msg) -> Sub msg
-
-
-   port logInSucceeded : (InitialUserData -> msg) -> Sub msg
-
-
-   port logInFailed : (LoginPayload -> msg) -> Sub msg
 -}
 
 
-port signsOut : () -> Cmd msg
+port loggedOut : (() -> msg) -> Sub msg
 
 
-port signedOut : (() -> msg) -> Sub msg
+port loggedIn : (Session.UserData -> msg) -> Sub msg
 
 
 
