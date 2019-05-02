@@ -1,4 +1,4 @@
-module Pages.Form.Password exposing (Password, empty, new)
+module Pages.Form.Password exposing (Password, empty, new, unwrap)
 
 
 type Password
@@ -8,6 +8,11 @@ type Password
 new : String -> Password
 new value =
     Password value
+
+
+unwrap : Password -> String
+unwrap (Password value) =
+    value
 
 
 empty : Password
