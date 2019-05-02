@@ -15,11 +15,6 @@ firebase.initializeApp({
   messagingSenderId: process.env.FB_MSG_SENDER_ID
 });
 
-const database = firebase.firestore();
-database.settings({
-  timestampsInSnapshots: true
-})
-
 const app = Elm.App.init({
   node: document.getElementById('main'),
   flags: {
@@ -27,6 +22,8 @@ const app = Elm.App.init({
     logoImagePath: logoImage 
   }
 });
+
+const database = firebase.firestore();
 
 const fetchAllBookmarks = (userId) =>
   database
@@ -58,6 +55,8 @@ firebase.auth().onAuthStateChanged((fbUser) => {
       // TODO: あとでつくる
     })
 })
+
+console.log(app.ports)
 
 app.ports.signsOut.subscribe(() => {
   firebase.auth().signOut().catch(err => console.error(err))

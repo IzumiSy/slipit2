@@ -1,4 +1,4 @@
-module App exposing (init, subscriptions, update)
+port module App exposing (init, subscriptions, update)
 
 import Browser
 import Browser.Navigation as Nav
@@ -8,6 +8,7 @@ import Html.Attributes exposing (..)
 import Http
 import Json.Decode as Decode exposing (field, string)
 import Models exposing (..)
+import Pages.NotFound as NotFound
 import Pages.ResetPassword as ResetPassword
 import Pages.SignIn as SignIn
 import Pages.SignUp as SignUp
@@ -24,7 +25,8 @@ import Url.Parser.Query as Query
 
 
 type Model
-    = SignIn SignIn.Model
+    = NotFound NotFound.Model
+    | SignIn SignIn.Model
     | SignUp SignUp.Model
     | ResetPassword ResetPassword.Model
 
@@ -34,16 +36,18 @@ init flag url navKey =
     let
         session =
             Session.init url navKey
-
-        initialPage =
-            SignIn (SignIn.init flag session)
     in
-    ( initialPage, Cmd.none )
+    ( initPage (SignIn (SignIn.init flag session)) (Route.fromUrl url)
+    , Cmd.none
+    )
 
 
 toSession : Model -> Session
 toSession page =
     case page of
+        NotFound model ->
+            model.session
+
         SignIn model ->
             model.session
 
@@ -57,6 +61,9 @@ toSession page =
 toFlag : Model -> Flag
 toFlag page =
     case page of
+        NotFound model ->
+            model.flag
+
         SignIn model ->
             model.flag
 
@@ -74,23 +81,23 @@ toFlag page =
 view : Model -> Browser.Document Msg
 view page =
     let
-        mapMsg toMsg html =
-            List.map (Html.map toMsg) [ html ]
-
-        body =
-            case page of
-                ResetPassword model ->
-                    model |> ResetPassword.view |> mapMsg GotResetPasswordMsg
-
-                SignUp model ->
-                    model |> SignUp.view |> mapMsg GotSignUpMsg
-
-                SignIn model ->
-                    model |> SignIn.view |> mapMsg GotSignInMsg
+        mapMsg toMsg title html =
+            { title = "Slip.it | " ++ title
+            , body = List.map (Html.map toMsg) [ html ]
+            }
     in
-    { title = "Slip.it"
-    , body = body
-    }
+    case page of
+        NotFound model ->
+            { title = "Slip.it | Not Found", body = [ NotFound.view ] }
+
+        ResetPassword model ->
+            model |> ResetPassword.view |> mapMsg GotResetPasswordMsg "Password Reset"
+
+        SignUp model ->
+            model |> SignUp.view |> mapMsg GotSignUpMsg "Sign Up"
+
+        SignIn model ->
+            model |> SignIn.view |> mapMsg GotSignInMsg "Sign In"
 
 
 
@@ -134,18 +141,22 @@ update msg model =
                     ( model, Nav.load href )
 
                 Browser.Internal url ->
-                    case url.fragment of
-                        Nothing ->
-                            ( model, Cmd.none )
-
-                        Just _ ->
-                            ( model, Nav.pushUrl (model |> toSession |> Session.toNavKey) (Url.toString url) )
+                    ( model, Nav.pushUrl (model |> toSession |> Session.toNavKey) (Url.toString url) )
 
         ( UrlChanged url, _ ) ->
             ( url |> Route.fromUrl |> initPage model, Cmd.none )
 
+        ( SignedOut _, _ ) ->
+            ( model |> toSession |> Session.mapAsNotLoggedIn |> updateSession model, Cmd.none )
+
         ( GotSignInMsg pageMsg, SignIn pageModel ) ->
             SignIn.update pageMsg pageModel |> updateWith SignIn GotSignInMsg
+
+        ( GotSignUpMsg pageMsg, SignUp pageModel ) ->
+            SignUp.update pageMsg pageModel |> updateWith SignUp GotSignUpMsg
+
+        ( GotResetPasswordMsg pageMsg, ResetPassword pageModel ) ->
+            ResetPassword.update pageMsg pageModel |> updateWith ResetPassword GotResetPasswordMsg
 
         ( _, _ ) ->
             ( model, Cmd.none )
@@ -158,33 +169,47 @@ updateWith toModel toMsg ( subModel, subCmd ) =
 
 initPage : Model -> Maybe Route.Routes -> Model
 initPage currentModel maybeRoute =
-    maybeRoute
-        |> Maybe.map
-            (\route ->
-                let
-                    flag =
-                        currentModel |> toFlag
+    let
+        flag =
+            currentModel |> toFlag
 
-                    session =
-                        currentModel |> toSession
-                in
-                case route of
-                    Route.Bookmarks ->
-                        currentModel
+        session =
+            currentModel |> toSession
+    in
+    case maybeRoute of
+        Nothing ->
+            NotFound (NotFound.init flag session)
 
-                    Route.NewBookmark _ _ _ ->
-                        currentModel
+        Just Route.Bookmarks ->
+            currentModel
 
-                    Route.ResetPassword ->
-                        ResetPassword (ResetPassword.init flag session)
+        Just (Route.NewBookmark _ _ _) ->
+            currentModel
 
-                    Route.SignIn ->
-                        SignIn (SignIn.init flag session)
+        Just Route.ResetPassword ->
+            ResetPassword (ResetPassword.init flag session)
 
-                    Route.SignUp ->
-                        SignUp (SignUp.init flag session)
-            )
-        |> Maybe.withDefault currentModel
+        Just Route.SignIn ->
+            SignIn (SignIn.init flag session)
+
+        Just Route.SignUp ->
+            SignUp (SignUp.init flag session)
+
+
+updateSession : Model -> Session -> Model
+updateSession page newSession =
+    case page of
+        NotFound _ ->
+            page
+
+        SignIn model ->
+            model |> Session.update newSession |> SignIn
+
+        SignUp model ->
+            model |> Session.update newSession |> SignUp
+
+        ResetPassword model ->
+            model |> Session.update newSession |> ResetPassword
 
 
 
@@ -410,29 +435,22 @@ initPage currentModel maybeRoute =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    {-
-       Sub.batch
+    Sub.batch
+        {-
            [ logInFailed FailsLoggingIn
            , logInSucceeded SucceedsInLoggingIn
-           , signedOut SignedOut
            , creatingNewBookmarkSucceeded CreatingNewBookmarkSucceeded
            , creatingNewBookmarkFailed CreatingNewBookmarkFailed
            , fetchingBookmarksSucceeded FetchingBookmarksSucceeded
            , fetchingBookmarksFailed FetchingBookmarksFailed
            ]
-    -}
-    Sub.none
+        -}
+        [ signedOut SignedOut ]
 
 
 
 ------ Port ------
 {-
-
-
-
-   port signsOut : () -> Cmd msg
-
-
    port createsNewBookmark : ( Bookmark, User ) -> Cmd msg
 
 
@@ -455,10 +473,16 @@ subscriptions model =
 
 
    port logInFailed : (LoginPayload -> msg) -> Sub msg
-
-
-   port signedOut : (() -> msg) -> Sub msg
 -}
+
+
+port signsOut : () -> Cmd msg
+
+
+port signedOut : (() -> msg) -> Sub msg
+
+
+
 ------ Main ------
 
 

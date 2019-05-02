@@ -1,4 +1,4 @@
-module Session exposing (Session, init, mapAsLoggedIn, toNavKey)
+module Session exposing (Session, init, mapAsLoggedIn, mapAsNotLoggedIn, toNavKey, update)
 
 import Bookmark exposing (Bookmark)
 import Browser.Navigation as Nav
@@ -35,6 +35,19 @@ mapAsLoggedIn bookmarks user session =
             session
 
 
+mapAsNotLoggedIn : Session -> Session
+mapAsNotLoggedIn session =
+    case session of
+        NotLoggedIn _ _ ->
+            session
+
+        LoggingIn url navKey ->
+            NotLoggedIn url navKey
+
+        LoggedIn url navKey _ ->
+            NotLoggedIn url navKey
+
+
 toNavKey : Session -> Nav.Key
 toNavKey session =
     case session of
@@ -46,6 +59,15 @@ toNavKey session =
 
         LoggedIn _ navKey _ ->
             navKey
+
+
+type alias Sessionable a =
+    { a | session : Session }
+
+
+update : Session -> Sessionable a -> Sessionable a
+update newSession model =
+    { model | session = newSession }
 
 
 init : Url.Url -> Nav.Key -> Session
