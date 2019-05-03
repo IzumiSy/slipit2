@@ -2,7 +2,6 @@ port module App exposing (init, subscriptions, update)
 
 import Bookmark.Description as Description
 import Bookmark.Title as Title
-import Bookmark.Url as BookmarkUrl
 import Bookmarks
 import Browser
 import Browser.Navigation as Nav
@@ -61,7 +60,7 @@ initPage flag session maybeRoute =
 
         Just (Route.NewBookmark maybeUrl maybeTitle maybeDescription) ->
             NewBookmark.init
-                (maybeUrl |> BookmarkUrl.new)
+                (maybeUrl |> Maybe.withDefault "" |> Url.fromString)
                 (maybeTitle |> Maybe.map Title.new |> Maybe.withDefault Title.empty)
                 (maybeDescription |> Maybe.map Description.new |> Maybe.withDefault Description.empty)
                 flag

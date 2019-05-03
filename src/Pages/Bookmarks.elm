@@ -3,7 +3,6 @@ port module Pages.Bookmarks exposing (Model, Msg, init, update, view)
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description
 import Bookmark.Title as Title
-import Bookmark.Url as Url
 import Bookmarks exposing (Bookmarks)
 import Flag exposing (Flag)
 import Html exposing (..)
@@ -11,6 +10,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Session exposing (Session)
 import String.Interpolate exposing (interpolate)
+import Url
 
 
 
@@ -79,16 +79,21 @@ view model =
                     , div [ class "siimbple-grid-row" ]
                         (bookmarks
                             |> Bookmarks.map
-                                (\bookmark ->
-                                    div [ class "siimple-grid-col siimple-grid-col--3 siimple-grid-col--lg-4 siimple-grid-col--md-6 siimple-grid-col--xs-12" ]
-                                        [ a [ class "bookmark-item siimple-card", bookmark |> Bookmark.toUrl |> Url.unwrap |> href ]
-                                            [ div [ class "siimple-card-body" ]
-                                                [ div [ class "siimple-card-title" ] [ bookmark |> Bookmark.toTitle |> Title.unwrap |> text ]
-                                                , div [ class "siimple-card-subtitle" ] [ bookmark |> Bookmark.toUrl |> Url.unwrap |> text ]
-                                                , bookmark |> Bookmark.toDescription |> Description.unwrap |> text
-                                                ]
-                                            ]
-                                        ]
+                                (\bookmark_ ->
+                                    bookmark_
+                                        |> Bookmark.fold
+                                            (\{ url, title, description } ->
+                                                div [ class "siimple-grid-col siimple-grid-col--3 siimple-grid-col--lg-4 siimple-grid-col--md-6 siimple-grid-col--xs-12" ]
+                                                    [ a [ class "bookmark-item siimple-card", url |> Url.toString |> href ]
+                                                        [ div [ class "siimple-card-body" ]
+                                                            [ div [ class "siimple-card-title" ] [ title |> Title.unwrap |> text ]
+                                                            , div [ class "siimple-card-subtitle" ] [ url |> Url.toString |> text ]
+                                                            , description |> Description.unwrap |> text
+                                                            ]
+                                                        ]
+                                                    ]
+                                            )
+                                            (always (div [] []))
                                 )
                         )
                     ]

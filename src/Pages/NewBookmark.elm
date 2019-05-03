@@ -3,7 +3,6 @@ module Pages.NewBookmark exposing (Model, Msg, init, view)
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description exposing (Description)
 import Bookmark.Title as Title exposing (Title)
-import Bookmark.Url as Url exposing (Url)
 import Flag exposing (Flag)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -11,6 +10,7 @@ import Html.Events exposing (..)
 import Http
 import Pages
 import Session exposing (Session)
+import Url
 
 
 
@@ -73,7 +73,7 @@ type alias PageInfo =
 type alias Model =
     { flag : Flag
     , session : Session
-    , url : Url
+    , url : Maybe Url.Url
     , title : Title
     , description : Description
     }
@@ -98,7 +98,7 @@ type Msg
 ------ Init ------
 
 
-init : Url -> Title -> Description -> Flag -> Session -> Model
+init : Maybe Url.Url -> Title -> Description -> Flag -> Session -> Model
 init url title description flag session =
     { flag = flag
     , session = session
@@ -144,7 +144,7 @@ view { url, title, description } =
                         , input
                             [ placeholder "Url to bookmark"
                             , required True
-                            , url |> Url.unwrap |> value
+                            , url |> Maybe.map Url.toString |> Maybe.withDefault "" |> value
                             , onInput SetUrl
                             ]
                             []

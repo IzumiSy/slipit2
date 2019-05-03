@@ -1,29 +1,53 @@
-module Bookmark exposing (Bookmark, new, toDescription, toTitle, toUrl)
+module Bookmark exposing (Bookmark, fold, isValid, new)
 
 import Bookmark.Description as Description exposing (Description)
 import Bookmark.Title as Title exposing (Title)
-import Bookmark.Url as Url exposing (Url)
+import Url
 
 
 type Bookmark
-    = Bookmark Url Title Description
+    = Valid Url.Url Title Description
+    | Invalid Title Description
 
 
-new : Url -> Title -> Description -> Bookmark
-new url title description =
-    Bookmark url title description
+new : Maybe Url.Url -> Title -> Description -> Bookmark
+new maybeUrl title description =
+    case maybeUrl of
+        Just url ->
+            Valid url title description
+
+        Nothing ->
+            Invalid title description
 
 
-toUrl : Bookmark -> Url
-toUrl (Bookmark url _ _) =
-    url
+type alias ValidCb =
+    { url : Url.Url
+    , title : Title
+    , description : Description
+    }
 
 
-toTitle : Bookmark -> Title
-toTitle (Bookmark _ title _) =
-    title
+type alias InvalidCb =
+    { title : Title
+    , description : Description
+    }
 
 
-toDescription : Bookmark -> Description
-toDescription (Bookmark _ _ description) =
-    description
+fold : (ValidCb -> a) -> (InvalidCb -> a) -> Bookmark -> a
+fold validCb invalidCb bookmark =
+    case bookmark of
+        Valid url title description ->
+            validCb { url = url, title = title, description = description }
+
+        Invalid title description ->
+            invalidCb { title = title, description = description }
+
+
+isValid : Bookmark -> Bool
+isValid bookmark =
+    case bookmark of
+        Valid _ _ _ ->
+            True
+
+        Invalid _ _ ->
+            False
