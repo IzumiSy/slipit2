@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "firebase": "^5.11.0",
-    "siimple": "^3.3.1"
+    "siimple": "^3.3.1",
+    "lodash": ">=4.17.11"
   }
 }
