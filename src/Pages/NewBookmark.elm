@@ -1,15 +1,15 @@
 module Pages.NewBookmark exposing (Model, Msg, init, view)
 
 import Bookmark exposing (Bookmark)
+import Bookmark.Description as Description exposing (Description)
+import Bookmark.Title as Title exposing (Title)
+import Bookmark.Url as Url exposing (Url)
 import Flag exposing (Flag)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Pages
-import Pages.Form.Description as Description exposing (Description)
-import Pages.Form.Title as Title exposing (Title)
-import Pages.Form.Url as Url exposing (Url)
 import Session exposing (Session)
 
 
@@ -81,10 +81,6 @@ type alias Model =
 
 
 ------ Msg ------
-{-
-   | FetchingBookmarksSucceeded (List Bookmark)
-   | FetchingBookmarksFailed BookmarksFetchingError
--}
 
 
 type Msg

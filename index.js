@@ -48,7 +48,6 @@ firebase.auth().onAuthStateChanged(fbUser => {
           displayName: fbUser.displayName
         }
       };
-      console.info("currentUser:", userData);
       app.ports.loggedIn.send(userData);
     })
     .catch(err => {
@@ -88,16 +87,6 @@ app.ports.createsNewBookmark.subscribe(([newBookmark, currentUser]) => {
       app.ports.createNewBookmarkFailed.send({
         message: "Failed create new bookmark"
       })
-    })
-})
-
-app.ports.fetchesBookmarks.subscribe(currentUser => {
-  fetchAllBookmarks(currentUser.uid)
-    .then(({ docs }) => {
-      app.ports.fetchingBookmarksSucceeded.send(docs.map(doc => doc.data()))
-    }) 
-    .catch(err => {
-      // TODO: あとでつくる
     })
 })
 */

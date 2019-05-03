@@ -1,5 +1,9 @@
 port module App exposing (init, subscriptions, update)
 
+import Bookmark.Description as Description
+import Bookmark.Title as Title
+import Bookmark.Url as BookmarkUrl
+import Bookmarks
 import Browser
 import Browser.Navigation as Nav
 import Flag exposing (Flag)
@@ -7,9 +11,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode exposing (field, string)
 import Pages.Bookmarks as Bookmarks
-import Pages.Form.Description as Description
-import Pages.Form.Title as Title
-import Pages.Form.Url as FormUrl
+import Pages.FB.Bookmark as FBBookmark
+import Pages.FB.User as FBUser
 import Pages.NewBookmark as NewBookmark
 import Pages.ResetPassword as ResetPassword
 import Pages.SignIn as SignIn
@@ -58,7 +61,7 @@ initPage flag session maybeRoute =
 
         Just (Route.NewBookmark maybeUrl maybeTitle maybeDescription) ->
             NewBookmark.init
-                (maybeUrl |> FormUrl.new)
+                (maybeUrl |> BookmarkUrl.new)
                 (maybeTitle |> Maybe.map Title.new |> Maybe.withDefault Title.empty)
                 (maybeDescription |> Maybe.map Description.new |> Maybe.withDefault Description.empty)
                 flag
@@ -167,7 +170,7 @@ view page =
 type Msg
     = LogsOut
     | LoggedOut ()
-    | LoggedIn Session.UserData
+    | LoggedIn InitialData
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | GotSignInMsg SignIn.Msg
@@ -201,14 +204,14 @@ update msg model =
                     ( model |> toSession |> Session.mapAsNotLoggedIn |> updateSession model, Cmd.none )
 
                 ( LoggedIn { bookmarks, currentUser }, WaitForLoggingIn _ session maybeNextRoute ) ->
-                    ( session |> Session.mapAsLoggedIn bookmarks currentUser |> updateSession model
+                    ( session |> Session.mapAsLoggedIn (bookmarks |> Bookmarks.new) currentUser |> updateSession model
                     , maybeNextRoute
                         |> Maybe.map (Route.replaceUrl (session |> Session.toNavKey))
                         |> Maybe.withDefault (Route.replaceUrl (session |> Session.toNavKey) Route.Bookmarks)
                     )
 
                 ( LoggedIn { bookmarks, currentUser }, SignIn pageModel ) ->
-                    ( model |> toSession |> Session.mapAsLoggedIn bookmarks currentUser |> updateSession model
+                    ( model |> toSession |> Session.mapAsLoggedIn (bookmarks |> Bookmarks.new) currentUser |> updateSession model
                     , Route.replaceUrl (model |> toSession |> Session.toNavKey) Route.Bookmarks
                     )
 
@@ -357,13 +360,6 @@ updateSession page newSession =
                ( model, Cmd.none )
 
            -- TODO: あとでつくる
-           FetchingBookmarksSucceeded bookmarks ->
-               updateUserData (\userData -> ( { userData | bookmarks = bookmarks }, Cmd.none ))
-
-           FetchingBookmarksFailed err ->
-               ( model, Cmd.none )
-
-           -- TODO: あとでつくる
            StartFetchingWebPageTitle ->
                updateUserData
                    (\userData ->
@@ -399,53 +395,6 @@ updateSession page newSession =
                        in
                        ( { userData | newBookmark = updated, urlFetchingStatus = UrlFetched mappedResult }, Cmd.none )
                    )
-
-           -- ログインの状況を見てリダイレクトを処理する。ログインしているのにログインページを見せたりする必要はない。
-           UrlChanged url ->
-               let
-                   routeM =
-                       Route.fromUrl url
-
-                   redirectMsg =
-                       case model.logInStatus of
-                           NotLoggedIn _ ->
-                               Maybe.withDefault Cmd.none
-                                   (routeM
-                                       |> Maybe.map
-                                           (\route ->
-                                               case route of
-                                                   Route.Bookmarks ->
-                                                       navigateTo "sign_in"
-
-                                                   _ ->
-                                                       Cmd.none
-                                           )
-                                   )
-
-                           LoggingIn ->
-                               navigateTo "sign_in"
-
-                           LoggedIn _ ->
-                               Maybe.withDefault Cmd.none
-                                   (Maybe.map
-                                       (\route ->
-                                           case route of
-                                               Route.SignIn ->
-                                                   navigateTo "bookmarks"
-
-                                               Route.SignUp ->
-                                                   navigateTo "bookmarks"
-
-                                               Route.ResetPassword ->
-                                                   navigateTo "bookmarks"
-
-                                               _ ->
-                                                   Cmd.none
-                                       )
-                                       routeM
-                                   )
-               in
-               ( { model | url = url, route = Route.fromUrl url }, redirectMsg )
 -}
 -- HTTP
 {-
@@ -481,8 +430,6 @@ subscriptions page =
         {-
            [ creatingNewBookmarkSucceeded CreatingNewBookmarkSucceeded
            , creatingNewBookmarkFailed CreatingNewBookmarkFailed
-           , fetchingBookmarksSucceeded FetchingBookmarksSucceeded
-           , fetchingBookmarksFailed FetchingBookmarksFailed
            ]
         -}
         [ loggedOut LoggedOut
@@ -497,26 +444,23 @@ subscriptions page =
    port createsNewBookmark : ( Bookmark, User ) -> Cmd msg
 
 
-   port fetchesBookmarks : User -> Cmd msg
-
-
    port creatingNewBookmarkSucceeded : (Bookmark -> msg) -> Sub msg
 
 
    port creatingNewBookmarkFailed : (BookmarkCreatingError -> msg) -> Sub msg
-
-
-   port fetchingBookmarksSucceeded : (List Bookmark -> msg) -> Sub msg
-
-
-   port fetchingBookmarksFailed : (BookmarksFetchingError -> msg) -> Sub msg
 -}
 
 
+type alias InitialData =
+    { bookmarks : List FBBookmark.Bookmark
+    , currentUser : FBUser.User
+    }
+
+
+port loggedIn : (InitialData -> msg) -> Sub msg
+
+
 port loggedOut : (() -> msg) -> Sub msg
-
-
-port loggedIn : (Session.UserData -> msg) -> Sub msg
 
 
 

@@ -1,4 +1,4 @@
-module Pages.Form.Url exposing (Url, new, unwrap)
+module Bookmark.Url exposing (Url, new, unwrap)
 
 import Url
 

@@ -1,4 +1,4 @@
-module Pages.Form.Title exposing (Title, empty, new, unwrap)
+module Bookmark.Title exposing (Title, empty, new, unwrap)
 
 
 type Title

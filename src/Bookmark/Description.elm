@@ -1,4 +1,4 @@
-module Pages.Form.Description exposing (Description, empty, new, unwrap)
+module Bookmark.Description exposing (Description, empty, new, unwrap)
 
 
 type Description
