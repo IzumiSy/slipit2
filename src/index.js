@@ -1,10 +1,10 @@
 const firebase = require("firebase/app");
-const { Elm } = require("./src/App.elm");
+const { Elm } = require("./App.elm");
 require("firebase/auth");
 require("firebase/firestore");
 require("siimple");
 require("./index.scss");
-const logoImage = require("./logo_small.png");
+const logoImage = require("../logo_small.png");
 
 firebase.initializeApp({
   apiKey: process.env.FB_API_KEY,
