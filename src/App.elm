@@ -11,7 +11,6 @@ import Pages.Form.Description as Description
 import Pages.Form.Title as Title
 import Pages.Form.Url as FormUrl
 import Pages.NewBookmark as NewBookmark
-import Pages.NotFound as NotFound
 import Pages.ResetPassword as ResetPassword
 import Pages.SignIn as SignIn
 import Pages.SignUp as SignUp
@@ -24,12 +23,12 @@ import Url.Parser.Query as Query
 
 
 
------- Init ------
--- TODO: Redirectステートを導入して認証状態のチェックの間にコンテンツページを見せてしまう事のないようにする
+------ Model ------
 
 
 type Model
-    = NotFound NotFound.Model
+    = WaitForLoggingIn Flag Session (Maybe Route.Routes)
+    | NotFound Flag Session
     | SignIn SignIn.Model
     | SignUp SignUp.Model
     | ResetPassword ResetPassword.Model
@@ -37,19 +36,22 @@ type Model
     | NewBookmark NewBookmark.Model
 
 
+
+------ Init ------
+
+
 init : Flag -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flag url navKey =
-    ( initPage flag (Session.init url navKey) (Route.fromUrl url)
+    ( WaitForLoggingIn flag (Session.init url navKey) (Route.fromUrl url)
     , Cmd.none
     )
-        |> logInGuard
 
 
 initPage : Flag -> Session -> Maybe Route.Routes -> Model
 initPage flag session maybeRoute =
     case maybeRoute of
         Nothing ->
-            NotFound (NotFound.init flag session)
+            NotFound flag session
 
         Just Route.Bookmarks ->
             Bookmarks (Bookmarks.init flag session)
@@ -76,8 +78,11 @@ initPage flag session maybeRoute =
 toSession : Model -> Session
 toSession page =
     case page of
-        NotFound model ->
-            model.session
+        WaitForLoggingIn _ session _ ->
+            session
+
+        NotFound _ session ->
+            session
 
         SignIn model ->
             model.session
@@ -98,8 +103,11 @@ toSession page =
 toFlag : Model -> Flag
 toFlag page =
     case page of
-        NotFound model ->
-            model.flag
+        WaitForLoggingIn flag _ _ ->
+            flag
+
+        NotFound flag _ ->
+            flag
 
         SignIn model ->
             model.flag
@@ -130,8 +138,11 @@ view page =
             }
     in
     case page of
-        NotFound _ ->
-            { title = "Slip.it | Not Found", body = [ NotFound.view ] }
+        WaitForLoggingIn _ _ _ ->
+            { title = "Slip.it | Loading", body = [ div [] [ text "Loading..." ] ] }
+
+        NotFound _ _ ->
+            { title = "Slip.it | Not Found", body = [ div [] [ text "Not Found" ] ] }
 
         ResetPassword model ->
             model |> ResetPassword.view |> mapMsg GotResetPasswordMsg "Password Reset"
@@ -189,7 +200,14 @@ update msg model =
                 ( LoggedOut _, _ ) ->
                     ( model |> toSession |> Session.mapAsNotLoggedIn |> updateSession model, Cmd.none )
 
-                ( LoggedIn { bookmarks, currentUser }, _ ) ->
+                ( LoggedIn { bookmarks, currentUser }, WaitForLoggingIn _ session maybeNextRoute ) ->
+                    ( session |> Session.mapAsLoggedIn bookmarks currentUser |> updateSession model
+                    , maybeNextRoute
+                        |> Maybe.map (Route.replaceUrl (session |> Session.toNavKey))
+                        |> Maybe.withDefault (Route.replaceUrl (session |> Session.toNavKey) Route.Bookmarks)
+                    )
+
+                ( LoggedIn { bookmarks, currentUser }, SignIn pageModel ) ->
                     ( model |> toSession |> Session.mapAsLoggedIn bookmarks currentUser |> updateSession model
                     , Route.replaceUrl (model |> toSession |> Session.toNavKey) Route.Bookmarks
                     )
@@ -217,13 +235,25 @@ logInGuard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 logInGuard ( page, cmd ) =
     case page of
         SignIn _ ->
-            ( page, cmd )
+            if page |> toSession |> Session.isLoggedIn then
+                ( page, Route.replaceUrl (page |> toSession |> Session.toNavKey) Route.Bookmarks )
+
+            else
+                ( page, cmd )
 
         SignUp _ ->
-            ( page, cmd )
+            if page |> toSession |> Session.isLoggedIn then
+                ( page, Route.replaceUrl (page |> toSession |> Session.toNavKey) Route.Bookmarks )
+
+            else
+                ( page, cmd )
 
         ResetPassword _ ->
-            ( page, cmd )
+            if page |> toSession |> Session.isLoggedIn then
+                ( page, Route.replaceUrl (page |> toSession |> Session.toNavKey) Route.Bookmarks )
+
+            else
+                ( page, cmd )
 
         _ ->
             if page |> toSession |> Session.isLoggedIn then
@@ -241,8 +271,11 @@ updateWith toModel toMsg ( subModel, subCmd ) =
 updateSession : Model -> Session -> Model
 updateSession page newSession =
     case page of
-        NotFound _ ->
-            page
+        WaitForLoggingIn flag _ nextRoute ->
+            WaitForLoggingIn flag newSession nextRoute
+
+        NotFound flag _ ->
+            NotFound flag newSession
 
         SignIn model ->
             model |> Session.update newSession |> SignIn

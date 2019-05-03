@@ -137,7 +137,14 @@ view { flag, email, password, error, session } =
                                 [ class "siimple-btn siimple-btn--teal siimple-btn--fluid"
                                 , session |> Session.isLoggingIn |> disabled
                                 ]
-                                [ text "Login" ]
+                                [ text
+                                    (if session |> Session.isLoggingIn then
+                                        "Logging in..."
+
+                                     else
+                                        "Login"
+                                    )
+                                ]
                             ]
                         ]
                     , div [ class "siimple-grid-row siimple--text-center" ]
