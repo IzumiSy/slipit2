@@ -5,9 +5,11 @@ import Browser.Navigation as Nav
 import Flag exposing (Flag)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Http
 import Json.Decode as Decode exposing (field, string)
 import Pages.Bookmarks as Bookmarks
+import Pages.Form.Description as Description
+import Pages.Form.Title as Title
+import Pages.Form.Url as FormUrl
 import Pages.NewBookmark as NewBookmark
 import Pages.NotFound as NotFound
 import Pages.ResetPassword as ResetPassword
@@ -39,6 +41,7 @@ init flag url navKey =
     ( initPage flag (Session.init url navKey) (Route.fromUrl url)
     , Cmd.none
     )
+        |> logInGuard
 
 
 initPage : Flag -> Session -> Maybe Route.Routes -> Model
@@ -50,8 +53,14 @@ initPage flag session maybeRoute =
         Just Route.Bookmarks ->
             Bookmarks (Bookmarks.init flag session)
 
-        Just (Route.NewBookmark _ _ _) ->
-            NewBookmark (NewBookmark.init flag session)
+        Just (Route.NewBookmark maybeUrl maybeTitle maybeDescription) ->
+            NewBookmark.init
+                (maybeUrl |> FormUrl.new)
+                (maybeTitle |> Maybe.map Title.new |> Maybe.withDefault Title.empty)
+                (maybeDescription |> Maybe.map Description.new |> Maybe.withDefault Description.empty)
+                flag
+                session
+                |> NewBookmark
 
         Just Route.ResetPassword ->
             ResetPassword (ResetPassword.init flag session)
@@ -146,16 +155,8 @@ view page =
 type
     Msg
     {-
-       | UpdateNewBookmarkUrl String
-       | UpdateNewBookmarkTitle String
-       | UpdateNewBookmarkDescription String
-       | CreatesNewbookmark
-       | CreatingNewBookmarkSucceeded Bookmark
-       | CreatingNewBookmarkFailed BookmarkCreatingError
        | FetchingBookmarksSucceeded (List Bookmark)
        | FetchingBookmarksFailed BookmarksFetchingError
-       | StartFetchingWebPageTitle
-       | NewUrlFetched (Result Http.Error UrlFetcherResult)
     -}
     = Noop
     | LogsOut

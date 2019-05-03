@@ -69,7 +69,7 @@ view model =
                     , div [ class "siimple-gird-row" ]
                         [ h2 []
                             [ text (interpolate "Bookmarks ({0})" [ String.fromInt (List.length bookmarks) ])
-                            , button [ class "siimple-btn siimple-btn--teal siimple--float-right" ] [ text "Add a new bookmark" ]
+                            , a [ class "siimple-btn siimple-btn--teal siimple--float-right", href "new_bookmark" ] [ text "Add a new bookmark" ]
                             ]
                         ]
                     , div [ class "siimbple-grid-row" ] (viewBookmarks bookmarks)
