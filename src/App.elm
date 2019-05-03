@@ -25,6 +25,7 @@ import Url.Parser.Query as Query
 
 
 ------ Init ------
+-- TODO: Redirectステートを導入して認証状態のチェックの間にコンテンツページを見せてしまう事のないようにする
 
 
 type Model
@@ -152,14 +153,8 @@ view page =
 ------- Msg ------
 
 
-type
-    Msg
-    {-
-       | FetchingBookmarksSucceeded (List Bookmark)
-       | FetchingBookmarksFailed BookmarksFetchingError
-    -}
-    = Noop
-    | LogsOut
+type Msg
+    = LogsOut
     | LoggedOut ()
     | LoggedIn Session.UserData
     | LinkClicked Browser.UrlRequest

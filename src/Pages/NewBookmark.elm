@@ -81,6 +81,10 @@ type alias Model =
 
 
 ------ Msg ------
+{-
+   | FetchingBookmarksSucceeded (List Bookmark)
+   | FetchingBookmarksFailed BookmarksFetchingError
+-}
 
 
 type Msg
