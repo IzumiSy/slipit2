@@ -235,27 +235,23 @@ update msg model =
 
 logInGuard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 logInGuard ( page, cmd ) =
+    let
+        toBookmarksIfNotLoggedIn =
+            if page |> toSession |> Session.isLoggedIn then
+                ( page, Route.replaceUrl (page |> toSession |> Session.toNavKey) Route.Bookmarks )
+
+            else
+                ( page, cmd )
+    in
     case page of
         SignIn _ ->
-            if page |> toSession |> Session.isLoggedIn then
-                ( page, Route.replaceUrl (page |> toSession |> Session.toNavKey) Route.Bookmarks )
-
-            else
-                ( page, cmd )
+            toBookmarksIfNotLoggedIn
 
         SignUp _ ->
-            if page |> toSession |> Session.isLoggedIn then
-                ( page, Route.replaceUrl (page |> toSession |> Session.toNavKey) Route.Bookmarks )
-
-            else
-                ( page, cmd )
+            toBookmarksIfNotLoggedIn
 
         ResetPassword _ ->
-            if page |> toSession |> Session.isLoggedIn then
-                ( page, Route.replaceUrl (page |> toSession |> Session.toNavKey) Route.Bookmarks )
-
-            else
-                ( page, cmd )
+            toBookmarksIfNotLoggedIn
 
         _ ->
             if page |> toSession |> Session.isLoggedIn then
@@ -295,122 +291,6 @@ updateSession page newSession =
             model |> Session.update newSession |> NewBookmark
 
 
-
-{-
-   update : Msg -> Model -> ( Model, Cmd Msg )
-   update msg model =
-       let
-           fetchUserData =
-               authenticater model
-
-           updateUserData =
-               userDataUpdater model
-
-           updateLoginForm =
-               loginFormUpdater model
-
-           navigateTo =
-               Route.pushUrl model.navKey
-       in
-       case msg of
-           UpdateNewBookmarkUrl url ->
-               updateUserData
-                   (\userData ->
-                       let
-                           updated =
-                               userData.newBookmark |> setUrl url
-                       in
-                       ( { userData | newBookmark = updated }, Cmd.none )
-                   )
-
-           UpdateNewBookmarkTitle title ->
-               updateUserData
-                   (\userData ->
-                       let
-                           updated =
-                               userData.newBookmark |> setTitle title
-                       in
-                       ( { userData | newBookmark = updated }, Cmd.none )
-                   )
-
-           UpdateNewBookmarkDescription desc ->
-               updateUserData
-                   (\userData ->
-                       let
-                           updated =
-                               userData.newBookmark |> setDescription desc
-                       in
-                       ( { userData | newBookmark = updated }, Cmd.none )
-                   )
-
-           CreatesNewbookmark ->
-               updateUserData
-                   (\userData ->
-                       ( { userData | newBookmarkCreatingStatus = NewBookmarkCreating }, createsNewBookmark ( userData.newBookmark, userData.currentUser ) )
-                   )
-
-           CreatingNewBookmarkSucceeded createdBookmark ->
-               updateUserData
-                   (\userData ->
-                       ( { userData | newBookmarkCreatingStatus = NewBookmarkCreated (Ok createdBookmark) }, fetchesBookmarks userData.currentUser )
-                   )
-
-           CreatingNewBookmarkFailed err ->
-               ( model, Cmd.none )
-
-           -- TODO: あとでつくる
-           StartFetchingWebPageTitle ->
-               updateUserData
-                   (\userData ->
-                       ( { userData | urlFetchingStatus = UrlFetching }, fetchUrl model.appConfig.functionUrl userData.newBookmark.url )
-                   )
-
-           NewUrlFetched result ->
-               updateUserData
-                   (\userData ->
-                       let
-                           mappedResult =
-                               Result.mapError
-                                   (\err ->
-                                       case err of
-                                           Http.BadBody errMsg ->
-                                               UrlFetchingError errMsg
-
-                                           _ ->
-                                               UrlFetchingError "Unexpected error"
-                                   )
-                                   result
-
-                           ( title, description ) =
-                               case mappedResult of
-                                   Ok r ->
-                                       ( r.title, r.description )
-
-                                   _ ->
-                                       ( userData.newBookmark.title, userData.newBookmark.description )
-
-                           updated =
-                               userData.newBookmark |> setTitle title |> setDescription description
-                       in
-                       ( { userData | newBookmark = updated, urlFetchingStatus = UrlFetched mappedResult }, Cmd.none )
-                   )
--}
--- HTTP
-{-
-   fetchUrl : String -> String -> Cmd Msg
-   fetchUrl functionUrl targetUrl =
-       Http.get
-           { url = interpolate "{0}?url={1}" [ functionUrl, targetUrl ]
-           , expect = Http.expectJson NewUrlFetched urlFetcherDecoder
-           }
-
-
-   urlFetcherDecoder : Decode.Decoder UrlFetcherResult
-   urlFetcherDecoder =
-       Decode.map2 UrlFetcherResult
-           (field "title" string)
-           (field "description" string)
--}
 ------ Subscription ------
 
 
@@ -439,15 +319,6 @@ subscriptions page =
 
 
 ------ Port ------
-{-
-   port createsNewBookmark : ( Bookmark, User ) -> Cmd msg
-
-
-   port creatingNewBookmarkSucceeded : (Bookmark -> msg) -> Sub msg
-
-
-   port creatingNewBookmarkFailed : (BookmarkCreatingError -> msg) -> Sub msg
--}
 
 
 type alias InitialData =
