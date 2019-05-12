@@ -16,31 +16,31 @@ import Flag exposing (Flag)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Pages.NewBookmark.Url as Url exposing (Url)
 import String.Interpolate exposing (interpolate)
-import Url
 
 
 type PageInfo
     = PageInfo
-        { url : Maybe Url.Url
+        { url : Url
         , title : Title
         , description : Description
         }
 
 
-fromUrl : Maybe Url.Url -> PageInfo
-fromUrl maybeUrl =
+fromUrl : Url -> PageInfo
+fromUrl url =
     PageInfo
-        { url = maybeUrl
+        { url = url
         , title = Title.empty
         , description = Description.empty
         }
 
 
-mapUrl : Maybe Url.Url -> PageInfo -> PageInfo
-mapUrl maybeUrl (PageInfo { title, description }) =
+mapUrl : Url -> PageInfo -> PageInfo
+mapUrl url (PageInfo { title, description }) =
     PageInfo
-        { url = maybeUrl
+        { url = url
         , title = title
         , description = description
         }
@@ -64,7 +64,7 @@ mapDescription newDescription (PageInfo { url, title }) =
         }
 
 
-toUrl : PageInfo -> Maybe Url.Url
+toUrl : PageInfo -> Url
 toUrl (PageInfo { url }) =
     url
 
@@ -82,16 +82,17 @@ toDescription (PageInfo { description }) =
 fetchFromRemote : Flag -> (Result Http.Error PageInfo -> msg) -> PageInfo -> Cmd msg
 fetchFromRemote { functionUrl } msg (PageInfo { url }) =
     url
-        |> Maybe.map
+        |> Url.unwrap
+        |> Result.map
             (\validUrl ->
                 Http.get
-                    { url = interpolate "{0}?url={1}" [ functionUrl, Url.toString validUrl ]
+                    { url = interpolate "{0}?url={1}" [ functionUrl, validUrl ]
                     , expect =
                         let
                             pageInfoDecoder title description =
                                 Decode.succeed
                                     (PageInfo
-                                        { url = Just validUrl
+                                        { url = url
                                         , title = Title.new title
                                         , description = Description.new description
                                         }
@@ -106,4 +107,4 @@ fetchFromRemote { functionUrl } msg (PageInfo { url }) =
                             )
                     }
             )
-        |> Maybe.withDefault Cmd.none
+        |> Result.withDefault Cmd.none

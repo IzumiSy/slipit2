@@ -12,6 +12,7 @@ import Pages.Bookmarks as Bookmarks
 import Pages.FB.Bookmark as FBBookmark
 import Pages.FB.User as FBUser
 import Pages.NewBookmark as NewBookmark
+import Pages.NewBookmark.Url as NewBookmarkUrl exposing (Url)
 import Pages.ResetPassword as ResetPassword
 import Pages.SignIn as SignIn
 import Pages.SignUp as SignUp
@@ -58,7 +59,7 @@ initPage flag session maybeRoute =
 
         Just (Route.NewBookmark maybeUrl maybeTitle maybeDescription) ->
             NewBookmark.init
-                (maybeUrl |> Maybe.withDefault "" |> Url.fromString)
+                (maybeUrl |> Maybe.withDefault "" |> NewBookmarkUrl.new)
                 (maybeTitle |> Maybe.map Title.new |> Maybe.withDefault Title.empty)
                 (maybeDescription |> Maybe.map Description.new |> Maybe.withDefault Description.empty)
                 flag

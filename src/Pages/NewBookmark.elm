@@ -19,8 +19,8 @@ import Pages
 import Pages.FB.Bookmark as FBBookmark
 import Pages.FB.User as FBUser
 import Pages.NewBookmark.PageInfo as PageInfo exposing (PageInfo)
+import Pages.NewBookmark.Url as Url exposing (Url)
 import Session exposing (Session)
-import Url
 
 
 
@@ -96,7 +96,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SetUrl value ->
-            ( { model | pageInfo = model.pageInfo |> PageInfo.mapUrl (Url.fromString value) }, Cmd.none )
+            ( { model | pageInfo = model.pageInfo |> PageInfo.mapUrl (Url.new value) }, Cmd.none )
 
         SetTitle value ->
             ( { model | pageInfo = model.pageInfo |> PageInfo.mapTitle (Title.new value) }, Cmd.none )
@@ -105,11 +105,11 @@ update msg model =
             ( { model | pageInfo = model.pageInfo |> PageInfo.mapDescription (Description.new value) }, Cmd.none )
 
         CreatesNewbookmark ->
-            case ( model.session |> Session.toUserData, model.pageInfo |> PageInfo.toUrl ) of
-                ( Just { currentUser }, Just url ) ->
+            case ( model.session |> Session.toUserData, model.pageInfo |> PageInfo.toUrl |> Url.unwrap ) of
+                ( Just { currentUser }, Ok url ) ->
                     ( model
                     , createsNewBookmark
-                        ( { url = Url.toString url
+                        ( { url = url
                           , title = model.pageInfo |> PageInfo.toTitle |> Title.unwrap
                           , description = model.pageInfo |> PageInfo.toDescription |> Description.unwrap
                           }
@@ -143,7 +143,7 @@ update msg model =
 ------ Init ------
 
 
-init : Maybe Url.Url -> Title -> Description -> Flag -> Session -> Model
+init : Url -> Title -> Description -> Flag -> Session -> Model
 init url title description flag session =
     { flag = flag
     , session = session
@@ -170,7 +170,7 @@ view { pageInfo } =
                         , input
                             [ placeholder "Url to bookmark"
                             , required True
-                            , pageInfo |> PageInfo.toUrl |> Maybe.map Url.toString |> Maybe.withDefault "" |> value
+                            , pageInfo |> PageInfo.toUrl |> Url.unwrap |> Result.withDefault "" |> value
                             , onInput SetUrl
                             ]
                             []
