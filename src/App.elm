@@ -329,45 +329,6 @@ updateSession page newSession =
 
 
 
-{-
-   update : Msg -> Model -> ( Model, Cmd Msg )
-   update msg model =
-       let
-           fetchUserData =
-               authenticater model
-
-           updateUserData =
-               userDataUpdater model
-
-           updateLoginForm =
-               loginFormUpdater model
-
-           navigateTo =
-               Route.pushUrl model.navKey
-       in
-       case msg of
-           CreatesNewbookmark ->
-               updateUserData
-                   (\userData ->
-                       ( { userData | newBookmarkCreatingStatus = NewBookmarkCreating }, createsNewBookmark ( userData.newBookmark, userData.currentUser ) )
-                   )
-
-           CreatingNewBookmarkSucceeded createdBookmark ->
-               updateUserData
-                   (\userData ->
-                       ( { userData | newBookmarkCreatingStatus = NewBookmarkCreated (Ok createdBookmark) }, fetchesBookmarks userData.currentUser )
-                   )
-
-           CreatingNewBookmarkFailed err ->
-               ( model, Cmd.none )
-
-           -- TODO: あとでつくる
-           StartFetchingWebPageTitle ->
-               updateUserData
-                   (\userData ->
-                       ( { userData | urlFetchingStatus = UrlFetching }, fetchUrl model.appConfig.functionUrl userData.newBookmark.url )
-                   )
--}
 ------ Subscription ------
 
 
