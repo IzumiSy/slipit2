@@ -129,35 +129,71 @@ toFlag page =
 ------ View ------
 
 
+toView : Html.Html msg -> Browser.Document msg
+toView html =
+    { title = "Slip.it"
+    , body = [ html ]
+    }
+
+
 view : Model -> Browser.Document Msg
 view page =
     let
-        mapMsg toMsg title html =
-            { title = "Slip.it | " ++ title
-            , body = List.map (Html.map toMsg) [ html ]
+        mapMsg toMsg { title, body } =
+            { title = title
+            , body = List.map (Html.map toMsg) body
+            }
+
+        mapTitle pageTitle { title, body } =
+            { title = title ++ " | " ++ pageTitle
+            , body = body
             }
     in
     case page of
         WaitForLoggingIn _ _ _ ->
-            { title = "Slip.it | Loading", body = [ div [] [ text "Loading..." ] ] }
+            div [] [ text "Loading..." ]
+                |> toView
+                |> mapTitle "Loading"
 
         NotFound _ _ ->
-            { title = "Slip.it | Not Found", body = [ div [] [ text "Not Found" ] ] }
+            div [] [ text "Not Found" ]
+                |> toView
+                |> mapTitle "Not Found"
 
         ResetPassword model ->
-            model |> ResetPassword.view |> mapMsg GotResetPasswordMsg "Password Reset"
+            model
+                |> ResetPassword.view
+                |> toView
+                |> mapMsg GotResetPasswordMsg
+                |> mapTitle "Password Reset"
 
         SignUp model ->
-            model |> SignUp.view |> mapMsg GotSignUpMsg "Sign Up"
+            model
+                |> SignUp.view
+                |> toView
+                |> mapMsg GotSignUpMsg
+                |> mapTitle "Sign Up"
 
         SignIn model ->
-            model |> SignIn.view |> mapMsg GotSignInMsg "Sign In"
+            model
+                |> SignIn.view
+                |> toView
+                |> mapMsg GotSignInMsg
+                |> mapTitle "Sign In"
 
         Bookmarks model ->
-            model |> Bookmarks.view |> mapMsg GotBookmarksMsg "Bookmarks"
+            model
+                |> Bookmarks.view
+                |> toView
+                |> mapMsg GotBookmarksMsg
+                |> mapTitle "Bookmarks"
 
         NewBookmark model ->
-            model |> NewBookmark.view |> mapMsg GotNewBookmarkMsg "New Bookmark"
+            model
+                |> NewBookmark.view
+                |> toView
+                |> mapMsg GotNewBookmarkMsg
+                |> mapTitle "New Bookmark"
 
 
 
