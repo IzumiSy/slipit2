@@ -260,6 +260,9 @@ update msg model =
                 ( GotBookmarksMsg pageMsg, Bookmarks pageModel ) ->
                     Bookmarks.update pageMsg pageModel |> updateWith Bookmarks GotBookmarksMsg
 
+                ( GotNewBookmarkMsg pageMsg, NewBookmark pageModel ) ->
+                    NewBookmark.update pageMsg pageModel |> updateWith NewBookmark GotNewBookmarkMsg
+
                 ( _, _ ) ->
                     ( model, Cmd.none )
     in

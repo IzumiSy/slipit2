@@ -1,4 +1,11 @@
-port module Pages.NewBookmark exposing (Model, Msg, init, subscriptions, view)
+port module Pages.NewBookmark exposing
+    ( Model
+    , Msg
+    , init
+    , subscriptions
+    , update
+    , view
+    )
 
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description exposing (Description)
@@ -67,36 +74,6 @@ type Msg
                Route.pushUrl model.navKey
        in
        case msg of
-           UpdateNewBookmarkUrl url ->
-               updateUserData
-                   (\userData ->
-                       let
-                           updated =
-                               userData.newBookmark |> setUrl url
-                       in
-                       ( { userData | newBookmark = updated }, Cmd.none )
-                   )
-
-           UpdateNewBookmarkTitle title ->
-               updateUserData
-                   (\userData ->
-                       let
-                           updated =
-                               userData.newBookmark |> setTitle title
-                       in
-                       ( { userData | newBookmark = updated }, Cmd.none )
-                   )
-
-           UpdateNewBookmarkDescription desc ->
-               updateUserData
-                   (\userData ->
-                       let
-                           updated =
-                               userData.newBookmark |> setDescription desc
-                       in
-                       ( { userData | newBookmark = updated }, Cmd.none )
-                   )
-
            CreatesNewbookmark ->
                updateUserData
                    (\userData ->
@@ -111,59 +88,6 @@ type Msg
 
            CreatingNewBookmarkFailed err ->
                ( model, Cmd.none )
-
-           -- TODO: あとでつくる
-           StartFetchingWebPageTitle ->
-               updateUserData
-                   (\userData ->
-                       ( { userData | urlFetchingStatus = UrlFetching }, fetchUrl model.appConfig.functionUrl userData.newBookmark.url )
-                   )
-
-           NewUrlFetched result ->
-               updateUserData
-                   (\userData ->
-                       let
-                           mappedResult =
-                               Result.mapError
-                                   (\err ->
-                                       case err of
-                                           Http.BadBody errMsg ->
-                                               UrlFetchingError errMsg
-
-                                           _ ->
-                                               UrlFetchingError "Unexpected error"
-                                   )
-                                   result
-
-                           ( title, description ) =
-                               case mappedResult of
-                                   Ok r ->
-                                       ( r.title, r.description )
-
-                                   _ ->
-                                       ( userData.newBookmark.title, userData.newBookmark.description )
-
-                           updated =
-                               userData.newBookmark |> setTitle title |> setDescription description
-                       in
-                       ( { userData | newBookmark = updated, urlFetchingStatus = UrlFetched mappedResult }, Cmd.none )
-                   )
--}
------- HTTP ------
-{-
-   fetchUrl : String -> String -> Cmd Msg
-   fetchUrl functionUrl targetUrl =
-       Http.get
-           { url = interpolate "{0}?url={1}" [ functionUrl, targetUrl ]
-           , expect = Http.expectJson NewUrlFetched urlFetcherDecoder
-           }
-
-
-   urlFetcherDecoder : Decode.Decoder UrlFetcherResult
-   urlFetcherDecoder =
-       Decode.map2 UrlFetcherResult
-           (field "title" string)
-           (field "description" string)
 -}
 ------ Update ------
 
