@@ -1,4 +1,4 @@
-port module Pages.NewBookmark exposing (Model, Msg, init, view)
+port module Pages.NewBookmark exposing (Model, Msg, init, subscriptions, view)
 
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description exposing (Description)
@@ -9,6 +9,9 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Pages
+import Pages.FB.Bookmark as FBBookmark
+import Pages.FB.User as FBUser
+import Pages.NewBookmark.PageInfo as PageInfo exposing (PageInfo)
 import Session exposing (Session)
 import Url
 
@@ -16,66 +19,17 @@ import Url
 
 ------ Model ------
 {-
-
-   type UrlFetchingStatus
-       = UrlNotFetched
-       | UrlFetching
-       | UrlFetched (Result { message : String } UrlFetcherResult)
-
-
-   type UrlFetchingError
-       = UrlFetchingError String
-
-
-   unwrapUrlFetchingError : UrlFetchingError -> String
-   unwrapUrlFetchingError (UrlFetchingError msg) =
-       msg
-
-
-   type alias NewBookmarkForm =
-       { url : String
-       , title : String
-       , description : String
-       }
-
-
-   emptyBookmark =
-       { url = "", title = "", description = "" }
-
-
-   setUrl v bookmark =
-       { bookmark | url = v }
-
-
-   setTitle v bookmark =
-       { bookmark | title = v }
-
-
-   setDescription v bookmark =
-       { bookmark | description = v }
-
-
-
    type NewBookmarkCreatingStatus
        = NewBookmarkNotCreated
        | NewBookmarkCreating
        | NewBookmarkCreated (Result BookmarkCreatingError Bookmark)
-
 -}
-
-
-type alias PageInfo =
-    { title : String
-    , description : String
-    }
 
 
 type alias Model =
     { flag : Flag
     , session : Session
-    , url : Maybe Url.Url
-    , title : Title
-    , description : Description
+    , pageInfo : PageInfo
     }
 
 
@@ -88,10 +42,11 @@ type Msg
     | SetTitle String
     | SetDescription String
     | CreatesNewbookmark
-    | CreatingNewBookmarkSucceeded Bookmark
+    | CreatingNewBookmarkSucceeded FBBookmark.Bookmark
     | CreatingNewBookmarkFailed String
     | StartFetchingPageInfo
     | PageInfoFetched (Result Http.Error PageInfo)
+
 
 
 ------ Update ------
@@ -194,8 +149,6 @@ type Msg
                        ( { userData | newBookmark = updated, urlFetchingStatus = UrlFetched mappedResult }, Cmd.none )
                    )
 -}
-
-
 ------ HTTP ------
 {-
    fetchUrl : String -> String -> Cmd Msg
@@ -212,6 +165,56 @@ type Msg
            (field "title" string)
            (field "description" string)
 -}
+------ Update ------
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        SetUrl value ->
+            ( { model | pageInfo = model.pageInfo |> PageInfo.mapUrl (Url.fromString value) }, Cmd.none )
+
+        SetTitle value ->
+            ( { model | pageInfo = model.pageInfo |> PageInfo.mapTitle (Title.new value) }, Cmd.none )
+
+        SetDescription value ->
+            ( { model | pageInfo = model.pageInfo |> PageInfo.mapDescription (Description.new value) }, Cmd.none )
+
+        CreatesNewbookmark ->
+            case ( model.session |> Session.toUserData, model.pageInfo |> PageInfo.toUrl ) of
+                ( Just { currentUser }, Just url ) ->
+                    ( model
+                    , createsNewBookmark
+                        ( { url = Url.toString url
+                          , title = model.pageInfo |> PageInfo.toTitle |> Title.unwrap
+                          , description = model.pageInfo |> PageInfo.toDescription |> Description.unwrap
+                          }
+                        , currentUser
+                        )
+                    )
+
+                ( _, _ ) ->
+                    ( model, Cmd.none )
+
+        CreatingNewBookmarkSucceeded bookmark ->
+            ( model, Cmd.none )
+
+        CreatingNewBookmarkFailed error ->
+            ( model, Cmd.none )
+
+        StartFetchingPageInfo ->
+            ( model, model.pageInfo |> PageInfo.fetchFromRemote model.flag PageInfoFetched )
+
+        PageInfoFetched result ->
+            case result of
+                Ok pageInfo ->
+                    ( { model | pageInfo = pageInfo }, Cmd.none )
+
+                Err _ ->
+                    -- TODO: エラーを出す
+                    ( model, Cmd.none )
+
+
 
 ------ Init ------
 
@@ -220,38 +223,19 @@ init : Maybe Url.Url -> Title -> Description -> Flag -> Session -> Model
 init url title description flag session =
     { flag = flag
     , session = session
-    , title = title
-    , description = description
-    , url = url
+    , pageInfo =
+        PageInfo.fromUrl url
+            |> PageInfo.mapTitle title
+            |> PageInfo.mapDescription description
     }
 
 
 
 ------ View ------
-{-
-   homeView : UserData -> Html Msg
-   homeView userData =
-       let
-           titleFetchingErrorM =
-               case userData.urlFetchingStatus of
-                   UrlFetched fetchedResult ->
-                       case fetchedResult of
-                           Err err ->
-                               Just (String.append "Error: " (unwrapUrlFetchingError err))
-
-                           _ ->
-                               Nothing
-
-                   _ ->
-                       Nothing
-       in
-           -- div [] [text (interpolate "Title: {0}" [fetchedTitle])]
-           ]
--}
 
 
 view : Model -> Html Msg
-view { url, title, description } =
+view { pageInfo } =
     div [ class "main-container siimple-grid" ]
         [ div [ class "siimple-grid-row" ]
             [ p [] [ text "New bookmark" ]
@@ -262,7 +246,7 @@ view { url, title, description } =
                         , input
                             [ placeholder "Url to bookmark"
                             , required True
-                            , url |> Maybe.map Url.toString |> Maybe.withDefault "" |> value
+                            , pageInfo |> PageInfo.toUrl |> Maybe.map Url.toString |> Maybe.withDefault "" |> value
                             , onInput SetUrl
                             ]
                             []
@@ -273,7 +257,7 @@ view { url, title, description } =
                         [ text "title:"
                         , input
                             [ placeholder "Title"
-                            , title |> Title.unwrap |> value
+                            , pageInfo |> PageInfo.toTitle |> Title.unwrap |> value
                             , onInput SetTitle
                             ]
                             []
@@ -284,7 +268,7 @@ view { url, title, description } =
                         [ text "description:"
                         , input
                             [ placeholder "Description"
-                            , description |> Description.unwrap |> value
+                            , pageInfo |> PageInfo.toDescription |> Description.unwrap |> value
                             , onInput SetDescription
                             ]
                             []
@@ -293,25 +277,40 @@ view { url, title, description } =
                 , div []
                     [ div []
                         [ button
-                            [ type_ "button"
-                            , onClick StartFetchingPageInfo
-                            ]
+                            [ type_ "button", onClick StartFetchingPageInfo ]
                             [ text "fetch" ]
                         ]
-                    , div [] [ button [ type_ "submit" ] [ text "create" ] ]
+                    , div []
+                        [ button
+                            [ type_ "submit" ]
+                            [ text "create" ]
+                        ]
                     ]
                 ]
             ]
         ]
 
 
+
+------ Subscription ------
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ creatingNewBookmarkSucceeded CreatingNewBookmarkSucceeded
+        , creatingNewBookmarkFailed CreatingNewBookmarkFailed
+        ]
+
+
+
 ------ Port ------
-{-
-   port createsNewBookmark : ( Bookmark, User ) -> Cmd msg
 
 
-   port creatingNewBookmarkSucceeded : (Bookmark -> msg) -> Sub msg
+port createsNewBookmark : ( FBBookmark.Bookmark, FBUser.User ) -> Cmd msg
 
 
-   port creatingNewBookmarkFailed : (BookmarkCreatingError -> msg) -> Sub msg
--}
+port creatingNewBookmarkSucceeded : (FBBookmark.Bookmark -> msg) -> Sub msg
+
+
+port creatingNewBookmarkFailed : (String -> msg) -> Sub msg

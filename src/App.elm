@@ -8,7 +8,6 @@ import Browser.Navigation as Nav
 import Flag exposing (Flag)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Json.Decode as Decode exposing (field, string)
 import Pages.Bookmarks as Bookmarks
 import Pages.FB.Bookmark as FBBookmark
 import Pages.FB.User as FBUser
@@ -18,7 +17,6 @@ import Pages.SignIn as SignIn
 import Pages.SignUp as SignUp
 import Route
 import Session exposing (Session)
-import String.Interpolate exposing (interpolate)
 import Url
 import Url.Parser as Parser exposing ((</>), (<?>), Parser, oneOf, s)
 import Url.Parser.Query as Query
@@ -291,6 +289,46 @@ updateSession page newSession =
             model |> Session.update newSession |> NewBookmark
 
 
+
+{-
+   update : Msg -> Model -> ( Model, Cmd Msg )
+   update msg model =
+       let
+           fetchUserData =
+               authenticater model
+
+           updateUserData =
+               userDataUpdater model
+
+           updateLoginForm =
+               loginFormUpdater model
+
+           navigateTo =
+               Route.pushUrl model.navKey
+       in
+       case msg of
+           CreatesNewbookmark ->
+               updateUserData
+                   (\userData ->
+                       ( { userData | newBookmarkCreatingStatus = NewBookmarkCreating }, createsNewBookmark ( userData.newBookmark, userData.currentUser ) )
+                   )
+
+           CreatingNewBookmarkSucceeded createdBookmark ->
+               updateUserData
+                   (\userData ->
+                       ( { userData | newBookmarkCreatingStatus = NewBookmarkCreated (Ok createdBookmark) }, fetchesBookmarks userData.currentUser )
+                   )
+
+           CreatingNewBookmarkFailed err ->
+               ( model, Cmd.none )
+
+           -- TODO: あとでつくる
+           StartFetchingWebPageTitle ->
+               updateUserData
+                   (\userData ->
+                       ( { userData | urlFetchingStatus = UrlFetching }, fetchUrl model.appConfig.functionUrl userData.newBookmark.url )
+                   )
+-}
 ------ Subscription ------
 
 
@@ -302,15 +340,13 @@ subscriptions page =
                 SignIn model ->
                     Sub.map GotSignInMsg (SignIn.subscriptions model)
 
+                NewBookmark model ->
+                    Sub.map GotNewBookmarkMsg (NewBookmark.subscriptions model)
+
                 _ ->
                     Sub.none
     in
     Sub.batch
-        {-
-           [ creatingNewBookmarkSucceeded CreatingNewBookmarkSucceeded
-           , creatingNewBookmarkFailed CreatingNewBookmarkFailed
-           ]
-        -}
         [ loggedOut LoggedOut
         , loggedIn LoggedIn
         , pageSubscriptions

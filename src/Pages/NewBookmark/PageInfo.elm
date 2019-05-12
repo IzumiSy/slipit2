@@ -1,0 +1,109 @@
+module Pages.NewBookmark.PageInfo exposing
+    ( PageInfo
+    , fetchFromRemote
+    , fromUrl
+    , mapDescription
+    , mapTitle
+    , mapUrl
+    , toDescription
+    , toTitle
+    , toUrl
+    )
+
+import Bookmark.Description as Description exposing (Description)
+import Bookmark.Title as Title exposing (Title)
+import Flag exposing (Flag)
+import Http
+import Json.Decode as Decode
+import Json.Decode.Pipeline as Pipeline
+import String.Interpolate exposing (interpolate)
+import Url
+
+
+type PageInfo
+    = PageInfo
+        { url : Maybe Url.Url
+        , title : Title
+        , description : Description
+        }
+
+
+fromUrl : Maybe Url.Url -> PageInfo
+fromUrl maybeUrl =
+    PageInfo
+        { url = maybeUrl
+        , title = Title.empty
+        , description = Description.empty
+        }
+
+
+mapUrl : Maybe Url.Url -> PageInfo -> PageInfo
+mapUrl maybeUrl (PageInfo { title, description }) =
+    PageInfo
+        { url = maybeUrl
+        , title = title
+        , description = description
+        }
+
+
+mapTitle : Title -> PageInfo -> PageInfo
+mapTitle newTitle (PageInfo { url, description }) =
+    PageInfo
+        { url = url
+        , title = newTitle
+        , description = description
+        }
+
+
+mapDescription : Description -> PageInfo -> PageInfo
+mapDescription newDescription (PageInfo { url, title }) =
+    PageInfo
+        { url = url
+        , title = title
+        , description = newDescription
+        }
+
+
+toUrl : PageInfo -> Maybe Url.Url
+toUrl (PageInfo { url }) =
+    url
+
+
+toTitle : PageInfo -> Title
+toTitle (PageInfo { title }) =
+    title
+
+
+toDescription : PageInfo -> Description
+toDescription (PageInfo { description }) =
+    description
+
+
+fetchFromRemote : Flag -> (Result Http.Error PageInfo -> msg) -> PageInfo -> Cmd msg
+fetchFromRemote { functionUrl } msg (PageInfo { url }) =
+    url
+        |> Maybe.map
+            (\validUrl ->
+                Http.get
+                    { url = interpolate "{0}?url={1}" [ functionUrl, Url.toString validUrl ]
+                    , expect =
+                        let
+                            pageInfoDecoder title description =
+                                Decode.succeed
+                                    (PageInfo
+                                        { url = Just validUrl
+                                        , title = Title.new title
+                                        , description = Description.new description
+                                        }
+                                    )
+                        in
+                        Http.expectJson
+                            msg
+                            (Decode.succeed pageInfoDecoder
+                                |> Pipeline.required "title" Decode.string
+                                |> Pipeline.required "description" Decode.string
+                                |> Pipeline.resolve
+                            )
+                    }
+            )
+        |> Maybe.withDefault Cmd.none
