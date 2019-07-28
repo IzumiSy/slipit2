@@ -1,4 +1,10 @@
-module Pages.NewBookmark.Url exposing (Url, empty, new, unwrap)
+module Pages.NewBookmark.Url exposing
+    ( Url
+    , empty
+    , isValid
+    , new
+    , unwrap
+    )
 
 import Url
 
@@ -36,3 +42,13 @@ unwrap url =
 empty : Url
 empty =
     Invalid ""
+
+
+isValid : Url -> Bool
+isValid url =
+    case url of
+        Valid _ ->
+            True
+
+        Invalid _ ->
+            False
