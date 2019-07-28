@@ -1,12 +1,12 @@
 port module App exposing (init, subscriptions, update)
 
+import App.Model as Model
 import App.View as View
 import Bookmark.Description as Description
 import Bookmark.Title as Title
 import Bookmarks
 import Browser
 import Browser.Navigation as Nav
-import Flag exposing (Flag)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Pages.Bookmarks as Bookmarks
@@ -31,8 +31,8 @@ import Url.Parser.Query as Query
 
 
 type Model
-    = WaitForLoggingIn Flag Session (Maybe Route.Routes)
-    | NotFound Flag Session
+    = WaitForLoggingIn Model.Flag Session (Maybe Route.Routes)
+    | NotFound Model.Flag Session
     | SignIn SignIn.Model
     | SignUp SignUp.Model
     | ResetPassword ResetPassword.Model
@@ -44,15 +44,15 @@ type Model
 ------ Init ------
 
 
-init : Flag -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init : Model.Flag -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flag url navKey =
     ( WaitForLoggingIn flag (Session.init url navKey) (Route.fromUrl url)
     , Cmd.none
     )
 
 
-initPage : Flag -> Session -> Maybe Route.Routes -> Model
-initPage flag session maybeRoute =
+initPage : Model.Modelable a -> Maybe Route.Routes -> Model
+initPage { flag, session } maybeRoute =
     case maybeRoute of
         Nothing ->
             NotFound flag session
@@ -104,7 +104,7 @@ toSession page =
             model.session
 
 
-toFlag : Model -> Flag
+toFlag : Model -> Model.Flag
 toFlag page =
     case page of
         WaitForLoggingIn flag _ _ ->
@@ -190,24 +190,50 @@ update msg model =
                             ( model, Nav.load href )
 
                         Browser.Internal url ->
-                            ( model, Nav.pushUrl (model |> toSession |> Session.toNavKey) (Url.toString url) )
+                            ( model
+                            , Nav.pushUrl
+                                (model |> toSession |> Session.toNavKey)
+                                (Url.toString url)
+                            )
 
                 ( UrlChanged url, _ ) ->
-                    ( url |> Route.fromUrl |> initPage (model |> toFlag) (model |> toSession), Cmd.none )
+                    ( url
+                        |> Route.fromUrl
+                        |> initPage
+                            { flag = model |> toFlag
+                            , session = model |> toSession
+                            }
+                    , Cmd.none
+                    )
 
                 ( LoggedOut _, _ ) ->
-                    ( model |> toSession |> Session.mapAsNotLoggedIn |> updateSession model, Cmd.none )
+                    ( model
+                        |> toSession
+                        |> Session.mapAsNotLoggedIn
+                        |> updateSession model
+                    , Cmd.none
+                    )
 
                 ( LoggedIn { bookmarks, currentUser }, WaitForLoggingIn _ session maybeNextRoute ) ->
-                    ( session |> Session.mapAsLoggedIn (bookmarks |> Bookmarks.new) currentUser |> updateSession model
+                    ( session
+                        |> Session.mapAsLoggedIn (bookmarks |> Bookmarks.new) currentUser
+                        |> updateSession model
                     , maybeNextRoute
                         |> Maybe.map (Route.replaceUrl (session |> Session.toNavKey))
                         |> Maybe.withDefault (Route.replaceUrl (session |> Session.toNavKey) Route.Bookmarks)
                     )
 
                 ( LoggedIn { bookmarks, currentUser }, SignIn pageModel ) ->
-                    ( model |> toSession |> Session.mapAsLoggedIn (bookmarks |> Bookmarks.new) currentUser |> updateSession model
-                    , Route.replaceUrl (model |> toSession |> Session.toNavKey) Route.Bookmarks
+                    ( model
+                        |> toSession
+                        |> Session.mapAsLoggedIn (bookmarks |> Bookmarks.new) currentUser
+                        |> updateSession model
+                    , Route.replaceUrl
+                        (model
+                            |> toSession
+                            |> Session.toNavKey
+                        )
+                        Route.Bookmarks
                     )
 
                 ( GotSignInMsg pageMsg, SignIn pageModel ) ->
@@ -260,7 +286,11 @@ logInGuard ( page, cmd ) =
                 ( page, Route.replaceUrl (page |> toSession |> Session.toNavKey) Route.SignIn )
 
 
-updateWith : (pageModel -> Model) -> (pageMsg -> Msg) -> ( pageModel, Cmd pageMsg ) -> ( Model, Cmd Msg )
+updateWith :
+    (Model.Modelable pageModel -> Model)
+    -> (pageMsg -> Msg)
+    -> ( Model.Modelable pageModel, Cmd pageMsg )
+    -> ( Model, Cmd Msg )
 updateWith toModel toMsg ( subModel, subCmd ) =
     ( toModel subModel, Cmd.map toMsg subCmd )
 

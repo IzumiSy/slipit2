@@ -1,8 +1,8 @@
 port module Pages.SignIn exposing (Model, Msg, init, subscriptions, update, view)
 
+import App.Model as Model
 import App.View as View
 import Bookmark exposing (Bookmark)
-import Flag exposing (Flag)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
@@ -21,12 +21,11 @@ import Session exposing (Session)
 
 
 type alias Model =
-    { email : Email
-    , password : Password
-    , error : FBAuthError.Error
-    , flag : Flag
-    , session : Session
-    }
+    Model.Modelable
+        { email : Email
+        , password : Password
+        , error : FBAuthError.Error
+        }
 
 
 
@@ -74,7 +73,7 @@ update msg model =
 ------ Init ------
 
 
-init : Flag -> Session -> Model
+init : Model.Flag -> Session -> Model
 init flag session =
     { email = Email.empty
     , password = Password.empty

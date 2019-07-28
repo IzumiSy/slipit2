@@ -1,11 +1,11 @@
 port module Pages.Bookmarks exposing (Model, Msg, init, update, view)
 
+import App.Model as Model
 import App.View as View
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description
 import Bookmark.Title as Title
 import Bookmarks exposing (Bookmarks)
-import Flag exposing (Flag)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -19,9 +19,7 @@ import Url
 
 
 type alias Model =
-    { flag : Flag
-    , session : Session
-    }
+    Model.Modelable {}
 
 
 
@@ -47,7 +45,7 @@ update msg model =
 ------ Init ------
 
 
-init : Flag -> Session -> Model
+init : Model.Flag -> Session -> Model
 init flag session =
     { flag = flag
     , session = session
