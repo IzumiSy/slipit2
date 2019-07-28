@@ -7,11 +7,11 @@ port module Pages.NewBookmark exposing
     , view
     )
 
+import App.Model as Model
 import App.View as View
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description exposing (Description)
 import Bookmark.Title as Title exposing (Title)
-import Flag exposing (Flag)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -30,10 +30,7 @@ import Session exposing (Session)
 
 
 type alias Model =
-    { flag : Flag
-    , session : Session
-    , pageInfo : PageInfo
-    }
+    Model.Modelable { pageInfo : PageInfo }
 
 
 
@@ -52,39 +49,6 @@ type Msg
 
 
 
------- Update ------
-{-
-   update : Msg -> Model -> ( Model, Cmd Msg )
-   update msg model =
-       let
-           fetchUserData =
-               authenticater model
-
-           updateUserData =
-               userDataUpdater model
-
-           updateLoginForm =
-               loginFormUpdater model
-
-           navigateTo =
-               Route.pushUrl model.navKey
-       in
-       case msg of
-           CreatesNewbookmark ->
-               updateUserData
-                   (\userData ->
-                       ( { userData | newBookmarkCreatingStatus = NewBookmarkCreating }, createsNewBookmark ( userData.newBookmark, userData.currentUser ) )
-                   )
-
-           CreatingNewBookmarkSucceeded createdBookmark ->
-               updateUserData
-                   (\userData ->
-                       ( { userData | newBookmarkCreatingStatus = NewBookmarkCreated (Ok createdBookmark) }, fetchesBookmarks userData.currentUser )
-                   )
-
-           CreatingNewBookmarkFailed err ->
-               ( model, Cmd.none )
--}
 ------ Update ------
 
 
@@ -141,7 +105,7 @@ update msg model =
 ------ Init ------
 
 
-init : Url -> Title -> Description -> Flag -> Session -> Model
+init : Url -> Title -> Description -> Model.Flag -> Session -> Model
 init url title description flag session =
     { flag = flag
     , session = session

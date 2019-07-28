@@ -10,9 +10,9 @@ module Pages.NewBookmark.PageInfo exposing
     , toUrl
     )
 
+import App.Model as Model
 import Bookmark.Description as Description exposing (Description)
 import Bookmark.Title as Title exposing (Title)
-import Flag exposing (Flag)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
@@ -79,7 +79,7 @@ toDescription (PageInfo { description }) =
     description
 
 
-fetchFromRemote : Flag -> (Result Http.Error PageInfo -> msg) -> PageInfo -> Cmd msg
+fetchFromRemote : Model.Flag -> (Result Http.Error PageInfo -> msg) -> PageInfo -> Cmd msg
 fetchFromRemote { functionUrl } msg (PageInfo { url }) =
     url
         |> Url.unwrap
