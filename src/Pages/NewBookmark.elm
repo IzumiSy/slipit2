@@ -7,6 +7,7 @@ port module Pages.NewBookmark exposing
     , view
     )
 
+import App.View as View
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description exposing (Description)
 import Bookmark.Title as Title exposing (Title)
@@ -155,77 +156,82 @@ init url title description flag session =
 ------ View ------
 
 
-view : Model -> Html Msg
+view : Model -> View.AppView Msg
 view { pageInfo } =
-    div [ class "main-container siimple-grid" ]
-        [ div [ class "siimple-grid-row" ]
-            [ p [] [ text "New bookmark" ]
-            , Html.form [ Pages.onSubmitWithPrevented CreatesNewbookmark ]
-                [ div []
-                    [ label []
-                        [ text "url:"
-                        , input
-                            [ placeholder "Url to bookmark"
-                            , required True
-                            , pageInfo
-                                |> PageInfo.toUrl
-                                |> Url.unwrap
-                                |> (\result ->
-                                        case result of
-                                            Ok v ->
-                                                v
+    View.new
+        { title = "New Bookmark"
+        , body =
+            [ div [ class "main-container siimple-grid" ]
+                [ div [ class "siimple-grid-row" ]
+                    [ p [] [ text "New bookmark" ]
+                    , Html.form [ Pages.onSubmitWithPrevented CreatesNewbookmark ]
+                        [ div []
+                            [ label []
+                                [ text "url:"
+                                , input
+                                    [ placeholder "Url to bookmark"
+                                    , required True
+                                    , pageInfo
+                                        |> PageInfo.toUrl
+                                        |> Url.unwrap
+                                        |> (\result ->
+                                                case result of
+                                                    Ok v ->
+                                                        v
 
-                                            Err v ->
-                                                v
-                                   )
-                                |> value
-                            , onInput SetUrl
+                                                    Err v ->
+                                                        v
+                                           )
+                                        |> value
+                                    , onInput SetUrl
+                                    ]
+                                    []
+                                ]
                             ]
-                            []
-                        ]
-                    ]
-                , div []
-                    [ label []
-                        [ text "title:"
-                        , input
-                            [ placeholder "Title"
-                            , pageInfo |> PageInfo.toTitle |> Title.unwrap |> value
-                            , onInput SetTitle
+                        , div []
+                            [ label []
+                                [ text "title:"
+                                , input
+                                    [ placeholder "Title"
+                                    , pageInfo |> PageInfo.toTitle |> Title.unwrap |> value
+                                    , onInput SetTitle
+                                    ]
+                                    []
+                                ]
                             ]
-                            []
-                        ]
-                    ]
-                , div []
-                    [ label []
-                        [ text "description:"
-                        , input
-                            [ placeholder "Description"
-                            , pageInfo |> PageInfo.toDescription |> Description.unwrap |> value
-                            , onInput SetDescription
+                        , div []
+                            [ label []
+                                [ text "description:"
+                                , input
+                                    [ placeholder "Description"
+                                    , pageInfo |> PageInfo.toDescription |> Description.unwrap |> value
+                                    , onInput SetDescription
+                                    ]
+                                    []
+                                ]
                             ]
-                            []
-                        ]
-                    ]
-                , div []
-                    [ div []
-                        [ button
-                            [ type_ "button"
-                            , onClick StartFetchingPageInfo
-                            , pageInfo |> PageInfo.toUrl |> Url.isValid |> not |> disabled
+                        , div []
+                            [ div []
+                                [ button
+                                    [ type_ "button"
+                                    , onClick StartFetchingPageInfo
+                                    , pageInfo |> PageInfo.toUrl |> Url.isValid |> not |> disabled
+                                    ]
+                                    [ text "fetch" ]
+                                ]
+                            , div []
+                                [ button
+                                    [ type_ "submit"
+                                    , pageInfo |> PageInfo.toUrl |> Url.isValid |> not |> disabled
+                                    ]
+                                    [ text "create" ]
+                                ]
                             ]
-                            [ text "fetch" ]
-                        ]
-                    , div []
-                        [ button
-                            [ type_ "submit"
-                            , pageInfo |> PageInfo.toUrl |> Url.isValid |> not |> disabled
-                            ]
-                            [ text "create" ]
                         ]
                     ]
                 ]
             ]
-        ]
+        }
 
 
 
