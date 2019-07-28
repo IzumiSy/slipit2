@@ -1,5 +1,6 @@
 const firebase = require("firebase/app");
 const { Elm } = require("./App.elm");
+const MD5 = require('blueimp-md5');
 require("firebase/auth");
 require("firebase/firestore");
 require("siimple");
@@ -71,13 +72,16 @@ app.ports.startsLoggingIn.subscribe(login => {
     });
 });
 
-/*
 app.ports.createsNewBookmark.subscribe(([newBookmark, currentUser]) => {
+  // 重複したURLを追加するのを許したくないのでMD5ハッシュに変換してIDとする
+  // というのもスラッシュが含まれる文字列はdocのIDとして使えないらしいので
+  const bookmarkId = MD5(newBookmark.url) 
+
   database
     .collection('users')
     .doc(currentUser.uid)
     .collection('bookmarks')
-    .doc(newBookmark.url)
+    .doc(bookmarkId)
     .set(newBookmark)
     .then(_ => {
       app.ports.creatingNewBookmarkSucceeded.send(newBookmark) 
@@ -89,4 +93,3 @@ app.ports.createsNewBookmark.subscribe(([newBookmark, currentUser]) => {
       })
     })
 })
-*/

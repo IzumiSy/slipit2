@@ -25,12 +25,6 @@ import Session exposing (Session)
 
 
 ------ Model ------
-{-
-   type NewBookmarkCreatingStatus
-       = NewBookmarkNotCreated
-       | NewBookmarkCreating
-       | NewBookmarkCreated (Result BookmarkCreatingError Bookmark)
--}
 
 
 type alias Model =
@@ -170,7 +164,18 @@ view { pageInfo } =
                         , input
                             [ placeholder "Url to bookmark"
                             , required True
-                            , pageInfo |> PageInfo.toUrl |> Url.unwrap |> Result.withDefault "" |> value
+                            , pageInfo
+                                |> PageInfo.toUrl
+                                |> Url.unwrap
+                                |> (\result ->
+                                        case result of
+                                            Ok v ->
+                                                v
+
+                                            Err v ->
+                                                v
+                                   )
+                                |> value
                             , onInput SetUrl
                             ]
                             []
@@ -201,12 +206,17 @@ view { pageInfo } =
                 , div []
                     [ div []
                         [ button
-                            [ type_ "button", onClick StartFetchingPageInfo ]
+                            [ type_ "button"
+                            , onClick StartFetchingPageInfo
+                            , pageInfo |> PageInfo.toUrl |> Url.isValid |> not |> disabled
+                            ]
                             [ text "fetch" ]
                         ]
                     , div []
                         [ button
-                            [ type_ "submit" ]
+                            [ type_ "submit"
+                            , pageInfo |> PageInfo.toUrl |> Url.isValid |> not |> disabled
+                            ]
                             [ text "create" ]
                         ]
                     ]
