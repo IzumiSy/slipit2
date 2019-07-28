@@ -1,5 +1,6 @@
 port module App exposing (init, subscriptions, update)
 
+import App.View as View
 import Bookmark.Description as Description
 import Bookmark.Title as Title
 import Bookmarks
@@ -11,8 +12,10 @@ import Html.Attributes exposing (..)
 import Pages.Bookmarks as Bookmarks
 import Pages.FB.Bookmark as FBBookmark
 import Pages.FB.User as FBUser
+import Pages.Loading as Loading
 import Pages.NewBookmark as NewBookmark
 import Pages.NewBookmark.Url as NewBookmarkUrl exposing (Url)
+import Pages.NotFound as NotFound
 import Pages.ResetPassword as ResetPassword
 import Pages.SignIn as SignIn
 import Pages.SignUp as SignUp
@@ -130,71 +133,29 @@ toFlag page =
 ------ View ------
 
 
-toView : Html.Html msg -> Browser.Document msg
-toView html =
-    { title = "Slip.it"
-    , body = [ html ]
-    }
-
-
-view : Model -> Browser.Document Msg
+view : Model -> View.AppView Msg
 view page =
-    let
-        mapMsg toMsg { title, body } =
-            { title = title
-            , body = List.map (Html.map toMsg) body
-            }
-
-        mapTitle pageTitle { title, body } =
-            { title = title ++ " | " ++ pageTitle
-            , body = body
-            }
-    in
     case page of
         WaitForLoggingIn _ _ _ ->
-            div [] [ text "Loading..." ]
-                |> toView
-                |> mapTitle "Loading"
+            Loading.view
 
         NotFound _ _ ->
-            div [] [ text "Not Found" ]
-                |> toView
-                |> mapTitle "Not Found"
+            NotFound.view
 
         ResetPassword model ->
-            model
-                |> ResetPassword.view
-                |> toView
-                |> mapMsg GotResetPasswordMsg
-                |> mapTitle "Password Reset"
-
-        SignUp model ->
-            model
-                |> SignUp.view
-                |> toView
-                |> mapMsg GotSignUpMsg
-                |> mapTitle "Sign Up"
+            ResetPassword.view model |> View.mapMsg GotResetPasswordMsg
 
         SignIn model ->
-            model
-                |> SignIn.view
-                |> toView
-                |> mapMsg GotSignInMsg
-                |> mapTitle "Sign In"
+            SignIn.view model |> View.mapMsg GotSignInMsg
+
+        SignUp model ->
+            SignUp.view model |> View.mapMsg GotSignUpMsg
 
         Bookmarks model ->
-            model
-                |> Bookmarks.view
-                |> toView
-                |> mapMsg GotBookmarksMsg
-                |> mapTitle "Bookmarks"
+            Bookmarks.view model |> View.mapMsg GotBookmarksMsg
 
         NewBookmark model ->
-            model
-                |> NewBookmark.view
-                |> toView
-                |> mapMsg GotNewBookmarkMsg
-                |> mapTitle "New Bookmark"
+            NewBookmark.view model |> View.mapMsg GotNewBookmarkMsg
 
 
 
@@ -377,7 +338,7 @@ port loggedOut : (() -> msg) -> Sub msg
 main =
     Browser.application
         { init = init
-        , view = view
+        , view = \model -> view model |> View.asDocument
         , update = update
         , subscriptions = subscriptions
         , onUrlChange = UrlChanged

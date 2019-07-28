@@ -1,5 +1,6 @@
 port module Pages.Bookmarks exposing (Model, Msg, init, update, view)
 
+import App.View as View
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description
 import Bookmark.Title as Title
@@ -57,48 +58,53 @@ init flag session =
 ------ View ------
 
 
-view : Model -> Html Msg
+view : Model -> View.AppView Msg
 view model =
-    model.session
-        |> Session.toUserData
-        |> Maybe.map
-            (\{ bookmarks, currentUser } ->
-                div []
-                    [ div []
-                        [ div [ class "siimple-grid-row" ]
-                            [ div [] [ text (String.append "Current user: " currentUser.email) ]
-                            , div [] [ button [ onClick LogsOut ] [ text "logs out" ] ]
-                            ]
-                        ]
-                    , div [ class "siimple-gird-row" ]
-                        [ h2 []
-                            [ text (interpolate "Bookmarks ({0})" [ String.fromInt (bookmarks |> Bookmarks.size) ])
-                            , a [ class "siimple-btn siimple-btn--teal siimple--float-right", href "new_bookmark" ] [ text "Add a new bookmark" ]
-                            ]
-                        ]
-                    , div [ class "siimbple-grid-row" ]
-                        (bookmarks
-                            |> Bookmarks.map
-                                (\bookmark_ ->
-                                    bookmark_
-                                        |> Bookmark.fold
-                                            (\{ url, title, description } ->
-                                                div [ class "siimple-grid-col siimple-grid-col--3 siimple-grid-col--lg-4 siimple-grid-col--md-6 siimple-grid-col--xs-12" ]
-                                                    [ a [ class "bookmark-item siimple-card", url |> Url.toString |> href ]
-                                                        [ div [ class "siimple-card-body" ]
-                                                            [ div [ class "siimple-card-title" ] [ title |> Title.unwrap |> text ]
-                                                            , div [ class "siimple-card-subtitle" ] [ url |> Url.toString |> text ]
-                                                            , description |> Description.unwrap |> text
+    View.new
+        { title = "Bookmarks"
+        , body =
+            [ model.session
+                |> Session.toUserData
+                |> Maybe.map
+                    (\{ bookmarks, currentUser } ->
+                        div []
+                            [ div []
+                                [ div [ class "siimple-grid-row" ]
+                                    [ div [] [ text (String.append "Current user: " currentUser.email) ]
+                                    , div [] [ button [ onClick LogsOut ] [ text "logs out" ] ]
+                                    ]
+                                ]
+                            , div [ class "siimple-gird-row" ]
+                                [ h2 []
+                                    [ text (interpolate "Bookmarks ({0})" [ String.fromInt (bookmarks |> Bookmarks.size) ])
+                                    , a [ class "siimple-btn siimple-btn--teal siimple--float-right", href "new_bookmark" ] [ text "Add a new bookmark" ]
+                                    ]
+                                ]
+                            , div [ class "siimbple-grid-row" ]
+                                (bookmarks
+                                    |> Bookmarks.map
+                                        (\bookmark_ ->
+                                            bookmark_
+                                                |> Bookmark.fold
+                                                    (\{ url, title, description } ->
+                                                        div [ class "siimple-grid-col siimple-grid-col--3 siimple-grid-col--lg-4 siimple-grid-col--md-6 siimple-grid-col--xs-12" ]
+                                                            [ a [ class "bookmark-item siimple-card", url |> Url.toString |> href ]
+                                                                [ div [ class "siimple-card-body" ]
+                                                                    [ div [ class "siimple-card-title" ] [ title |> Title.unwrap |> text ]
+                                                                    , div [ class "siimple-card-subtitle" ] [ url |> Url.toString |> text ]
+                                                                    , description |> Description.unwrap |> text
+                                                                    ]
+                                                                ]
                                                             ]
-                                                        ]
-                                                    ]
-                                            )
-                                            (always (div [] []))
+                                                    )
+                                                    (always (div [] []))
+                                        )
                                 )
-                        )
-                    ]
-            )
-        |> Maybe.withDefault (div [] [ text "loading..." ])
+                            ]
+                    )
+                |> Maybe.withDefault (div [] [ text "loading..." ])
+            ]
+        }
 
 
 

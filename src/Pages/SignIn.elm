@@ -1,5 +1,6 @@
 port module Pages.SignIn exposing (Model, Msg, init, subscriptions, update, view)
 
+import App.View as View
 import Bookmark exposing (Bookmark)
 import Flag exposing (Flag)
 import Html exposing (..)
@@ -87,83 +88,88 @@ init flag session =
 ------ View ------
 
 
-view : Model -> Html Msg
+view : Model -> View.AppView Msg
 view { flag, email, password, error, session } =
-    div [ class "siimple-grid" ]
-        [ div [ class "siimple-grid-row" ]
-            [ div [ class "siimple-grid-col siimple-grid-col--4 siimple-grid-col--xl-3 siimple-grid-col--md-1 siimple-grid-col--sm-12-hide" ] []
-            , div [ class "siimple-grid-col siimple-grid-col--4 siimple-grid-col--xl-6 siimple-grid-col--md-10 siimple-grid-col--sm-12" ]
-                [ div [ class "login" ]
-                    [ h2 [ class "login-header" ]
-                        [ img [ class "image", src flag.logoImagePath ] []
-                        , div [ class "content centered-xs" ]
-                            [ text "Log in to Slip.it"
-                            , h5 [] [ text "Your online bookmarks never be social." ]
-                            ]
-                        ]
-                    , Html.form [ Pages.onSubmitWithPrevented StartsLoggingIn, class "siimple-form login-fields" ]
-                        [ error
-                            |> FBAuthError.toMessage
-                            |> Maybe.map (\message -> div [ class "siimple-alert siimple-alert--warning" ] [ text message ])
-                            |> Maybe.withDefault (div [] [])
-                        , div [ class "siimple-form-field" ]
-                            [ div [ class "siimple-form-field-label" ] [ text "E-mail" ]
-                            , input
-                                [ type_ "email"
-                                , class "siimple-input siimple-input--fluid"
-                                , placeholder "Your email"
-                                , required True
-                                , email |> Email.unwrap |> value
-                                , onInput SetEmail
-                                , session |> Session.isLoggingIn |> disabled
+    View.new
+        { title = "Sign In"
+        , body =
+            [ div [ class "siimple-grid" ]
+                [ div [ class "siimple-grid-row" ]
+                    [ div [ class "siimple-grid-col siimple-grid-col--4 siimple-grid-col--xl-3 siimple-grid-col--md-1 siimple-grid-col--sm-12-hide" ] []
+                    , div [ class "siimple-grid-col siimple-grid-col--4 siimple-grid-col--xl-6 siimple-grid-col--md-10 siimple-grid-col--sm-12" ]
+                        [ div [ class "login" ]
+                            [ h2 [ class "login-header" ]
+                                [ img [ class "image", src flag.logoImagePath ] []
+                                , div [ class "content centered-xs" ]
+                                    [ text "Log in to Slip.it"
+                                    , h5 [] [ text "Your online bookmarks never be social." ]
+                                    ]
                                 ]
-                                []
-                            ]
-                        , div [ class "siimple-form-field" ]
-                            [ div [ class "siimple-form-field-label" ] [ text "Password" ]
-                            , input
-                                [ type_ "password"
-                                , class "siimple-input siimple-input--fluid"
-                                , placeholder "Your password"
-                                , required True
-                                , password |> Password.unwrap |> value
-                                , onInput SetPassword
-                                , session |> Session.isLoggingIn |> disabled
-                                ]
-                                []
-                            ]
-                        , div [ class "siimple-form-field" ]
-                            [ button
-                                [ class "siimple-btn siimple-btn--teal siimple-btn--fluid"
-                                , session |> Session.isLoggingIn |> disabled
-                                ]
-                                [ text
-                                    (if session |> Session.isLoggingIn then
-                                        "Logging in..."
+                            , Html.form [ Pages.onSubmitWithPrevented StartsLoggingIn, class "siimple-form login-fields" ]
+                                [ error
+                                    |> FBAuthError.toMessage
+                                    |> Maybe.map (\message -> div [ class "siimple-alert siimple-alert--warning" ] [ text message ])
+                                    |> Maybe.withDefault (div [] [])
+                                , div [ class "siimple-form-field" ]
+                                    [ div [ class "siimple-form-field-label" ] [ text "E-mail" ]
+                                    , input
+                                        [ type_ "email"
+                                        , class "siimple-input siimple-input--fluid"
+                                        , placeholder "Your email"
+                                        , required True
+                                        , email |> Email.unwrap |> value
+                                        , onInput SetEmail
+                                        , session |> Session.isLoggingIn |> disabled
+                                        ]
+                                        []
+                                    ]
+                                , div [ class "siimple-form-field" ]
+                                    [ div [ class "siimple-form-field-label" ] [ text "Password" ]
+                                    , input
+                                        [ type_ "password"
+                                        , class "siimple-input siimple-input--fluid"
+                                        , placeholder "Your password"
+                                        , required True
+                                        , password |> Password.unwrap |> value
+                                        , onInput SetPassword
+                                        , session |> Session.isLoggingIn |> disabled
+                                        ]
+                                        []
+                                    ]
+                                , div [ class "siimple-form-field" ]
+                                    [ button
+                                        [ class "siimple-btn siimple-btn--teal siimple-btn--fluid"
+                                        , session |> Session.isLoggingIn |> disabled
+                                        ]
+                                        [ text
+                                            (if session |> Session.isLoggingIn then
+                                                "Logging in..."
 
-                                     else
-                                        "Login"
-                                    )
+                                             else
+                                                "Login"
+                                            )
+                                        ]
+                                    ]
+                                ]
+                            , div [ class "siimple-grid-row siimple--text-center" ]
+                                [ div [ class "signup-guidance" ]
+                                    [ text "New to Slip.it?"
+                                    , Pages.viewLink "sign_up" "Create a new account"
+                                    ]
+                                , div []
+                                    [ Pages.viewLink "reset_password" "Forgot your own password?"
+                                    ]
+                                , div []
+                                    [ h5 [] [ text "© 2019 IzumiSy." ]
+                                    ]
                                 ]
                             ]
                         ]
-                    , div [ class "siimple-grid-row siimple--text-center" ]
-                        [ div [ class "signup-guidance" ]
-                            [ text "New to Slip.it?"
-                            , Pages.viewLink "sign_up" "Create a new account"
-                            ]
-                        , div []
-                            [ Pages.viewLink "reset_password" "Forgot your own password?"
-                            ]
-                        , div []
-                            [ h5 [] [ text "© 2019 IzumiSy." ]
-                            ]
-                        ]
+                    , div [ class "siimple-grid-col siimple-grid-col--4 siimple-grid-col--xl-3 siimple-grid-col--md-1 siimple-grid-col--sm-12-hide" ] []
                     ]
                 ]
-            , div [ class "siimple-grid-col siimple-grid-col--4 siimple-grid-col--xl-3 siimple-grid-col--md-1 siimple-grid-col--sm-12-hide" ] []
             ]
-        ]
+        }
 
 
 

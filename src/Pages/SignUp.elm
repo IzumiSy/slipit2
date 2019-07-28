@@ -1,5 +1,6 @@
 module Pages.SignUp exposing (Model, Msg, init, update, view)
 
+import App.View as View
 import Flag exposing (Flag)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -55,6 +56,9 @@ init flag session =
 -- View
 
 
-view : Model -> Html Msg
+view : Model -> View.AppView Msg
 view model =
-    div [] [ text "signup" ]
+    View.new
+        { title = "Sign Up"
+        , body = [ div [] [ text "signup" ] ]
+        }
