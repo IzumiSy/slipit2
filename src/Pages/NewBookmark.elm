@@ -20,6 +20,7 @@ import Pages.FB.Bookmark as FBBookmark
 import Pages.FB.User as FBUser
 import Pages.NewBookmark.PageInfo as PageInfo exposing (PageInfo)
 import Pages.NewBookmark.Url as Url exposing (Url)
+import Route
 import Session exposing (Session)
 
 
@@ -115,7 +116,9 @@ update msg model =
                     ( model, Cmd.none )
 
         CreatingNewBookmarkSucceeded bookmark ->
-            ( model, Cmd.none )
+            ( model
+            , Route.replaceUrl (Session.toNavKey model.session) Route.Bookmarks
+            )
 
         CreatingNewBookmarkFailed error ->
             ( model, Cmd.none )
