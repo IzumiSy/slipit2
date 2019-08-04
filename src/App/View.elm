@@ -3,10 +3,12 @@ module App.View exposing
     , asDocument
     , mapMsg
     , new
+    , withHeader
     )
 
 import Browser
-import Html
+import Html exposing (div, text)
+import Html.Attributes exposing (class)
 
 
 
@@ -31,6 +33,23 @@ mapMsg toMsg (AppView { title, body }) =
     AppView
         { title = title
         , body = List.map (Html.map toMsg) body
+        }
+
+
+withHeader : AppView msg -> AppView msg
+withHeader (AppView { title, body }) =
+    AppView
+        { title = title
+        , body =
+            [ div
+                [ class "siimple-navbar siimple-navbar--extra-large siimple-navbar--light" ]
+                [ div [ class "siimple-navbar-title" ] [ text "Slipit" ]
+                ]
+            , div
+                [ class "siimple-content siimple-content--extra-large" ]
+                [ div [ class "siimple-grid" ] body
+                ]
+            ]
         }
 
 

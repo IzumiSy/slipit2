@@ -65,20 +65,32 @@ view model =
                 |> Session.toUserData
                 |> Maybe.map
                     (\{ bookmarks, currentUser } ->
+                        let
+                            bookmarkCount =
+                                String.fromInt (bookmarks |> Bookmarks.size)
+                        in
                         div []
-                            [ div []
-                                [ div [ class "siimple-grid-row" ]
-                                    [ div [] [ text (String.append "Current user: " currentUser.email) ]
-                                    , div [] [ button [ onClick LogsOut ] [ text "logs out" ] ]
+                            [ div
+                                [ class "siimple-grid-row" ]
+                                [ div
+                                    [ class "siimple-grid-col siimple-grid-col--12" ]
+                                    [ div
+                                        [ class "siimple--clearfix" ]
+                                        [ div
+                                            [ class "siimple--float-left" ]
+                                            [ h2 [] [ text (interpolate "Bookmarks ({0})" [ bookmarkCount ]) ]
+                                            ]
+                                        , div
+                                            [ class "siimple--float-right" ]
+                                            [ a
+                                                [ class "siimple-btn siimple-btn--teal siimple--float-right", href "new_bookmark" ]
+                                                [ text "Add a new bookmark" ]
+                                            ]
+                                        ]
                                     ]
                                 ]
-                            , div [ class "siimple-gird-row" ]
-                                [ h2 []
-                                    [ text (interpolate "Bookmarks ({0})" [ String.fromInt (bookmarks |> Bookmarks.size) ])
-                                    , a [ class "siimple-btn siimple-btn--teal siimple--float-right", href "new_bookmark" ] [ text "Add a new bookmark" ]
-                                    ]
-                                ]
-                            , div [ class "siimbple-grid-row" ]
+                            , div
+                                [ class "siimple-grid-row" ]
                                 (bookmarks
                                     |> Bookmarks.map
                                         (\bookmark_ ->

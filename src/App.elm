@@ -152,10 +152,10 @@ view page =
             SignUp.view model |> View.mapMsg GotSignUpMsg
 
         Bookmarks model ->
-            Bookmarks.view model |> View.mapMsg GotBookmarksMsg
+            Bookmarks.view model |> View.withHeader |> View.mapMsg GotBookmarksMsg
 
         NewBookmark model ->
-            NewBookmark.view model |> View.mapMsg GotNewBookmarkMsg
+            NewBookmark.view model |> View.withHeader |> View.mapMsg GotNewBookmarkMsg
 
 
 
