@@ -1,10 +1,11 @@
 module Pages.ResetPassword exposing (Model, Msg, init, update, view)
 
+import App.Header as AppHeader
 import App.Model as Model
-import App.View as View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Pages.Form.Email as Email exposing (Email)
+import Pages.Layout as Layout
 import Session exposing (Session)
 
 
@@ -49,9 +50,9 @@ init flag session =
 -- View
 
 
-view : Model -> View.AppView msg
+view : Model -> Layout.View msg
 view model =
-    View.new
+    Layout.new
         { title = "Password Reset"
         , body = [ div [] [ text "reset password" ] ]
         }

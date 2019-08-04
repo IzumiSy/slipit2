@@ -1,7 +1,13 @@
-port module Pages.Bookmarks exposing (Model, Msg, init, update, view)
+port module Pages.Bookmarks exposing
+    ( Model
+    , Msg(..)
+    , init
+    , update
+    , view
+    )
 
+import App.Header as AppHeader
 import App.Model as Model
-import App.View as View
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description
 import Bookmark.Title as Title
@@ -9,6 +15,7 @@ import Bookmarks exposing (Bookmarks)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Pages.Layout as Layout
 import Session exposing (Session)
 import String.Interpolate exposing (interpolate)
 import Url
@@ -28,6 +35,7 @@ type alias Model =
 
 type Msg
     = Noop
+    | GotAppViewMsg AppHeader.Msg
 
 
 
@@ -38,6 +46,9 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Noop ->
+            ( model, Cmd.none )
+
+        GotAppViewMsg _ ->
             ( model, Cmd.none )
 
 
@@ -56,9 +67,9 @@ init flag session =
 ------ View ------
 
 
-view : Model -> View.AppView Msg
+view : Model -> Layout.View Msg
 view model =
-    View.new
+    Layout.new
         { title = "Bookmarks"
         , body =
             [ model.session

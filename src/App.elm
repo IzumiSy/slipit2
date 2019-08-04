@@ -1,7 +1,7 @@
 port module App exposing (init, subscriptions, update)
 
+import App.Header as AppHeader
 import App.Model as Model
-import App.View as View
 import Bookmark.Description as Description
 import Bookmark.Title as Title
 import Bookmarks
@@ -12,6 +12,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Pages.Bookmarks as Bookmarks
 import Pages.FB.User as FBUser
+import Pages.Layout as Layout
 import Pages.Loading as Loading
 import Pages.NewBookmark as NewBookmark
 import Pages.NewBookmark.Url as NewBookmarkUrl exposing (Url)
@@ -133,7 +134,7 @@ toFlag page =
 ------ View ------
 
 
-view : Model -> View.AppView Msg
+view : Model -> Layout.View Msg
 view page =
     case page of
         WaitForLoggingIn _ _ _ ->
@@ -143,19 +144,26 @@ view page =
             NotFound.view
 
         ResetPassword model ->
-            ResetPassword.view model |> View.mapMsg GotResetPasswordMsg
+            ResetPassword.view model
+                |> Layout.mapMsg GotResetPasswordMsg
 
         SignIn model ->
-            SignIn.view model |> View.mapMsg GotSignInMsg
+            SignIn.view model
+                |> Layout.mapMsg GotSignInMsg
 
         SignUp model ->
-            SignUp.view model |> View.mapMsg GotSignUpMsg
+            SignUp.view model
+                |> Layout.mapMsg GotSignUpMsg
 
         Bookmarks model ->
-            Bookmarks.view model |> View.withHeader (toSession page) |> View.mapMsg GotBookmarksMsg
+            Bookmarks.view model
+                |> Layout.withHeader (toSession page) Bookmarks.GotAppViewMsg
+                |> Layout.mapMsg GotBookmarksMsg
 
         NewBookmark model ->
-            NewBookmark.view model |> View.withHeader (toSession page) |> View.mapMsg GotNewBookmarkMsg
+            NewBookmark.view model
+                |> Layout.withHeader (toSession page) NewBookmark.GotAppViewMsg
+                |> Layout.mapMsg GotNewBookmarkMsg
 
 
 
@@ -374,7 +382,7 @@ port loggedOut : (() -> msg) -> Sub msg
 main =
     Browser.application
         { init = init
-        , view = \model -> view model |> View.asDocument
+        , view = \model -> view model |> Layout.asDocument
         , update = update
         , subscriptions = subscriptions
         , onUrlChange = UrlChanged

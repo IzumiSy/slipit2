@@ -1,7 +1,7 @@
 port module Pages.SignIn exposing (Model, Msg, init, subscriptions, update, view)
 
+import App.Header as AppHeader
 import App.Model as Model
-import App.View as View
 import Bookmark exposing (Bookmark)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -10,6 +10,7 @@ import Json.Decode as Decode
 import Pages
 import Pages.Form.Email as Email exposing (Email)
 import Pages.Form.Password as Password exposing (Password)
+import Pages.Layout as Layout
 import Pages.SignIn.FB.AuthError as FBAuthError
 import Route
 import Session exposing (Session)
@@ -86,9 +87,9 @@ init flag session =
 ------ View ------
 
 
-view : Model -> View.AppView Msg
+view : Model -> Layout.View Msg
 view { flag, email, password, error, session } =
-    View.new
+    Layout.new
         { title = "Sign In"
         , body =
             [ div [ class "siimple-grid" ]
