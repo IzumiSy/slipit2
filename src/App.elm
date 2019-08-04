@@ -1,7 +1,7 @@
 port module App exposing (init, subscriptions, update)
 
+import App.Header as AppHeader
 import App.Model as Model
-import App.View as View
 import Bookmark.Description as Description
 import Bookmark.Title as Title
 import Bookmarks
@@ -10,8 +10,10 @@ import Browser
 import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Pages
 import Pages.Bookmarks as Bookmarks
 import Pages.FB.User as FBUser
+import Pages.Layout as Layout
 import Pages.Loading as Loading
 import Pages.NewBookmark as NewBookmark
 import Pages.NewBookmark.Url as NewBookmarkUrl exposing (Url)
@@ -133,7 +135,7 @@ toFlag page =
 ------ View ------
 
 
-view : Model -> View.AppView Msg
+view : Model -> Layout.View Msg
 view page =
     case page of
         WaitForLoggingIn _ _ _ ->
@@ -143,19 +145,26 @@ view page =
             NotFound.view
 
         ResetPassword model ->
-            ResetPassword.view model |> View.mapMsg GotResetPasswordMsg
+            ResetPassword.view model
+                |> Layout.mapMsg GotResetPasswordMsg
 
         SignIn model ->
-            SignIn.view model |> View.mapMsg GotSignInMsg
+            SignIn.view model
+                |> Layout.mapMsg GotSignInMsg
 
         SignUp model ->
-            SignUp.view model |> View.mapMsg GotSignUpMsg
+            SignUp.view model
+                |> Layout.mapMsg GotSignUpMsg
 
         Bookmarks model ->
-            Bookmarks.view model |> View.mapMsg GotBookmarksMsg
+            Bookmarks.view model
+                |> Layout.withHeader (toSession page) Bookmarks.GotAppHeaderMsg
+                |> Layout.mapMsg GotBookmarksMsg
 
         NewBookmark model ->
-            NewBookmark.view model |> View.mapMsg GotNewBookmarkMsg
+            NewBookmark.view model
+                |> Layout.withHeader (toSession page) NewBookmark.GotAppHeaderMsg
+                |> Layout.mapMsg GotNewBookmarkMsg
 
 
 
@@ -205,6 +214,9 @@ update msg model =
                             }
                     , Cmd.none
                     )
+
+                ( LogsOut, _ ) ->
+                    ( model, logsOut () )
 
                 ( LoggedOut _, _ ) ->
                     ( model
@@ -287,10 +299,10 @@ logInGuard ( page, cmd ) =
 
 
 updateWith :
-    (Model.Modelable pageModel -> Model)
-    -> (pageMsg -> Msg)
+    (Model.Modelable pageModel -> model)
+    -> (pageMsg -> msg)
     -> ( Model.Modelable pageModel, Cmd pageMsg )
-    -> ( Model, Cmd Msg )
+    -> ( model, Cmd msg )
 updateWith toModel toMsg ( subModel, subCmd ) =
     ( toModel subModel, Cmd.map toMsg subCmd )
 
@@ -358,6 +370,9 @@ type alias InitialData =
 port loggedIn : (InitialData -> msg) -> Sub msg
 
 
+port logsOut : () -> Cmd msg
+
+
 port loggedOut : (() -> msg) -> Sub msg
 
 
@@ -368,7 +383,7 @@ port loggedOut : (() -> msg) -> Sub msg
 main =
     Browser.application
         { init = init
-        , view = \model -> view model |> View.asDocument
+        , view = \model -> view model |> Layout.asDocument
         , update = update
         , subscriptions = subscriptions
         , onUrlChange = UrlChanged

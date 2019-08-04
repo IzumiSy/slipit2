@@ -1,12 +1,13 @@
 module Pages.NotFound exposing (view)
 
-import App.View as View
+import App.Header as AppHeader
 import Html exposing (..)
+import Pages.Layout as Layout
 
 
-view : View.AppView msg
+view : Layout.View msg
 view =
-    View.new
+    Layout.new
         { title = "Not Found"
         , body = [ div [] [ text "Not Found" ] ]
         }

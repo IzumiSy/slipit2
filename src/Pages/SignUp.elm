@@ -1,11 +1,12 @@
 module Pages.SignUp exposing (Model, Msg, init, update, view)
 
+import App.Header as AppHeader
 import App.Model as Model
-import App.View as View
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Pages.Form.Email as Email exposing (Email)
 import Pages.Form.Password as Password exposing (Password)
+import Pages.Layout as Layout
 import Session exposing (Session)
 
 
@@ -55,9 +56,9 @@ init flag session =
 -- View
 
 
-view : Model -> View.AppView Msg
+view : Model -> Layout.View Msg
 view model =
-    View.new
+    Layout.new
         { title = "Sign Up"
         , body = [ div [] [ text "signup" ] ]
         }

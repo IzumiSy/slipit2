@@ -1,14 +1,14 @@
 port module Pages.NewBookmark exposing
     ( Model
-    , Msg
+    , Msg(..)
     , init
     , subscriptions
     , update
     , view
     )
 
+import App.Header as AppHeader
 import App.Model as Model
-import App.View as View
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description exposing (Description)
 import Bookmark.Title as Title exposing (Title)
@@ -18,6 +18,7 @@ import Html.Events exposing (..)
 import Http
 import Pages
 import Pages.FB.User as FBUser
+import Pages.Layout as Layout
 import Pages.NewBookmark.FB as NewBookmarkFB
 import Pages.NewBookmark.PageInfo as PageInfo exposing (PageInfo)
 import Pages.NewBookmark.Url as Url exposing (Url)
@@ -46,6 +47,7 @@ type Msg
     | CreatingNewBookmarkFailed String
     | StartFetchingPageInfo
     | PageInfoFetched (Result Http.Error PageInfo)
+    | GotAppHeaderMsg AppHeader.Msg
 
 
 
@@ -100,6 +102,9 @@ update msg model =
                     -- TODO: エラーを出す
                     ( model, Cmd.none )
 
+        GotAppHeaderMsg pageMsg ->
+            AppHeader.update pageMsg model GotAppHeaderMsg
+
 
 
 ------ Init ------
@@ -120,9 +125,9 @@ init url title description flag session =
 ------ View ------
 
 
-view : Model -> View.AppView Msg
+view : Model -> Layout.View Msg
 view { pageInfo } =
-    View.new
+    Layout.new
         { title = "New Bookmark"
         , body =
             [ div [ class "main-container siimple-grid" ]
