@@ -47,7 +47,7 @@ type Msg
     | CreatingNewBookmarkFailed String
     | StartFetchingPageInfo
     | PageInfoFetched (Result Http.Error PageInfo)
-    | GotAppViewMsg AppHeader.Msg
+    | GotAppHeaderMsg AppHeader.Msg
 
 
 
@@ -102,8 +102,8 @@ update msg model =
                     -- TODO: エラーを出す
                     ( model, Cmd.none )
 
-        GotAppViewMsg _ ->
-            ( model, Cmd.none )
+        GotAppHeaderMsg pageMsg ->
+            AppHeader.update pageMsg model GotAppHeaderMsg
 
 
 

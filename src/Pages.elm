@@ -3,6 +3,7 @@ module Pages exposing
     , viewLink
     )
 
+import App.Model as Model
 import Html exposing (Html, a, text)
 import Html.Attributes exposing (href)
 import Html.Events
@@ -11,7 +12,7 @@ import Session exposing (Session)
 
 
 
------- View ------
+-- View
 
 
 viewLink : String -> String -> Html msg

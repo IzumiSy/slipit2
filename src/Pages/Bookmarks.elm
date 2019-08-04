@@ -35,7 +35,7 @@ type alias Model =
 
 type Msg
     = Noop
-    | GotAppViewMsg AppHeader.Msg
+    | GotAppHeaderMsg AppHeader.Msg
 
 
 
@@ -48,8 +48,8 @@ update msg model =
         Noop ->
             ( model, Cmd.none )
 
-        GotAppViewMsg _ ->
-            ( model, Cmd.none )
+        GotAppHeaderMsg pageMsg ->
+            AppHeader.update pageMsg model GotAppHeaderMsg
 
 
 

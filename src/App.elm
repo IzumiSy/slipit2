@@ -10,6 +10,7 @@ import Browser
 import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Pages
 import Pages.Bookmarks as Bookmarks
 import Pages.FB.User as FBUser
 import Pages.Layout as Layout
@@ -157,12 +158,12 @@ view page =
 
         Bookmarks model ->
             Bookmarks.view model
-                |> Layout.withHeader (toSession page) Bookmarks.GotAppViewMsg
+                |> Layout.withHeader (toSession page) Bookmarks.GotAppHeaderMsg
                 |> Layout.mapMsg GotBookmarksMsg
 
         NewBookmark model ->
             NewBookmark.view model
-                |> Layout.withHeader (toSession page) NewBookmark.GotAppViewMsg
+                |> Layout.withHeader (toSession page) NewBookmark.GotAppHeaderMsg
                 |> Layout.mapMsg GotNewBookmarkMsg
 
 
@@ -298,10 +299,10 @@ logInGuard ( page, cmd ) =
 
 
 updateWith :
-    (Model.Modelable pageModel -> Model)
-    -> (pageMsg -> Msg)
+    (Model.Modelable pageModel -> model)
+    -> (pageMsg -> msg)
     -> ( Model.Modelable pageModel, Cmd pageMsg )
-    -> ( Model, Cmd Msg )
+    -> ( model, Cmd msg )
 updateWith toModel toMsg ( subModel, subCmd ) =
     ( toModel subModel, Cmd.map toMsg subCmd )
 

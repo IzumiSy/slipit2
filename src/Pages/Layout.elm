@@ -14,10 +14,12 @@ import Html.Events exposing (onClick)
 import Session
 
 
-type
-    View msg
-    -- タイトルのprefixなどアプリケーション画面のルールを統一するためにBrowser.Documentをラップした型
-    -- Appのview関数はAppViewを返すようにしているので必ず各画面はAppViewを返さねばらならない
+
+-- タイトルのprefixなどアプリケーション画面のルールを統一するためにBrowser.Documentをラップした型
+-- Appのview関数はこのView型を返すようにしているので必ず各画面もViewを返さねばらならない
+
+
+type View msg
     = Plain (Browser.Document msg)
     | WithHeader Session.Session (AppHeader.Msg -> msg) (Browser.Document msg)
 
@@ -33,16 +35,16 @@ new { title, body } =
 mapMsg : (a -> msg) -> View a -> View msg
 mapMsg toMsg view =
     case view of
-        Plain { title, body } ->
-            Plain
+        WithHeader session toHeaderMsg { title, body } ->
+            WithHeader
+                session
+                (\msg -> msg |> toHeaderMsg |> toMsg)
                 { title = title
                 , body = List.map (Html.map toMsg) body
                 }
 
-        WithHeader session toHeaderMsg { title, body } ->
-            WithHeader
-                session
-                toHeaderMsg
+        Plain { title, body } ->
+            Plain
                 { title = title
                 , body = List.map (Html.map toMsg) body
                 }
