@@ -9,6 +9,7 @@ module App.View exposing
 import Browser
 import Html exposing (div, text)
 import Html.Attributes exposing (class)
+import Session
 
 
 
@@ -36,21 +37,28 @@ mapMsg toMsg (AppView { title, body }) =
         }
 
 
-withHeader : AppView msg -> AppView msg
-withHeader (AppView { title, body }) =
-    AppView
-        { title = title
-        , body =
-            [ div
-                [ class "siimple-navbar siimple-navbar--extra-large siimple-navbar--light" ]
-                [ div [ class "siimple-navbar-title" ] [ text "Slipit" ]
+withHeader : Session.Session -> AppView msg -> AppView msg
+withHeader session (AppView { title, body }) =
+    if Session.isLoggedIn session then
+        AppView
+            { title = title
+            , body =
+                [ div
+                    [ class "siimple-navbar siimple-navbar--extra-large siimple-navbar--dark" ]
+                    [ div [ class "siimple-navbar-title" ] [ text "Slipit" ]
+                    ]
+                , div
+                    [ class "siimple-content siimple-content--extra-large" ]
+                    [ div [ class "siimple-grid" ] body
+                    ]
                 ]
-            , div
-                [ class "siimple-content siimple-content--extra-large" ]
-                [ div [ class "siimple-grid" ] body
-                ]
-            ]
-        }
+            }
+
+    else
+        AppView
+            { title = title
+            , body = body
+            }
 
 
 asDocument : AppView msg -> Browser.Document msg

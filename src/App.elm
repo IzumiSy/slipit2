@@ -152,10 +152,10 @@ view page =
             SignUp.view model |> View.mapMsg GotSignUpMsg
 
         Bookmarks model ->
-            Bookmarks.view model |> View.withHeader |> View.mapMsg GotBookmarksMsg
+            Bookmarks.view model |> View.withHeader (toSession page) |> View.mapMsg GotBookmarksMsg
 
         NewBookmark model ->
-            NewBookmark.view model |> View.withHeader |> View.mapMsg GotNewBookmarkMsg
+            NewBookmark.view model |> View.withHeader (toSession page) |> View.mapMsg GotNewBookmarkMsg
 
 
 
@@ -205,6 +205,9 @@ update msg model =
                             }
                     , Cmd.none
                     )
+
+                ( LogsOut, _ ) ->
+                    ( model, logsOut () )
 
                 ( LoggedOut _, _ ) ->
                     ( model
@@ -356,6 +359,9 @@ type alias InitialData =
 
 
 port loggedIn : (InitialData -> msg) -> Sub msg
+
+
+port logsOut : () -> Cmd msg
 
 
 port loggedOut : (() -> msg) -> Sub msg

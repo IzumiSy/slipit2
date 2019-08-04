@@ -27,7 +27,7 @@ type alias Model =
 
 
 type Msg
-    = LogsOut
+    = Noop
 
 
 
@@ -37,8 +37,8 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        LogsOut ->
-            ( model, logsOut () )
+        Noop ->
+            ( model, Cmd.none )
 
 
 
@@ -115,10 +115,3 @@ view model =
                 |> Maybe.withDefault (div [] [ text "loading..." ])
             ]
         }
-
-
-
------- Port ------
-
-
-port logsOut : () -> Cmd msg
