@@ -1,4 +1,4 @@
-module Pages.FB.AuthError exposing (Error, Payload, fold, init, new, toMessage)
+module Pages.SignIn.FB.AuthError exposing (Error, Payload, fold, init, new, toMessage)
 
 
 type alias Payload =

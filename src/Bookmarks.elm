@@ -3,7 +3,7 @@ module Bookmarks exposing (Bookmarks, map, new, size)
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description
 import Bookmark.Title as Title
-import Pages.FB.Bookmark as FBBookmark
+import Bookmarks.FB.Bookmark as FBBookmark
 import Url
 
 
@@ -19,8 +19,9 @@ new : List FBBookmark.Bookmark -> Bookmarks
 new fbbookmarks =
     fbbookmarks
         |> List.map
-            (\{ url, title, description } ->
+            (\{ id, url, title, description } ->
                 Bookmark.new
+                    id
                     (url |> Url.fromString)
                     (title |> Title.new)
                     (description |> Description.new)

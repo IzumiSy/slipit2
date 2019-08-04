@@ -5,12 +5,12 @@ import App.View as View
 import Bookmark.Description as Description
 import Bookmark.Title as Title
 import Bookmarks
+import Bookmarks.FB.Bookmark as FBBookmark
 import Browser
 import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Pages.Bookmarks as Bookmarks
-import Pages.FB.Bookmark as FBBookmark
 import Pages.FB.User as FBUser
 import Pages.Loading as Loading
 import Pages.NewBookmark as NewBookmark

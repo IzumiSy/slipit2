@@ -42,7 +42,11 @@ firebase.auth().onAuthStateChanged(fbUser => {
   fetchAllBookmarks(fbUser.uid)
     .then(({ docs }) => {
       const userData = {
-        bookmarks: docs.map(doc => doc.data()),
+        bookmarks: docs.map(doc =>
+          Object.assign(doc.data(), { 
+            id: doc.id
+          })
+        ),
         currentUser: {
           uid: fbUser.uid,
           email: fbUser.email,
