@@ -4,3 +4,8 @@ dist/
 elm-stuff/
 node_modules/
 elm-package.json
+
+# Firebase
+.firebase/
+firebase-debug.log
+.firebaserc
