@@ -8,10 +8,9 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 import Json.Decode as Decode
 import Pages
-import Pages.FB.AuthError as FBAuthError
-import Pages.FB.User as FBUser
 import Pages.Form.Email as Email exposing (Email)
 import Pages.Form.Password as Password exposing (Password)
+import Pages.SignIn.FB.AuthError as FBAuthError
 import Route
 import Session exposing (Session)
 

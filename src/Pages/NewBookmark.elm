@@ -17,8 +17,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Pages
-import Pages.FB.Bookmark as FBBookmark
 import Pages.FB.User as FBUser
+import Pages.NewBookmark.FB as NewBookmarkFB
 import Pages.NewBookmark.PageInfo as PageInfo exposing (PageInfo)
 import Pages.NewBookmark.Url as Url exposing (Url)
 import Route
@@ -42,7 +42,7 @@ type Msg
     | SetTitle String
     | SetDescription String
     | CreatesNewbookmark
-    | CreatingNewBookmarkSucceeded FBBookmark.Bookmark
+    | CreatingNewBookmarkSucceeded NewBookmarkFB.Bookmark
     | CreatingNewBookmarkFailed String
     | StartFetchingPageInfo
     | PageInfoFetched (Result Http.Error PageInfo)
@@ -214,10 +214,10 @@ subscriptions model =
 ------ Port ------
 
 
-port createsNewBookmark : ( FBBookmark.Bookmark, FBUser.User ) -> Cmd msg
+port createsNewBookmark : ( NewBookmarkFB.Bookmark, FBUser.User ) -> Cmd msg
 
 
-port creatingNewBookmarkSucceeded : (FBBookmark.Bookmark -> msg) -> Sub msg
+port creatingNewBookmarkSucceeded : (NewBookmarkFB.Bookmark -> msg) -> Sub msg
 
 
 port creatingNewBookmarkFailed : (String -> msg) -> Sub msg
