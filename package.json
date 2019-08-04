@@ -4,7 +4,8 @@
     "start": "parcel src/index.html --out-dir dist --log-level 4",
     "build": "NODE_ENV=production parcel build src/index.html --out-dir dist",
     "format": "prettier --write \"{*.js,*.scss,*.html}\"",
-    "deploy": "firebase deploy"
+    "deploy": "npm run build && firebase deploy",
+    "serve:local": "npm run build && firebase serve --only hosting"
   },
   "devDependencies": {
     "elm": "^0.19.0-no-deps",
