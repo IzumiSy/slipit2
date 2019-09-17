@@ -7,8 +7,6 @@ require("siimple");
 require("./index.scss");
 const logoImage = require("../logo_small.png");
 
-console.info(process.env)
-
 firebase.initializeApp({
   apiKey: process.env.FB_API_KEY,
   authDomain: process.env.FB_AUTH_DOMAIN,
