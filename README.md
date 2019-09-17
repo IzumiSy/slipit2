@@ -24,26 +24,10 @@ $ npm run build
 
 # Function
 
-## Setup
-Install dependencies
-```bash
-$ cd function/functions
-$ npm install
-```
-After installing deps, you have to choose your project to run
-```bash
-$ npx firebase use [YourOwnProjectId]
-```
-Log into Firebase beforehand by `npx firebase login` to run function if you haven't.
-
 ## Run
 ```bash
-$ cd function/functions
-$ npm run serve
+$ npm run lambda:start
 ```
 
 ## Deploy
-```bash
-$ cd function/functions
-$ npm run deploy
-```
+This repository can be built automatically on Netlify from Github.
