@@ -5,11 +5,8 @@ The serverless replacement of [Slip.it](https://github.com/IzumiSy/slipit) aimin
 ```bash
 $ npm install
 ```
-After installing deps, you have to log into Firebase
-```bash
-$ npx firebase login
-```
-Also you need to set your own env in `.env` file
+
+Also you need to set your own env in `.env` file. This app uses Firestore as a database.
 ```bash
 $ cp .env.sample .env
 $ vi .env

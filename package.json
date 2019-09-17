@@ -5,7 +5,10 @@
     "build": "NODE_ENV=production parcel build src/index.html --out-dir dist",
     "format": "prettier --write \"{*.js,*.scss,*.html}\"",
     "deploy": "npm run build && netlify deploy --prod",
-    "serve:local": "netlify dev"
+    "local": "netlify dev",
+    "lambda:start": "netlify-lambda serve functions",
+    "lambda:build": "netlify-lambda build functions",
+    "postinstall": "netlify-lambda install functions"
   },
   "devDependencies": {
     "elm": "^0.19.0-no-deps",
@@ -19,6 +22,7 @@
     "tar": "^4.4.10"
   },
   "dependencies": {
+    "netlify-lambda": "^1.6.3",
     "blueimp-md5": "^2.11.0",
     "firebase": "^5.11.1",
     "lodash": "^4.17.15",

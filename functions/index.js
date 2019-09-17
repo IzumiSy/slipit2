@@ -1,3 +1,12 @@
+
+exports.handler = (event, context, callback) => {
+  callback(null, {
+    statusCode: 200,
+    body: "hello",
+  });
+}
+
+/*
 const HttpStatus = require('http-status-codes')
 const { JSDOM } = require('jsdom')
 const functions = require('firebase-functions');
@@ -43,3 +52,4 @@ exports.fetchTitle =
         })
       })
     });
+*/
