@@ -9,3 +9,5 @@ elm-package.json
 .firebase/
 firebase-debug.log
 .firebaserc
+# Local Netlify folder
+.netlify

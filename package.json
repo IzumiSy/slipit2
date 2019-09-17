@@ -2,16 +2,16 @@
   "private": true,
   "scripts": {
     "start": "parcel src/index.html --out-dir dist --log-level 4",
-    "build": "parcel build src/index.html --out-dir dist",
+    "build": "NODE_ENV=production parcel build src/index.html --out-dir dist",
     "format": "prettier --write \"{*.js,*.scss,*.html}\"",
-    "deploy": "npm run build && firebase deploy",
-    "serve:local": "npm run build && firebase serve --only hosting"
+    "deploy": "npm run build && netlify deploy --prod",
+    "serve:local": "nelify dev"
   },
   "devDependencies": {
     "elm": "^0.19.0-no-deps",
     "elm-format": "^0.8.1",
     "elm-hot": "^1.1.0",
-    "firebase-tools": "^7.2.2",
+    "netlify-cli": "^2.15.0",
     "node-elm-compiler": "^5.0.4",
     "parcel-bundler": "^1.12.3",
     "prettier": "^1.18.2",
