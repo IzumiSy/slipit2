@@ -1,6 +1,6 @@
 const firebase = require("firebase/app");
 const { Elm } = require("./App.elm");
-const MD5 = require('blueimp-md5');
+const MD5 = require("blueimp-md5");
 require("firebase/auth");
 require("firebase/firestore");
 require("siimple");
@@ -43,7 +43,7 @@ firebase.auth().onAuthStateChanged(fbUser => {
     .then(({ docs }) => {
       const userData = {
         bookmarks: docs.map(doc =>
-          Object.assign(doc.data(), { 
+          Object.assign(doc.data(), {
             id: doc.id
           })
         ),
@@ -79,21 +79,21 @@ app.ports.startsLoggingIn.subscribe(login => {
 app.ports.createsNewBookmark.subscribe(([newBookmark, currentUser]) => {
   // 重複したURLを追加するのを許したくないのでMD5ハッシュに変換してIDとする
   // というのもスラッシュが含まれる文字列はdocのIDとして使えないらしいので
-  const bookmarkId = MD5(newBookmark.url) 
+  const bookmarkId = MD5(newBookmark.url);
 
   database
-    .collection('users')
+    .collection("users")
     .doc(currentUser.uid)
-    .collection('bookmarks')
+    .collection("bookmarks")
     .doc(bookmarkId)
     .set(newBookmark)
     .then(_ => {
-      app.ports.creatingNewBookmarkSucceeded.send(newBookmark) 
+      app.ports.creatingNewBookmarkSucceeded.send(newBookmark);
     })
     .catch(fbError => {
-      console.warn(fbError)
+      console.warn(fbError);
       app.ports.createNewBookmarkFailed.send({
         message: "Failed create new bookmark"
-      })
-    })
-})
+      });
+    });
+});
