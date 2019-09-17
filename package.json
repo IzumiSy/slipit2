@@ -4,7 +4,7 @@
     "postinstall": "netlify-lambda install functions",
     "start": "NODE_ENV=development parcel src/index.html --out-dir dist --log-level 4",
     "build": "parcel build src/index.html --out-dir dist",
-    "format": "prettier --write \"{*.js,*.scss,*.html}\"",
+    "format": "prettier --write '{src,functions}/**/*.{js,html,scss}'",
     "deploy": "npm run build && netlify deploy --prod",
     "clean": "rm -rf dist && rm -rf elm-stuff",
     "lambda:start": "NODE_ENV=development netlify-lambda serve functions",
