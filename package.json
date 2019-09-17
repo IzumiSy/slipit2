@@ -23,11 +23,16 @@
     "tar": "^4.4.10"
   },
   "dependencies": {
-    "netlify-lambda": "^1.6.3",
     "blueimp-md5": "^2.11.0",
     "firebase": "^5.11.1",
+    "http-status-codes": "^1.3.2",
     "lodash": "^4.17.15",
-    "siimple": "^3.3.1"
+    "netlify-lambda": "^1.6.3",
+    "node-html-parser": "^1.1.16",
+    "request": "^2.88.0",
+    "siimple": "^3.3.1",
+    "utf-8-validate": "^5.0.2",
+    "valid-url": "^1.0.9"
   },
   "engines": {
     "node": "10.16.0",
