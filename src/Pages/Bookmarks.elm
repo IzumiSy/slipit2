@@ -2,6 +2,7 @@ port module Pages.Bookmarks exposing
     ( Model
     , Msg(..)
     , init
+    , subscriptions
     , update
     , view
     )
@@ -9,9 +10,10 @@ port module Pages.Bookmarks exposing
 import App.Header as AppHeader
 import App.Model as Model
 import Bookmark exposing (Bookmark)
-import Bookmark.Description as Description
-import Bookmark.Title as Title
+import Bookmark.Description as Description exposing (Description)
+import Bookmark.Title as Title exposing (Title)
 import Bookmarks exposing (Bookmarks)
+import Bookmarks.FB.Bookmark as FBBookmark
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -36,6 +38,7 @@ type alias Model =
 type Msg
     = Noop
     | GotAppHeaderMsg AppHeader.Msg
+    | FetchedAllBookmarks (List FBBookmark.Bookmark)
 
 
 
@@ -51,16 +54,23 @@ update msg model =
         GotAppHeaderMsg pageMsg ->
             AppHeader.update pageMsg model GotAppHeaderMsg
 
+        FetchedAllBookmarks bookmarks ->
+            ( { model | session = Session.mapBookmarks (Bookmarks.new bookmarks) model.session }
+            , Cmd.none
+            )
+
 
 
 ------ Init ------
 
 
-init : Model.Flag -> Session -> Model
+init : Model.Flag -> Session -> ( Model, Cmd msg )
 init flag session =
-    { flag = flag
-    , session = session
-    }
+    ( { flag = flag
+      , session = session
+      }
+    , fetchAllBookmarks ()
+    )
 
 
 
@@ -102,27 +112,50 @@ view model =
                                 ]
                             , div
                                 [ class "siimple-grid-row" ]
-                                (bookmarks
-                                    |> Bookmarks.map
-                                        (\bookmark_ ->
-                                            bookmark_
-                                                |> Bookmark.fold
-                                                    (\{ url, title, description } ->
-                                                        div [ class "siimple-grid-col siimple-grid-col--3 siimple-grid-col--lg-4 siimple-grid-col--md-6 siimple-grid-col--xs-12" ]
-                                                            [ a [ class "bookmark-item siimple-card", url |> Url.toString |> href ]
-                                                                [ div [ class "siimple-card-body" ]
-                                                                    [ div [ class "siimple-card-title" ] [ title |> Title.unwrap |> text ]
-                                                                    , div [ class "siimple-card-subtitle" ] [ url |> Url.toString |> text ]
-                                                                    , description |> Description.unwrap |> text
-                                                                    ]
-                                                                ]
-                                                            ]
-                                                    )
-                                                    (always (div [] []))
-                                        )
-                                )
+                                (bookmarks |> Bookmarks.map (Bookmark.fold viewBookmarkCard (always (div [] []))))
                             ]
                     )
                 |> Maybe.withDefault (div [] [ text "loading..." ])
             ]
         }
+
+
+type alias Bookmarkable a =
+    { a
+        | url : Url.Url
+        , title : Title
+        , description : Description
+    }
+
+
+viewBookmarkCard : Bookmarkable a -> Html msg
+viewBookmarkCard { url, title, description } =
+    div [ class "siimple-grid-col siimple-grid-col--3 siimple-grid-col--lg-4 siimple-grid-col--md-6 siimple-grid-col--xs-12" ]
+        [ a [ class "bookmark-item siimple-card", url |> Url.toString |> href ]
+            [ div [ class "siimple-card-body" ]
+                [ div [ class "siimple-card-title" ] [ title |> Title.unwrap |> text ]
+                , div [ class "siimple-card-subtitle" ] [ url |> Url.toString |> text ]
+                , description |> Description.unwrap |> text
+                ]
+            ]
+        ]
+
+
+
+------ Subscriptions ------
+
+
+subscriptions : Sub Msg
+subscriptions =
+    Sub.batch
+        [ allBookmarksFetched FetchedAllBookmarks ]
+
+
+
+------ Port ------
+
+
+port fetchAllBookmarks : () -> Cmd msg
+
+
+port allBookmarksFetched : (List FBBookmark.Bookmark -> msg) -> Sub msg

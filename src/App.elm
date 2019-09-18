@@ -53,14 +53,16 @@ init flag url navKey =
     )
 
 
-initPage : Model.Modelable a -> Maybe Route.Routes -> Model
+initPage : Model.Modelable a -> Maybe Route.Routes -> ( Model, Cmd Msg )
 initPage { flag, session } maybeRoute =
     case maybeRoute of
         Nothing ->
-            NotFound flag session
+            ( NotFound flag session, Cmd.none )
 
         Just Route.Bookmarks ->
-            Bookmarks (Bookmarks.init flag session)
+            Bookmarks.init flag session
+                |> Tuple.mapFirst Bookmarks
+                |> Tuple.mapSecond (Cmd.map GotBookmarksMsg)
 
         Just (Route.NewBookmark maybeUrl maybeTitle maybeDescription) ->
             NewBookmark.init
@@ -69,16 +71,23 @@ initPage { flag, session } maybeRoute =
                 (maybeDescription |> Maybe.map Description.new |> Maybe.withDefault Description.empty)
                 flag
                 session
-                |> NewBookmark
+                |> Tuple.mapFirst NewBookmark
+                |> Tuple.mapSecond (Cmd.map GotNewBookmarkMsg)
 
         Just Route.ResetPassword ->
-            ResetPassword (ResetPassword.init flag session)
+            ResetPassword.init flag session
+                |> Tuple.mapFirst ResetPassword
+                |> Tuple.mapSecond (Cmd.map GotResetPasswordMsg)
 
         Just Route.SignIn ->
-            SignIn (SignIn.init flag session)
+            SignIn.init flag session
+                |> Tuple.mapFirst SignIn
+                |> Tuple.mapSecond (Cmd.map GotSignInMsg)
 
         Just Route.SignUp ->
-            SignUp (SignUp.init flag session)
+            SignUp.init flag session
+                |> Tuple.mapFirst SignUp
+                |> Tuple.mapSecond (Cmd.map GotSignUpMsg)
 
 
 toSession : Model -> Session
@@ -206,14 +215,12 @@ update msg model =
                             )
 
                 ( UrlChanged url, _ ) ->
-                    ( url
+                    url
                         |> Route.fromUrl
                         |> initPage
-                            { flag = model |> toFlag
-                            , session = model |> toSession
+                            { flag = toFlag model
+                            , session = toSession model
                             }
-                    , Cmd.none
-                    )
 
                 ( LogsOut, _ ) ->
                     ( model, logsOut () )
@@ -249,25 +256,34 @@ update msg model =
                     )
 
                 ( GotSignInMsg pageMsg, SignIn pageModel ) ->
-                    SignIn.update pageMsg pageModel |> updateWith SignIn GotSignInMsg
+                    pageModel
+                        |> SignIn.update pageMsg
+                        |> updateWith SignIn GotSignInMsg
 
                 ( GotSignUpMsg pageMsg, SignUp pageModel ) ->
-                    SignUp.update pageMsg pageModel |> updateWith SignUp GotSignUpMsg
+                    pageModel
+                        |> SignUp.update pageMsg
+                        |> updateWith SignUp GotSignUpMsg
 
                 ( GotResetPasswordMsg pageMsg, ResetPassword pageModel ) ->
-                    ResetPassword.update pageMsg pageModel |> updateWith ResetPassword GotResetPasswordMsg
+                    pageModel
+                        |> ResetPassword.update pageMsg
+                        |> updateWith ResetPassword GotResetPasswordMsg
 
                 ( GotBookmarksMsg pageMsg, Bookmarks pageModel ) ->
-                    Bookmarks.update pageMsg pageModel |> updateWith Bookmarks GotBookmarksMsg
+                    pageModel
+                        |> Bookmarks.update pageMsg
+                        |> updateWith Bookmarks GotBookmarksMsg
 
                 ( GotNewBookmarkMsg pageMsg, NewBookmark pageModel ) ->
-                    NewBookmark.update pageMsg pageModel |> updateWith NewBookmark GotNewBookmarkMsg
+                    pageModel
+                        |> NewBookmark.update pageMsg
+                        |> updateWith NewBookmark GotNewBookmarkMsg
 
                 ( _, _ ) ->
                     ( model, Cmd.none )
     in
-    updated
-        |> logInGuard
+    logInGuard updated
 
 
 logInGuard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -338,23 +354,24 @@ updateSession page newSession =
 
 subscriptions : Model -> Sub Msg
 subscriptions page =
-    let
-        pageSubscriptions =
-            case page of
-                SignIn model ->
-                    Sub.map GotSignInMsg (SignIn.subscriptions model)
-
-                NewBookmark model ->
-                    Sub.map GotNewBookmarkMsg (NewBookmark.subscriptions model)
-
-                _ ->
-                    Sub.none
-    in
-    Sub.batch
+    Sub.batch <|
         [ loggedOut LoggedOut
         , loggedIn LoggedIn
-        , pageSubscriptions
         ]
+            ++ List.singleton
+                (case page of
+                    SignIn model ->
+                        Sub.map GotSignInMsg SignIn.subscriptions
+
+                    NewBookmark model ->
+                        Sub.map GotNewBookmarkMsg NewBookmark.subscriptions
+
+                    Bookmarks _ ->
+                        Sub.map GotBookmarksMsg Bookmarks.subscriptions
+
+                    _ ->
+                        Sub.none
+                )
 
 
 

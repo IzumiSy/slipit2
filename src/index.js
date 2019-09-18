@@ -87,13 +87,27 @@ app.ports.createsNewBookmark.subscribe(([newBookmark, currentUser]) => {
     .collection("bookmarks")
     .doc(bookmarkId)
     .set(newBookmark)
-    .then(_ => {
-      app.ports.creatingNewBookmarkSucceeded.send(newBookmark);
-    })
+    .then(_ => app.ports.creatingNewBookmarkSucceeded.send(newBookmark))
     .catch(fbError => {
       console.warn(fbError);
       app.ports.createNewBookmarkFailed.send({
         message: "Failed create new bookmark"
       });
     });
+});
+
+app.ports.fetchAllBookmarks.subscribe(() => {
+  firebase.auth().onAuthStateChanged(user => {
+    if (user) {
+      fetchAllBookmarks(user.uid)
+        .then(({ docs }) =>
+          app.ports.allBookmarksFetched.send(
+            docs.map(doc => Object.assign(doc.data(), { id: doc.id }))
+          )
+        )
+        .catch(err => {
+          // TODO: あとでつくる
+        });
+    }
+  });
 });

@@ -73,14 +73,16 @@ update msg model =
 ------ Init ------
 
 
-init : Model.Flag -> Session -> Model
+init : Model.Flag -> Session -> ( Model, Cmd Msg )
 init flag session =
-    { email = Email.empty
-    , password = Password.empty
-    , error = FBAuthError.init
-    , flag = flag
-    , session = session
-    }
+    ( { email = Email.empty
+      , password = Password.empty
+      , error = FBAuthError.init
+      , flag = flag
+      , session = session
+      }
+    , Cmd.none
+    )
 
 
 
@@ -177,8 +179,8 @@ view { flag, email, password, error, session } =
 -- 一方でログイン時のエラーはログイン画面でだけ必要なのでこちらにだけあればよい
 
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions : Sub Msg
+subscriptions =
     Sub.batch
         [ loggingInFailed LoggingInFailed
         ]

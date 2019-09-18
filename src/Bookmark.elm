@@ -1,4 +1,4 @@
-module Bookmark exposing (Bookmark, fold, isValid, new)
+module Bookmark exposing (Bookmark, Id, fold, isValid, new)
 
 import Bookmark.Description as Description exposing (Description)
 import Bookmark.Title as Title exposing (Title)

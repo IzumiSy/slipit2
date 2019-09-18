@@ -7,6 +7,7 @@ module Session exposing
     , mapAsLoggedIn
     , mapAsLoggingIn
     , mapAsNotLoggedIn
+    , mapBookmarks
     , toNavKey
     , toUserData
     , update
@@ -20,6 +21,7 @@ import Url
 
 
 -- ページを横断してユーザーのログイン状態を保持する型
+-- 現在のブックマーク一覧とログイン中のユーザーはキャッシュして持っておいて損はないので毎回取らずにセッションに載せる方式にしている
 -- TODO: currentUserがFBのデータ構造に依存したFBUser.User型になっているので変える
 
 
@@ -72,6 +74,19 @@ mapAsLoggedIn bookmarks user session =
 
         LoggedIn _ _ _ ->
             session
+
+
+mapBookmarks : Bookmarks -> Session -> Session
+mapBookmarks bookmarks session =
+    case session of
+        NotLoggedIn _ _ ->
+            session
+
+        LoggingIn _ _ ->
+            session
+
+        LoggedIn url navKey { currentUser } ->
+            LoggedIn url navKey { bookmarks = bookmarks, currentUser = currentUser }
 
 
 toNavKey : Session -> Nav.Key

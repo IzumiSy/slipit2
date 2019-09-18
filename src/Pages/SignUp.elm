@@ -43,13 +43,15 @@ update msg model =
 -- Init
 
 
-init : Model.Flag -> Session -> Model
+init : Model.Flag -> Session -> ( Model, Cmd Msg )
 init flag session =
-    { email = Email.empty
-    , password = Password.empty
-    , flag = flag
-    , session = session
-    }
+    ( { email = Email.empty
+      , password = Password.empty
+      , flag = flag
+      , session = session
+      }
+    , Cmd.none
+    )
 
 
 

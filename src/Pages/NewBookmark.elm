@@ -110,15 +110,17 @@ update msg model =
 ------ Init ------
 
 
-init : Url -> Title -> Description -> Model.Flag -> Session -> Model
+init : Url -> Title -> Description -> Model.Flag -> Session -> ( Model, Cmd Msg )
 init url title description flag session =
-    { flag = flag
-    , session = session
-    , pageInfo =
-        PageInfo.fromUrl url
-            |> PageInfo.mapTitle title
-            |> PageInfo.mapDescription description
-    }
+    ( { flag = flag
+      , session = session
+      , pageInfo =
+            PageInfo.fromUrl url
+                |> PageInfo.mapTitle title
+                |> PageInfo.mapDescription description
+      }
+    , Cmd.none
+    )
 
 
 
@@ -207,8 +209,8 @@ view { pageInfo } =
 ------ Subscription ------
 
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions : Sub Msg
+subscriptions =
     Sub.batch
         [ creatingNewBookmarkSucceeded CreatingNewBookmarkSucceeded
         , creatingNewBookmarkFailed CreatingNewBookmarkFailed
