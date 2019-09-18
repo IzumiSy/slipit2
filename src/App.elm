@@ -2,6 +2,7 @@ port module App exposing (init, subscriptions, update)
 
 import App.Header as AppHeader
 import App.Model as Model
+import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description
 import Bookmark.Title as Title
 import Bookmarks
@@ -10,6 +11,8 @@ import Browser
 import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Json.Decode as Decode
+import Json.Decode.Pipeline as Pipeline
 import Pages
 import Pages.Bookmarks as Bookmarks
 import Pages.FB.User as FBUser
@@ -183,7 +186,7 @@ view page =
 type Msg
     = LogsOut
     | LoggedOut ()
-    | LoggedIn InitialData
+    | LoggedIn (Result Decode.Error InitialData)
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | GotSignInMsg SignIn.Msg
@@ -233,27 +236,37 @@ update msg model =
                     , Cmd.none
                     )
 
-                ( LoggedIn { bookmarks, currentUser }, WaitForLoggingIn _ session maybeNextRoute ) ->
-                    ( session
-                        |> Session.mapAsLoggedIn (bookmarks |> Bookmarks.new) currentUser
-                        |> updateSession model
-                    , maybeNextRoute
-                        |> Maybe.map (Route.replaceUrl (session |> Session.toNavKey))
-                        |> Maybe.withDefault (Route.replaceUrl (session |> Session.toNavKey) Route.Bookmarks)
-                    )
+                ( LoggedIn result, WaitForLoggingIn _ session maybeNextRoute ) ->
+                    case result of
+                        Ok { bookmarks, currentUser } ->
+                            ( session
+                                |> Session.mapAsLoggedIn (bookmarks |> Bookmarks.new) currentUser
+                                |> updateSession model
+                            , maybeNextRoute
+                                |> Maybe.map (Route.replaceUrl (session |> Session.toNavKey))
+                                |> Maybe.withDefault (Route.replaceUrl (session |> Session.toNavKey) Route.Bookmarks)
+                            )
 
-                ( LoggedIn { bookmarks, currentUser }, SignIn pageModel ) ->
-                    ( model
-                        |> toSession
-                        |> Session.mapAsLoggedIn (bookmarks |> Bookmarks.new) currentUser
-                        |> updateSession model
-                    , Route.replaceUrl
-                        (model
-                            |> toSession
-                            |> Session.toNavKey
-                        )
-                        Route.Bookmarks
-                    )
+                        Err _ ->
+                            ( model, Cmd.none )
+
+                ( LoggedIn result, SignIn pageModel ) ->
+                    case result of
+                        Ok { bookmarks, currentUser } ->
+                            ( model
+                                |> toSession
+                                |> Session.mapAsLoggedIn (bookmarks |> Bookmarks.new) currentUser
+                                |> updateSession model
+                            , Route.replaceUrl
+                                (model
+                                    |> toSession
+                                    |> Session.toNavKey
+                                )
+                                Route.Bookmarks
+                            )
+
+                        Err _ ->
+                            ( model, Cmd.none )
 
                 ( GotSignInMsg pageMsg, SignIn pageModel ) ->
                     pageModel
@@ -356,7 +369,7 @@ subscriptions : Model -> Sub Msg
 subscriptions page =
     Sub.batch <|
         [ loggedOut LoggedOut
-        , loggedIn LoggedIn
+        , loggedIn (LoggedIn << Decode.decodeValue decodeInitialData)
         ]
             ++ List.singleton
                 (case page of
@@ -379,18 +392,33 @@ subscriptions page =
 
 
 type alias InitialData =
-    { bookmarks : List FBBookmark.Bookmark
+    { bookmarks : List Bookmark
     , currentUser : FBUser.User
     }
 
 
-port loggedIn : (InitialData -> msg) -> Sub msg
+port loggedIn : (Decode.Value -> msg) -> Sub msg
 
 
 port logsOut : () -> Cmd msg
 
 
 port loggedOut : (() -> msg) -> Sub msg
+
+
+decodeInitialData : Decode.Decoder InitialData
+decodeInitialData =
+    Decode.succeed InitialData
+        |> Pipeline.required "bookmarks" (Decode.list Bookmark.decoder)
+        |> Pipeline.required "currentUser" decodeCurrentUser
+
+
+decodeCurrentUser : Decode.Decoder FBUser.User
+decodeCurrentUser =
+    Decode.succeed FBUser.User
+        |> Pipeline.required "uid" Decode.string
+        |> Pipeline.required "email" Decode.string
+        |> Pipeline.optional "displayName" (Decode.map Just Decode.string) Nothing
 
 
 

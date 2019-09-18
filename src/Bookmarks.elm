@@ -15,18 +15,9 @@ type Bookmarks
     = Bookmarks (List Bookmark)
 
 
-new : List FBBookmark.Bookmark -> Bookmarks
-new fbbookmarks =
-    fbbookmarks
-        |> List.map
-            (\{ id, url, title, description } ->
-                Bookmark.new
-                    id
-                    (url |> Url.fromString)
-                    (title |> Title.new)
-                    (description |> Description.new)
-            )
-        |> Bookmarks
+new : List Bookmark -> Bookmarks
+new =
+    Bookmarks
 
 
 map : (Bookmark -> a) -> Bookmarks -> List a

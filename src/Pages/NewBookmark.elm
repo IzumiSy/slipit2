@@ -16,6 +16,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
+import Json.Decode as Decode
 import Pages
 import Pages.FB.User as FBUser
 import Pages.Layout as Layout
@@ -43,7 +44,7 @@ type Msg
     | SetTitle String
     | SetDescription String
     | CreatesNewbookmark
-    | CreatingNewBookmarkSucceeded NewBookmarkFB.Bookmark
+    | CreatingNewBookmarkSucceeded (Result Decode.Error Bookmark)
     | CreatingNewBookmarkFailed String
     | StartFetchingPageInfo
     | PageInfoFetched (Result Http.Error PageInfo)
@@ -212,7 +213,7 @@ view { pageInfo } =
 subscriptions : Sub Msg
 subscriptions =
     Sub.batch
-        [ creatingNewBookmarkSucceeded CreatingNewBookmarkSucceeded
+        [ creatingNewBookmarkSucceeded (CreatingNewBookmarkSucceeded << Decode.decodeValue Bookmark.decoder)
         , creatingNewBookmarkFailed CreatingNewBookmarkFailed
         ]
 
@@ -224,7 +225,7 @@ subscriptions =
 port createsNewBookmark : ( NewBookmarkFB.Bookmark, FBUser.User ) -> Cmd msg
 
 
-port creatingNewBookmarkSucceeded : (NewBookmarkFB.Bookmark -> msg) -> Sub msg
+port creatingNewBookmarkSucceeded : (Decode.Value -> msg) -> Sub msg
 
 
 port creatingNewBookmarkFailed : (String -> msg) -> Sub msg

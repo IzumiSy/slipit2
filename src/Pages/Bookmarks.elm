@@ -17,6 +17,7 @@ import Bookmarks.FB.Bookmark as FBBookmark
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Json.Decode as Decode
 import Pages.Layout as Layout
 import Session exposing (Session)
 import String.Interpolate exposing (interpolate)
@@ -38,7 +39,7 @@ type alias Model =
 type Msg
     = Noop
     | GotAppHeaderMsg AppHeader.Msg
-    | FetchedAllBookmarks (List FBBookmark.Bookmark)
+    | FetchedAllBookmarks (Result Decode.Error (List Bookmark))
 
 
 
@@ -54,10 +55,15 @@ update msg model =
         GotAppHeaderMsg pageMsg ->
             AppHeader.update pageMsg model GotAppHeaderMsg
 
-        FetchedAllBookmarks bookmarks ->
-            ( { model | session = Session.mapBookmarks (Bookmarks.new bookmarks) model.session }
-            , Cmd.none
-            )
+        FetchedAllBookmarks result ->
+            case result of
+                Err _ ->
+                    ( model, Cmd.none )
+
+                Ok bookmarks ->
+                    ( { model | session = Session.mapBookmarks (Bookmarks.new bookmarks) model.session }
+                    , Cmd.none
+                    )
 
 
 
@@ -148,7 +154,7 @@ viewBookmarkCard { url, title, description } =
 subscriptions : Sub Msg
 subscriptions =
     Sub.batch
-        [ allBookmarksFetched FetchedAllBookmarks ]
+        [ allBookmarksFetched (FetchedAllBookmarks << Decode.decodeValue (Decode.list Bookmark.decoder)) ]
 
 
 
@@ -158,4 +164,4 @@ subscriptions =
 port fetchAllBookmarks : () -> Cmd msg
 
 
-port allBookmarksFetched : (List FBBookmark.Bookmark -> msg) -> Sub msg
+port allBookmarksFetched : (Decode.Value -> msg) -> Sub msg

@@ -1,7 +1,17 @@
-module Bookmark exposing (Bookmark, Id, fold, isValid, new)
+module Bookmark exposing
+    ( Bookmark
+    , Id
+    , decoder
+    , fold
+    , isValid
+    , new
+    )
 
 import Bookmark.Description as Description exposing (Description)
 import Bookmark.Title as Title exposing (Title)
+import Bookmarks.FB.Bookmark as FBBookmark
+import Json.Decode as Decode
+import Json.Decode.Pipeline as Pipeline
 import Url
 
 
@@ -55,3 +65,21 @@ isValid bookmark =
 
         Invalid _ _ ->
             False
+
+
+decoder : Decode.Decoder Bookmark
+decoder =
+    Decode.succeed
+        (\id description title url ->
+            new
+                id
+                (Url.fromString url)
+                (Title.new title)
+                (Description.new description)
+                |> Decode.succeed
+        )
+        |> Pipeline.required "id" Decode.string
+        |> Pipeline.required "description" Decode.string
+        |> Pipeline.required "title" Decode.string
+        |> Pipeline.required "url" Decode.string
+        |> Pipeline.resolve
