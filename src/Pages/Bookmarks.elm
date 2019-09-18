@@ -110,7 +110,9 @@ view model =
                                         , div
                                             [ class "siimple--float-right" ]
                                             [ a
-                                                [ class "siimple-btn siimple-btn--teal siimple--float-right", href "new_bookmark" ]
+                                                [ class "siimple-btn siimple-btn--teal siimple--float-right"
+                                                , href "new_bookmark"
+                                                ]
                                                 [ text "Add a new bookmark" ]
                                             ]
                                         ]

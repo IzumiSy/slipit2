@@ -1,5 +1,5 @@
 # Slip.it v2
-The serverless replacement of [Slip.it](https://github.com/IzumiSy/slipit) aiming at deploying on Firebase suite
+The serverless replacement of [Slip.it](https://github.com/IzumiSy/slipit) aiming at deploying on Netlify
 
 ## Setup
 ```bash
