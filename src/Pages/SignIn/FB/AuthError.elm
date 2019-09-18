@@ -1,4 +1,14 @@
-module Pages.SignIn.FB.AuthError exposing (Error, Payload, fold, init, new, toMessage)
+module Pages.SignIn.FB.AuthError exposing
+    ( Error
+    , decoder
+    , fold
+    , init
+    , new
+    , toMessage
+    )
+
+import Json.Decode as Decode
+import Json.Decode.Pipeline as Pipeline
 
 
 type alias Payload =
@@ -38,3 +48,12 @@ toMessage error =
 
         Some { code, message } ->
             Just message
+
+
+decoder : Decode.Decoder Error
+decoder =
+    Decode.succeed
+        (\code message -> new { code = code, message = message } |> Decode.succeed)
+        |> Pipeline.required "code" Decode.string
+        |> Pipeline.required "message" Decode.string
+        |> Pipeline.resolve

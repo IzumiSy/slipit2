@@ -45,7 +45,7 @@ type Msg
     | SetDescription String
     | CreatesNewbookmark
     | CreatingNewBookmarkSucceeded (Result Decode.Error Bookmark)
-    | CreatingNewBookmarkFailed String
+    | CreatingNewBookmarkFailed (Result Decode.Error String)
     | StartFetchingPageInfo
     | PageInfoFetched (Result Http.Error PageInfo)
     | GotAppHeaderMsg AppHeader.Msg
@@ -214,7 +214,7 @@ subscriptions : Sub Msg
 subscriptions =
     Sub.batch
         [ creatingNewBookmarkSucceeded (CreatingNewBookmarkSucceeded << Decode.decodeValue Bookmark.decoder)
-        , creatingNewBookmarkFailed CreatingNewBookmarkFailed
+        , creatingNewBookmarkFailed (CreatingNewBookmarkFailed << Decode.decodeValue Decode.string)
         ]
 
 
@@ -228,4 +228,4 @@ port createsNewBookmark : ( NewBookmarkFB.Bookmark, FBUser.User ) -> Cmd msg
 port creatingNewBookmarkSucceeded : (Decode.Value -> msg) -> Sub msg
 
 
-port creatingNewBookmarkFailed : (String -> msg) -> Sub msg
+port creatingNewBookmarkFailed : (Decode.Value -> msg) -> Sub msg

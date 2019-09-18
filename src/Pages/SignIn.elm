@@ -36,7 +36,7 @@ type Msg
     = SetEmail String
     | SetPassword String
     | StartsLoggingIn
-    | LoggingInFailed FBAuthError.Payload
+    | LoggingInFailed (Result Decode.Error FBAuthError.Error)
 
 
 
@@ -60,13 +60,18 @@ update msg model =
                 }
             )
 
-        LoggingInFailed payload ->
-            ( { model
-                | error = FBAuthError.new payload
-                , session = model.session |> Session.mapAsNotLoggedIn
-              }
-            , Cmd.none
-            )
+        LoggingInFailed result ->
+            case result of
+                Ok fbError ->
+                    ( { model
+                        | error = fbError
+                        , session = model.session |> Session.mapAsNotLoggedIn
+                      }
+                    , Cmd.none
+                    )
+
+                Err _ ->
+                    ( model, Cmd.none )
 
 
 
@@ -182,7 +187,7 @@ view { flag, email, password, error, session } =
 subscriptions : Sub Msg
 subscriptions =
     Sub.batch
-        [ loggingInFailed LoggingInFailed
+        [ loggingInFailed (LoggingInFailed << Decode.decodeValue FBAuthError.decoder)
         ]
 
 
@@ -197,4 +202,4 @@ type alias LoginPayload =
 port startsLoggingIn : LoginPayload -> Cmd msg
 
 
-port loggingInFailed : (FBAuthError.Payload -> msg) -> Sub msg
+port loggingInFailed : (Decode.Value -> msg) -> Sub msg
