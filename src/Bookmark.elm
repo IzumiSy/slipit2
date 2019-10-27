@@ -9,7 +9,6 @@ module Bookmark exposing
 
 import Bookmark.Description as Description exposing (Description)
 import Bookmark.Title as Title exposing (Title)
-import Bookmarks.FB.Bookmark as FBBookmark
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Url
@@ -50,7 +49,7 @@ type alias InvalidCb =
 fold : (ValidCb -> a) -> (InvalidCb -> a) -> Bookmark -> a
 fold validCb invalidCb bookmark =
     case bookmark of
-        Valid id url title description ->
+        Valid _ url title description ->
             validCb { url = url, title = title, description = description }
 
         Invalid title description ->

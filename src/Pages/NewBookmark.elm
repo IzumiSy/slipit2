@@ -83,12 +83,12 @@ update msg model =
                 ( _, _ ) ->
                     ( model, Cmd.none )
 
-        CreatingNewBookmarkSucceeded bookmark ->
+        CreatingNewBookmarkSucceeded _ ->
             ( model
             , Route.replaceUrl (Session.toNavKey model.session) Route.Bookmarks
             )
 
-        CreatingNewBookmarkFailed error ->
+        CreatingNewBookmarkFailed _ ->
             ( model, Cmd.none )
 
         StartFetchingPageInfo ->
@@ -104,7 +104,7 @@ update msg model =
                     ( model, Cmd.none )
 
         GotAppHeaderMsg pageMsg ->
-            AppHeader.update pageMsg model GotAppHeaderMsg
+            AppHeader.update pageMsg model
 
 
 

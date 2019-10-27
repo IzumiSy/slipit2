@@ -12,7 +12,9 @@ import Json.Decode.Pipeline as Pipeline
 
 
 type alias Payload =
-    { code : String, message : String }
+    { code : String
+    , message : String
+    }
 
 
 type Error
@@ -46,7 +48,7 @@ toMessage error =
         None ->
             Nothing
 
-        Some { code, message } ->
+        Some { message } ->
             Just message
 
 

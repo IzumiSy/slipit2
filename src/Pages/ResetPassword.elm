@@ -31,7 +31,9 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        SetEmail _ ->
+            ( model, Cmd.none )
 
 
 

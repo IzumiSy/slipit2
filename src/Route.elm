@@ -1,9 +1,15 @@
-module Route exposing (Routes(..), fromUrl, load, parser, replaceUrl)
+module Route exposing
+    ( Routes(..)
+    , fromUrl
+    , load
+    , parser
+    , replaceUrl
+    )
 
 import Browser.Navigation as Nav
 import Url
 import Url.Builder as UrlBuilder
-import Url.Parser as Parser exposing ((</>), (<?>), Parser, oneOf, s)
+import Url.Parser as Parser exposing ((<?>), Parser, oneOf, s)
 import Url.Parser.Query as Query
 
 

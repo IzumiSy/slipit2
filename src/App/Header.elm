@@ -5,11 +5,8 @@ module App.Header exposing
     )
 
 import App.Model as Model
-import Browser
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
-import Session
 
 
 
@@ -24,8 +21,8 @@ type Msg
 ------ Update ------
 
 
-update : Msg -> Model.Modelable a -> (Msg -> msg) -> ( Model.Modelable a, Cmd msg )
-update msg model toParentMsg =
+update : Msg -> Model.Modelable a -> ( Model.Modelable a, Cmd msg )
+update msg model =
     case msg of
         Noop ->
             ( model, Cmd.none )

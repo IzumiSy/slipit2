@@ -13,7 +13,6 @@ import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description exposing (Description)
 import Bookmark.Title as Title exposing (Title)
 import Bookmarks exposing (Bookmarks)
-import Bookmarks.FB.Bookmark as FBBookmark
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -53,7 +52,7 @@ update msg model =
             ( model, Cmd.none )
 
         GotAppHeaderMsg pageMsg ->
-            AppHeader.update pageMsg model GotAppHeaderMsg
+            AppHeader.update pageMsg model
 
         FetchedAllBookmarks result ->
             case result of
@@ -91,7 +90,7 @@ view model =
             [ model.session
                 |> Session.toUserData
                 |> Maybe.map
-                    (\{ bookmarks, currentUser } ->
+                    (\{ bookmarks } ->
                         let
                             bookmarkCount =
                                 String.fromInt (bookmarks |> Bookmarks.size)

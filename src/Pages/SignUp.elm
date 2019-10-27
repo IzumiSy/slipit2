@@ -1,6 +1,5 @@
 module Pages.SignUp exposing (Model, Msg, init, update, view)
 
-import App.Header as AppHeader
 import App.Model as Model
 import Html exposing (..)
 import Html.Attributes exposing (..)

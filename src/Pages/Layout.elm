@@ -8,9 +8,8 @@ module Pages.Layout exposing
 
 import App.Header as AppHeader
 import Browser
-import Html exposing (div, text)
+import Html exposing (div)
 import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
 import Session
 
 

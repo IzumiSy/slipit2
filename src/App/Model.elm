@@ -10,4 +10,7 @@ type alias Flag =
 
 
 type alias Modelable a =
-    { a | flag : Flag, session : Session.Session }
+    { a
+        | flag : Flag
+        , session : Session.Session
+    }

@@ -1,7 +1,6 @@
 module Pages.Loading exposing (view)
 
-import App.Header as AppHeader
-import Html exposing (..)
+import Html exposing (div, text)
 import Pages.Layout as Layout
 
 

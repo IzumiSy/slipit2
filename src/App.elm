@@ -1,19 +1,16 @@
 port module App exposing (init, subscriptions, update)
 
-import App.Header as AppHeader
 import App.Model as Model
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description
 import Bookmark.Title as Title
 import Bookmarks
-import Bookmarks.FB.Bookmark as FBBookmark
 import Browser
 import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
-import Pages
 import Pages.Bookmarks as Bookmarks
 import Pages.FB.User as FBUser
 import Pages.Layout as Layout
@@ -27,8 +24,6 @@ import Pages.SignUp as SignUp
 import Route
 import Session exposing (Session)
 import Url
-import Url.Parser as Parser exposing ((</>), (<?>), Parser, oneOf, s)
-import Url.Parser.Query as Query
 
 
 
@@ -250,7 +245,7 @@ update msg model =
                         Err _ ->
                             ( model, Cmd.none )
 
-                ( LoggedIn result, SignIn pageModel ) ->
+                ( LoggedIn result, SignIn _ ) ->
                     case result of
                         Ok { bookmarks, currentUser } ->
                             ( model
@@ -373,10 +368,10 @@ subscriptions page =
         ]
             ++ List.singleton
                 (case page of
-                    SignIn model ->
+                    SignIn _ ->
                         Sub.map GotSignInMsg SignIn.subscriptions
 
-                    NewBookmark model ->
+                    NewBookmark _ ->
                         Sub.map GotNewBookmarkMsg NewBookmark.subscriptions
 
                     Bookmarks _ ->
@@ -425,6 +420,7 @@ decodeCurrentUser =
 ------ Main ------
 
 
+main : Program Model.Flag Model Msg
 main =
     Browser.application
         { init = init

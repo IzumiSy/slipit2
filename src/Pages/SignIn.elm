@@ -1,8 +1,6 @@
 port module Pages.SignIn exposing (Model, Msg, init, subscriptions, update, view)
 
-import App.Header as AppHeader
 import App.Model as Model
-import Bookmark exposing (Bookmark)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
@@ -12,7 +10,6 @@ import Pages.Form.Email as Email exposing (Email)
 import Pages.Form.Password as Password exposing (Password)
 import Pages.Layout as Layout
 import Pages.SignIn.FB.AuthError as FBAuthError
-import Route
 import Session exposing (Session)
 
 
@@ -196,7 +193,9 @@ subscriptions =
 
 
 type alias LoginPayload =
-    { email : String, password : String }
+    { email : String
+    , password : String
+    }
 
 
 port startsLoggingIn : LoginPayload -> Cmd msg

@@ -1,10 +1,6 @@
 module Bookmarks exposing (Bookmarks, map, new, size)
 
 import Bookmark exposing (Bookmark)
-import Bookmark.Description as Description
-import Bookmark.Title as Title
-import Bookmarks.FB.Bookmark as FBBookmark
-import Url
 
 
 
