@@ -91,32 +91,8 @@ view model =
                 |> Session.toUserData
                 |> Maybe.map
                     (\{ bookmarks } ->
-                        let
-                            bookmarkCount =
-                                String.fromInt (bookmarks |> Bookmarks.size)
-                        in
                         div []
-                            [ div
-                                [ class "siimple-grid-row" ]
-                                [ div
-                                    [ class "siimple-grid-col siimple-grid-col--12" ]
-                                    [ div
-                                        [ class "siimple--clearfix" ]
-                                        [ div
-                                            [ class "siimple--float-left" ]
-                                            [ h2 [] [ text (interpolate "Bookmarks ({0})" [ bookmarkCount ]) ]
-                                            ]
-                                        , div
-                                            [ class "siimple--float-right" ]
-                                            [ a
-                                                [ class "siimple-btn siimple-btn--teal siimple--float-right"
-                                                , href "new_bookmark"
-                                                ]
-                                                [ text "Add a new bookmark" ]
-                                            ]
-                                        ]
-                                    ]
-                                ]
+                            [ header bookmarks
                             , div
                                 [ class "siimple-grid-row" ]
                                 (bookmarks |> Bookmarks.map (Bookmark.fold viewBookmarkCard (always (div [] []))))
@@ -125,6 +101,35 @@ view model =
                 |> Maybe.withDefault (div [] [ text "loading..." ])
             ]
         }
+
+
+header : Bookmarks -> Html Msg
+header bookmarks =
+    let
+        bookmarkCount =
+            String.fromInt (bookmarks |> Bookmarks.size)
+    in
+    div
+        [ class "siimple-grid-row" ]
+        [ div
+            [ class "siimple-grid-col siimple-grid-col--12" ]
+            [ div
+                [ class "siimple--clearfix" ]
+                [ div
+                    [ class "siimple--float-left" ]
+                    [ h2 [] [ text (interpolate "Bookmarks ({0})" [ bookmarkCount ]) ]
+                    ]
+                , div
+                    [ class "siimple--float-right" ]
+                    [ a
+                        [ class "siimple-btn siimple-btn--teal siimple--float-right"
+                        , href "new_bookmark"
+                        ]
+                        [ text "Add a new bookmark" ]
+                    ]
+                ]
+            ]
+        ]
 
 
 type alias Bookmarkable a =
