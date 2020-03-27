@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "postinstall": "netlify-lambda install functions",
-    "start": "NODE_ENV=development parcel src/index.html --out-dir dist --log-level 4",
+    "start": "NODE_ENV=development parcel src/index.html --log-level 4",
     "build": "parcel build src/index.html --out-dir dist",
     "format": "prettier --write '{src,functions}/**/*.{js,html,scss}'",
     "deploy": "npm run build && netlify deploy --prod",
