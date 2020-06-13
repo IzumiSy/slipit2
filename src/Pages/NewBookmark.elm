@@ -7,23 +7,25 @@ port module Pages.NewBookmark exposing
     , view
     )
 
+-- import Bookmark.Description as Description exposing (Description)
+
 import App.Header as AppHeader
 import App.Model as Model
 import Bookmark exposing (Bookmark)
-import Bookmark.Description as Description exposing (Description)
-import Bookmark.Title as Title exposing (Title)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Json.Decode as Decode
 import Pages
-import Pages.FB.User as FBUser
 import Pages.Layout as Layout
+import Pages.NewBookmark.Description as Description exposing (Description)
 import Pages.NewBookmark.PageInfo as PageInfo exposing (PageInfo)
+import Pages.NewBookmark.Title as Title exposing (Title)
 import Pages.NewBookmark.Url as Url exposing (Url)
 import Route
 import Session exposing (Session)
+import User as User
 
 
 
@@ -39,9 +41,9 @@ type alias Model =
 
 
 type Msg
-    = SetUrl String
-    | SetTitle String
-    | SetDescription String
+    = SetUrl Url
+    | SetTitle Title
+    | SetDescription Description
     | CreatesNewbookmark
     | CreatingNewBookmarkSucceeded (Result Decode.Error Bookmark)
     | CreatingNewBookmarkFailed (Result Decode.Error String)
@@ -58,28 +60,28 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SetUrl value ->
-            ( { model | pageInfo = model.pageInfo |> PageInfo.mapUrl (Url.new value) }, Cmd.none )
+            ( { model | pageInfo = PageInfo.mapUrl value model.pageInfo }, Cmd.none )
 
         SetTitle value ->
-            ( { model | pageInfo = model.pageInfo |> PageInfo.mapTitle (Title.new value) }, Cmd.none )
+            ( { model | pageInfo = PageInfo.mapTitle value model.pageInfo }, Cmd.none )
 
         SetDescription value ->
-            ( { model | pageInfo = model.pageInfo |> PageInfo.mapDescription (Description.new value) }, Cmd.none )
+            ( { model | pageInfo = PageInfo.mapDescription value model.pageInfo }, Cmd.none )
 
         CreatesNewbookmark ->
-            case ( model.session |> Session.toUserData, model.pageInfo |> PageInfo.toUrl |> Url.unwrap ) of
-                ( Just { currentUser }, Ok url ) ->
+            case Session.toUserData model.session of
+                Just { currentUser } ->
                     ( model
                     , createsNewBookmark
-                        ( { url = url
+                        ( { url = model.pageInfo |> PageInfo.toUrl |> Url.unwrap
                           , title = model.pageInfo |> PageInfo.toTitle |> Title.unwrap
                           , description = model.pageInfo |> PageInfo.toDescription |> Description.unwrap
                           }
-                        , currentUser
+                        , User.uid currentUser
                         )
                     )
 
-                ( _, _ ) ->
+                _ ->
                     ( model, Cmd.none )
 
         CreatingNewBookmarkSucceeded _ ->
@@ -139,46 +141,19 @@ view { pageInfo } =
                         [ div []
                             [ label []
                                 [ text "url:"
-                                , input
-                                    [ placeholder "Url to bookmark"
-                                    , required True
-                                    , pageInfo
-                                        |> PageInfo.toUrl
-                                        |> Url.unwrap
-                                        |> (\result ->
-                                                case result of
-                                                    Ok v ->
-                                                        v
-
-                                                    Err v ->
-                                                        v
-                                           )
-                                        |> value
-                                    , onInput SetUrl
-                                    ]
-                                    []
+                                , Url.view SetUrl (PageInfo.toUrl pageInfo)
                                 ]
                             ]
                         , div []
                             [ label []
                                 [ text "title:"
-                                , input
-                                    [ placeholder "Title"
-                                    , pageInfo |> PageInfo.toTitle |> Title.unwrap |> value
-                                    , onInput SetTitle
-                                    ]
-                                    []
+                                , Title.view SetTitle (PageInfo.toTitle pageInfo)
                                 ]
                             ]
                         , div []
                             [ label []
                                 [ text "description:"
-                                , input
-                                    [ placeholder "Description"
-                                    , pageInfo |> PageInfo.toDescription |> Description.unwrap |> value
-                                    , onInput SetDescription
-                                    ]
-                                    []
+                                , Description.view SetDescription (PageInfo.toDescription pageInfo)
                                 ]
                             ]
                         , div []
@@ -228,7 +203,11 @@ type alias NewBookmark =
     }
 
 
-port createsNewBookmark : ( NewBookmark, FBUser.User ) -> Cmd msg
+type alias UserId =
+    String
+
+
+port createsNewBookmark : ( NewBookmark, UserId ) -> Cmd msg
 
 
 port creatingNewBookmarkSucceeded : (Decode.Value -> msg) -> Sub msg

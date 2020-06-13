@@ -1,4 +1,4 @@
-module Bookmarks exposing (Bookmarks, decode, map, new, size)
+module Bookmarks exposing (Bookmarks, decode, map, size)
 
 import Bookmark exposing (Bookmark)
 import Json.Decode as Decode
@@ -12,11 +12,6 @@ type Bookmarks
     = Bookmarks (List Bookmark)
 
 
-new : List Bookmark -> Bookmarks
-new =
-    Bookmarks
-
-
 map : (Bookmark -> a) -> Bookmarks -> List a
 map cb (Bookmarks bookmarks) =
     List.map cb bookmarks
@@ -24,7 +19,7 @@ map cb (Bookmarks bookmarks) =
 
 size : Bookmarks -> Int
 size (Bookmarks bookmarks) =
-    bookmarks |> List.filter Bookmark.isValid |> List.length
+    List.length bookmarks
 
 
 
@@ -33,5 +28,6 @@ size (Bookmarks bookmarks) =
 
 decode : Decode.Decoder Bookmarks
 decode =
-    Decode.list Bookmark.decoder
-        |> Decode.andThen (Decode.succeed << new)
+    Bookmark.decoder
+        |> Decode.list
+        |> Decode.andThen (Decode.succeed << Bookmarks)

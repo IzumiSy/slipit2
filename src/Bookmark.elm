@@ -2,16 +2,16 @@ module Bookmark exposing
     ( Bookmark
     , Id
     , decoder
-    , fold
-    , isValid
-    , new
+    , description
+    , title
+    , url
     )
 
 import Bookmark.Description as Description exposing (Description)
 import Bookmark.Title as Title exposing (Title)
+import Bookmark.Url as Url
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
-import Url
 
 
 type alias Id =
@@ -19,66 +19,32 @@ type alias Id =
 
 
 type Bookmark
-    = Valid Id Url.Url Title Description
-    | Invalid Title Description
+    = Bookmark Id Url.Url Title Description
 
 
-new : Id -> Maybe Url.Url -> Title -> Description -> Bookmark
-new id maybeUrl title description =
-    case maybeUrl of
-        Just url ->
-            Valid id url title description
-
-        Nothing ->
-            Invalid title description
+title : Bookmark -> Title
+title (Bookmark _ _ value _) =
+    value
 
 
-type alias ValidCb =
-    { url : Url.Url
-    , title : Title
-    , description : Description
-    }
+description : Bookmark -> Description
+description (Bookmark _ _ _ value) =
+    value
 
 
-type alias InvalidCb =
-    { title : Title
-    , description : Description
-    }
+url : Bookmark -> Url.Url
+url (Bookmark _ value _ _) =
+    value
 
 
-fold : (ValidCb -> a) -> (InvalidCb -> a) -> Bookmark -> a
-fold validCb invalidCb bookmark =
-    case bookmark of
-        Valid _ url title description ->
-            validCb { url = url, title = title, description = description }
 
-        Invalid title description ->
-            invalidCb { title = title, description = description }
-
-
-isValid : Bookmark -> Bool
-isValid bookmark =
-    case bookmark of
-        Valid _ _ _ _ ->
-            True
-
-        Invalid _ _ ->
-            False
+-- decoder
 
 
 decoder : Decode.Decoder Bookmark
 decoder =
-    Decode.succeed
-        (\id description title url ->
-            new
-                id
-                (Url.fromString url)
-                (Title.new title)
-                (Description.new description)
-                |> Decode.succeed
-        )
+    Decode.succeed Bookmark
         |> Pipeline.required "id" Decode.string
-        |> Pipeline.required "description" Decode.string
-        |> Pipeline.required "title" Decode.string
-        |> Pipeline.required "url" Decode.string
-        |> Pipeline.resolve
+        |> Pipeline.required "url" Url.decode
+        |> Pipeline.required "title" Title.decode
+        |> Pipeline.required "description" Description.decode

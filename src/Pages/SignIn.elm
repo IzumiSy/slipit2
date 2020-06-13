@@ -3,7 +3,6 @@ port module Pages.SignIn exposing (Model, Msg, init, subscriptions, update, view
 import App.Model as Model
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput)
 import Json.Decode as Decode
 import Pages
 import Pages.Form.Email as Email exposing (Email)

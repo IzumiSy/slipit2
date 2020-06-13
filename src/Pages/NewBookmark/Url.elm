@@ -4,9 +4,13 @@ module Pages.NewBookmark.Url exposing
     , isValid
     , new
     , unwrap
+    , view
     )
 
-import Url
+import Html
+import Html.Attributes exposing (placeholder, required, value)
+import Html.Events exposing (onInput)
+import Url as BuiltinUrl
 
 
 
@@ -17,26 +21,26 @@ import Url
 
 
 type Url
-    = Valid Url.Url
+    = Valid BuiltinUrl.Url
     | Invalid String
 
 
 new : String -> Url
 new value =
     value
-        |> Url.fromString
+        |> BuiltinUrl.fromString
         |> Maybe.map Valid
         |> Maybe.withDefault (Invalid value)
 
 
-unwrap : Url -> Result String String
+unwrap : Url -> String
 unwrap url =
     case url of
         Valid validUrl ->
-            Ok <| Url.toString <| validUrl
+            BuiltinUrl.toString validUrl
 
         Invalid value ->
-            Err value
+            value
 
 
 empty : Url
@@ -52,3 +56,18 @@ isValid url =
 
         Invalid _ ->
             False
+
+
+
+-- view
+
+
+view : (Url -> msg) -> Url -> Html.Html msg
+view onInput_ value_ =
+    Html.input
+        [ placeholder "URL"
+        , required True
+        , value <| unwrap value_
+        , onInput (onInput_ << new)
+        ]
+        []

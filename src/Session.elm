@@ -15,19 +15,18 @@ module Session exposing
 
 import Bookmarks exposing (Bookmarks)
 import Browser.Navigation as Nav
-import Pages.FB.User as FBUser
 import Url
+import User as User
 
 
 
 -- ページを横断してユーザーのログイン状態を保持する型
 -- 現在のブックマーク一覧とログイン中のユーザーはキャッシュして持っておいて損はないので毎回取らずにセッションに載せる方式にしている
--- TODO: currentUserがFBのデータ構造に依存したFBUser.User型になっているので変える
 
 
 type alias UserData =
     { bookmarks : Bookmarks
-    , currentUser : FBUser.User
+    , currentUser : User.User
     }
 
 
@@ -63,7 +62,7 @@ mapAsLoggingIn session =
             LoggingIn url navKey
 
 
-mapAsLoggedIn : Bookmarks -> FBUser.User -> Session -> Session
+mapAsLoggedIn : Bookmarks -> User.User -> Session -> Session
 mapAsLoggedIn bookmarks user session =
     case session of
         NotLoggedIn url navKey ->

@@ -1,9 +1,6 @@
 port module App exposing (init, main, subscriptions, update)
 
 import App.Model as Model
-import Bookmark exposing (Bookmark)
-import Bookmark.Description as Description
-import Bookmark.Title as Title
 import Bookmarks
 import Browser
 import Browser.Navigation as Nav
@@ -12,10 +9,11 @@ import Html.Attributes exposing (..)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Pages.Bookmarks as Bookmarks
-import Pages.FB.User as FBUser
 import Pages.Layout as Layout
 import Pages.Loading as Loading
 import Pages.NewBookmark as NewBookmark
+import Pages.NewBookmark.Description as Description
+import Pages.NewBookmark.Title as Title
 import Pages.NewBookmark.Url as NewBookmarkUrl
 import Pages.NotFound as NotFound
 import Pages.ResetPassword as ResetPassword
@@ -24,6 +22,7 @@ import Pages.SignUp as SignUp
 import Route
 import Session exposing (Session)
 import Url
+import User as User
 
 
 
@@ -388,7 +387,7 @@ subscriptions page =
 
 type alias InitialData =
     { bookmarks : Bookmarks.Bookmarks
-    , currentUser : FBUser.User
+    , currentUser : User.User
     }
 
 
@@ -405,15 +404,7 @@ decodeInitialData : Decode.Decoder InitialData
 decodeInitialData =
     Decode.succeed InitialData
         |> Pipeline.required "bookmarks" Bookmarks.decode
-        |> Pipeline.required "currentUser" decodeCurrentUser
-
-
-decodeCurrentUser : Decode.Decoder FBUser.User
-decodeCurrentUser =
-    Decode.succeed FBUser.User
-        |> Pipeline.required "uid" Decode.string
-        |> Pipeline.required "email" Decode.string
-        |> Pipeline.optional "displayName" (Decode.map Just Decode.string) Nothing
+        |> Pipeline.required "currentUser" User.decode
 
 
 

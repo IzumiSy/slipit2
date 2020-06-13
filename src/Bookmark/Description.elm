@@ -1,20 +1,30 @@
-module Bookmark.Description exposing (Description, empty, new, unwrap)
+module Bookmark.Description exposing
+    ( Description
+    , decode
+    , text
+    )
+
+import Html
+import Json.Decode as Decode
 
 
 type Description
     = Description String
 
 
-new : String -> Description
-new value =
-    Description value
+
+-- view
 
 
-unwrap : Description -> String
-unwrap (Description value) =
-    value
+text : Description -> Html.Html msg
+text (Description value) =
+    Html.text value
 
 
-empty : Description
-empty =
-    Description ""
+
+-- decoder
+
+
+decode : Decode.Decoder Description
+decode =
+    Decode.andThen (Decode.succeed << Description) Decode.string

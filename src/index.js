@@ -74,14 +74,14 @@ app.ports.startsLoggingIn.subscribe(login => {
     });
 });
 
-app.ports.createsNewBookmark.subscribe(([newBookmark, currentUser]) => {
+app.ports.createsNewBookmark.subscribe(([newBookmark, uid]) => {
   // 重複したURLを追加するのを許したくないのでMD5ハッシュに変換してIDとする
   // というのもスラッシュが含まれる文字列はdocのIDとして使えないらしいので
   const bookmarkId = MD5(newBookmark.url);
 
   database
     .collection("users")
-    .doc(currentUser.uid)
+    .doc(uid)
     .collection("bookmarks")
     .doc(bookmarkId)
     .set(newBookmark)

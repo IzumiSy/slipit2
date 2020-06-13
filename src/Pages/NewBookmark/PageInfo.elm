@@ -11,11 +11,11 @@ module Pages.NewBookmark.PageInfo exposing
     )
 
 import App.Model as Model
-import Bookmark.Description as Description exposing (Description)
-import Bookmark.Title as Title exposing (Title)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Pages.NewBookmark.Description as Description exposing (Description)
+import Pages.NewBookmark.Title as Title exposing (Title)
 import Pages.NewBookmark.Url as Url exposing (Url)
 import String.Interpolate exposing (interpolate)
 
@@ -81,30 +81,23 @@ toDescription (PageInfo { description }) =
 
 fetch : Model.Flag -> (Result Http.Error PageInfo -> msg) -> PageInfo -> Cmd msg
 fetch { functionUrl } msg (PageInfo { url }) =
-    url
-        |> Url.unwrap
-        |> Result.map
-            (\validUrl ->
-                Http.get
-                    { url = interpolate "{0}?url={1}" [ functionUrl, validUrl ]
-                    , expect =
-                        let
-                            pageInfoDecoder title description =
-                                Decode.succeed
-                                    (PageInfo
-                                        { url = url
-                                        , title = Title.new title
-                                        , description = Description.new description
-                                        }
-                                    )
-                        in
-                        Http.expectJson
-                            msg
-                            (Decode.succeed pageInfoDecoder
-                                |> Pipeline.required "title" Decode.string
-                                |> Pipeline.required "description" Decode.string
-                                |> Pipeline.resolve
+    Http.get
+        { url = interpolate "{0}?url={1}" [ functionUrl, Url.unwrap url ]
+        , expect =
+            Http.expectJson
+                msg
+                (Decode.succeed
+                    (\title description ->
+                        Decode.succeed
+                            (PageInfo
+                                { url = url
+                                , title = title
+                                , description = description
+                                }
                             )
-                    }
-            )
-        |> Result.withDefault Cmd.none
+                    )
+                    |> Pipeline.required "title" Title.decode
+                    |> Pipeline.required "description" Description.decode
+                    |> Pipeline.resolve
+                )
+        }

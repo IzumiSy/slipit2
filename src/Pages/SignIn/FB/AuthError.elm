@@ -1,7 +1,6 @@
 module Pages.SignIn.FB.AuthError exposing
     ( Error
     , decoder
-    , fold
     , init
     , new
     , toMessage
@@ -30,16 +29,6 @@ init =
 new : Payload -> Error
 new payload =
     Some payload
-
-
-fold : a -> (Payload -> a) -> Error -> a
-fold defaultValue cb error =
-    case error of
-        None ->
-            defaultValue
-
-        Some payload ->
-            cb payload
 
 
 toMessage : Error -> Maybe String
