@@ -12,19 +12,19 @@
     "netlify:build": "NODE_ENV=production && npm run build && npm run lambda:build"
   },
   "devDependencies": {
-    "elm": "^0.19.0-no-deps",
+    "elm": "^0.19.1-3",
     "elm-format": "^0.8.1",
     "elm-hot": "^1.1.0",
     "netlify-cli": "^2.15.0",
     "node-elm-compiler": "^5.0.4",
     "parcel-bundler": "^1.12.3",
-    "prettier": "^1.18.2",
+    "prettier": "^2.0.5",
     "sass": "^1.22.7",
-    "tar": "^4.4.10"
+    "tar": "^6.0.2"
   },
   "dependencies": {
     "blueimp-md5": "^2.11.0",
-    "firebase": "^5.11.1",
+    "firebase": "^7.15.1",
     "http-status-codes": "^1.3.2",
     "lodash": "^4.17.15",
     "netlify-lambda": "^1.6.3",
