@@ -38,7 +38,7 @@ type alias Model =
 type Msg
     = Noop
     | GotAppHeaderMsg AppHeader.Msg
-    | FetchedAllBookmarks (Result Decode.Error (List Bookmark))
+    | FetchedAllBookmarks (Result Decode.Error Bookmarks)
 
 
 
@@ -55,14 +55,14 @@ update msg model =
             AppHeader.update pageMsg model
 
         FetchedAllBookmarks result ->
-            case result of
-                Err _ ->
-                    ( model, Cmd.none )
-
-                Ok bookmarks ->
-                    ( { model | session = Session.mapBookmarks (Bookmarks.new bookmarks) model.session }
-                    , Cmd.none
+            ( result
+                |> Result.map
+                    (\bookmarks ->
+                        { model | session = Session.mapBookmarks bookmarks model.session }
                     )
+                |> Result.withDefault model
+            , Cmd.none
+            )
 
 
 
@@ -160,7 +160,7 @@ viewBookmarkCard { url, title, description } =
 subscriptions : Sub Msg
 subscriptions =
     Sub.batch
-        [ allBookmarksFetched (FetchedAllBookmarks << Decode.decodeValue (Decode.list Bookmark.decoder)) ]
+        [ allBookmarksFetched (FetchedAllBookmarks << Decode.decodeValue Bookmarks.decode) ]
 
 
 

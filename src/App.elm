@@ -235,7 +235,7 @@ update msg model =
                     case result of
                         Ok { bookmarks, currentUser } ->
                             ( session
-                                |> Session.mapAsLoggedIn (bookmarks |> Bookmarks.new) currentUser
+                                |> Session.mapAsLoggedIn bookmarks currentUser
                                 |> updateSession model
                             , maybeNextRoute
                                 |> Maybe.map (Route.replaceUrl (session |> Session.toNavKey))
@@ -250,7 +250,7 @@ update msg model =
                         Ok { bookmarks, currentUser } ->
                             ( model
                                 |> toSession
-                                |> Session.mapAsLoggedIn (bookmarks |> Bookmarks.new) currentUser
+                                |> Session.mapAsLoggedIn bookmarks currentUser
                                 |> updateSession model
                             , Route.replaceUrl
                                 (model
@@ -387,7 +387,7 @@ subscriptions page =
 
 
 type alias InitialData =
-    { bookmarks : List Bookmark
+    { bookmarks : Bookmarks.Bookmarks
     , currentUser : FBUser.User
     }
 
@@ -404,7 +404,7 @@ port loggedOut : (() -> msg) -> Sub msg
 decodeInitialData : Decode.Decoder InitialData
 decodeInitialData =
     Decode.succeed InitialData
-        |> Pipeline.required "bookmarks" (Decode.list Bookmark.decoder)
+        |> Pipeline.required "bookmarks" Bookmarks.decode
         |> Pipeline.required "currentUser" decodeCurrentUser
 
 
@@ -424,7 +424,7 @@ main : Program Model.Flag Model Msg
 main =
     Browser.application
         { init = init
-        , view = Layout.asDocument << view -- \model -> view model |> Layout.asDocument
+        , view = Layout.asDocument << view
         , update = update
         , subscriptions = subscriptions
         , onUrlChange = UrlChanged
