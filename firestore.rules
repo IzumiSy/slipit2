@@ -1,7 +1,7 @@
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write;
+    match /users/{userId}/bookmarks {
+      allow create, read, update, delete: if request.auth.uid == userId
     }
   }
 }
