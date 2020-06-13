@@ -13,7 +13,7 @@ import Session exposing (Session)
 
 
 
------- Model ------
+-- model
 
 
 type alias Model =
@@ -24,8 +24,20 @@ type alias Model =
         }
 
 
+init : Model.Flag -> Session -> ( Model, Cmd Msg )
+init flag session =
+    ( { email = Email.empty
+      , password = Password.empty
+      , error = FBAuthError.init
+      , flag = flag
+      , session = session
+      }
+    , Cmd.none
+    )
 
------- Msg ------
+
+
+-- update
 
 
 type Msg
@@ -33,10 +45,6 @@ type Msg
     | SetPassword Password
     | StartsLoggingIn
     | LoggingInFailed (Result Decode.Error FBAuthError.Error)
-
-
-
------- Update ------
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,23 +79,7 @@ update msg model =
 
 
 
------- Init ------
-
-
-init : Model.Flag -> Session -> ( Model, Cmd Msg )
-init flag session =
-    ( { email = Email.empty
-      , password = Password.empty
-      , error = FBAuthError.init
-      , flag = flag
-      , session = session
-      }
-    , Cmd.none
-    )
-
-
-
------- View ------
+-- view
 
 
 viewEmail : Model -> Html Msg
@@ -177,7 +169,7 @@ view ({ flag, error, session } as model) =
 
 
 
------- Subscriptions ------
+-- subscription
 -- ログイン成功に関してはページをまたいでハンドリングする必要があるためApp.elm側でサブスクライブしている
 -- 一方でログイン時のエラーはログイン画面でだけ必要なのでこちらにだけあればよい
 
@@ -190,7 +182,7 @@ subscriptions =
 
 
 
------- Port ------
+-- port
 
 
 port startsLoggingIn : { email : String, password : String } -> Cmd msg

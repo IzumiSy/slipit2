@@ -1,6 +1,5 @@
 module Pages.NewBookmark.Url exposing
     ( Url
-    , empty
     , isValid
     , new
     , unwrap
@@ -41,11 +40,6 @@ unwrap url =
 
         Invalid value ->
             value
-
-
-empty : Url
-empty =
-    Invalid ""
 
 
 isValid : Url -> Bool

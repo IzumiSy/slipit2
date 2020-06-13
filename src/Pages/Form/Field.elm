@@ -57,9 +57,7 @@ input onInputMsg onBlurMsg field =
                                 |> mapResult field
     in
     Html.input
-        [ class "input"
-        , type_ "text"
-        , value <| toString field
+        [ value <| toString field
         , onBlur onBlurMsg
         , onInput onInputHandler
         ]

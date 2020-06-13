@@ -10,8 +10,8 @@ port module Pages.Bookmarks exposing
 import App.Header as AppHeader
 import App.Model as Model
 import Bookmark exposing (Bookmark)
-import Bookmark.Description as Description exposing (Description)
-import Bookmark.Title as Title exposing (Title)
+import Bookmark.Description as Description
+import Bookmark.Title as Title
 import Bookmark.Url as Url
 import Bookmarks exposing (Bookmarks)
 import Html exposing (..)
@@ -24,25 +24,30 @@ import String.Interpolate exposing (interpolate)
 
 
 
------- Model ------
+-- model
 
 
 type alias Model =
     Model.Modelable {}
 
 
+init : Model.Flag -> Session -> ( Model, Cmd msg )
+init flag session =
+    ( { flag = flag
+      , session = session
+      }
+    , fetchAllBookmarks ()
+    )
 
------- Msg ------
+
+
+-- update
 
 
 type Msg
     = Noop
     | GotAppHeaderMsg AppHeader.Msg
     | FetchedAllBookmarks (Result Decode.Error Bookmarks)
-
-
-
------- Update ------
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -66,20 +71,7 @@ update msg model =
 
 
 
------- Init ------
-
-
-init : Model.Flag -> Session -> ( Model, Cmd msg )
-init flag session =
-    ( { flag = flag
-      , session = session
-      }
-    , fetchAllBookmarks ()
-    )
-
-
-
------- View ------
+-- view
 
 
 view : Model -> Layout.View Msg
@@ -146,7 +138,7 @@ viewBookmarkCard bookmark =
 
 
 
------- Subscriptions ------
+-- subscription
 
 
 subscriptions : Sub Msg
@@ -156,7 +148,7 @@ subscriptions =
 
 
 
------- Port ------
+-- port
 
 
 port fetchAllBookmarks : () -> Cmd msg

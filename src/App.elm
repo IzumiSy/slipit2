@@ -26,7 +26,7 @@ import User as User
 
 
 
------- Model ------
+-- model
 
 
 type Model
@@ -37,10 +37,6 @@ type Model
     | ResetPassword ResetPassword.Model
     | Bookmarks Bookmarks.Model
     | NewBookmark NewBookmark.Model
-
-
-
------- Init ------
 
 
 init : Model.Flag -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -138,43 +134,7 @@ toFlag page =
 
 
 
------- View ------
-
-
-view : Model -> Layout.View Msg
-view page =
-    case page of
-        WaitForLoggingIn _ _ _ ->
-            Loading.view
-
-        NotFound _ _ ->
-            NotFound.view
-
-        ResetPassword model ->
-            ResetPassword.view model
-                |> Layout.mapMsg GotResetPasswordMsg
-
-        SignIn model ->
-            SignIn.view model
-                |> Layout.mapMsg GotSignInMsg
-
-        SignUp model ->
-            SignUp.view model
-                |> Layout.mapMsg GotSignUpMsg
-
-        Bookmarks model ->
-            Bookmarks.view model
-                |> Layout.withHeader (toSession page) Bookmarks.GotAppHeaderMsg
-                |> Layout.mapMsg GotBookmarksMsg
-
-        NewBookmark model ->
-            NewBookmark.view model
-                |> Layout.withHeader (toSession page) NewBookmark.GotAppHeaderMsg
-                |> Layout.mapMsg GotNewBookmarkMsg
-
-
-
-------- Msg ------
+-- update
 
 
 type Msg
@@ -188,10 +148,6 @@ type Msg
     | GotResetPasswordMsg ResetPassword.Msg
     | GotBookmarksMsg Bookmarks.Msg
     | GotNewBookmarkMsg NewBookmark.Msg
-
-
-
------- Update ------
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -356,14 +312,50 @@ updateSession page newSession =
 
 
 
------- Subscription ------
+-- view
+
+
+view : Model -> Layout.View Msg
+view page =
+    case page of
+        WaitForLoggingIn _ _ _ ->
+            Loading.view
+
+        NotFound _ _ ->
+            NotFound.view
+
+        ResetPassword model ->
+            ResetPassword.view model
+                |> Layout.mapMsg GotResetPasswordMsg
+
+        SignIn model ->
+            SignIn.view model
+                |> Layout.mapMsg GotSignInMsg
+
+        SignUp model ->
+            SignUp.view model
+                |> Layout.mapMsg GotSignUpMsg
+
+        Bookmarks model ->
+            Bookmarks.view model
+                |> Layout.withHeader (toSession page) Bookmarks.GotAppHeaderMsg
+                |> Layout.mapMsg GotBookmarksMsg
+
+        NewBookmark model ->
+            NewBookmark.view model
+                |> Layout.withHeader (toSession page) NewBookmark.GotAppHeaderMsg
+                |> Layout.mapMsg GotNewBookmarkMsg
+
+
+
+-- subscription
 
 
 subscriptions : Model -> Sub Msg
 subscriptions page =
     Sub.batch <|
         [ loggedOut LoggedOut
-        , loggedIn (LoggedIn << Decode.decodeValue decodeInitialData)
+        , loggedIn (LoggedIn << Decode.decodeValue decode)
         ]
             ++ List.singleton
                 (case page of
@@ -382,7 +374,7 @@ subscriptions page =
 
 
 
------- Port ------
+-- port
 
 
 type alias InitialData =
@@ -400,15 +392,15 @@ port logsOut : () -> Cmd msg
 port loggedOut : (() -> msg) -> Sub msg
 
 
-decodeInitialData : Decode.Decoder InitialData
-decodeInitialData =
+decode : Decode.Decoder InitialData
+decode =
     Decode.succeed InitialData
         |> Pipeline.required "bookmarks" Bookmarks.decode
         |> Pipeline.required "currentUser" User.decode
 
 
 
------- Main ------
+-- main
 
 
 main : Program Model.Flag Model Msg

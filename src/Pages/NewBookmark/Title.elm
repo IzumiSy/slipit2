@@ -2,9 +2,9 @@ module Pages.NewBookmark.Title exposing
     ( Title
     , decode
     , empty
-    , view
     , new
     , unwrap
+    , view
     )
 
 import Html

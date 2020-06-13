@@ -10,15 +10,11 @@ import Html.Attributes exposing (class)
 
 
 
------- Msg ------
+-- update
 
 
 type Msg
     = Noop
-
-
-
------- Update ------
 
 
 update : Msg -> Model.Modelable a -> ( Model.Modelable a, Cmd msg )
@@ -29,7 +25,7 @@ update msg model =
 
 
 
------- View ------
+-- view
 
 
 view : (Msg -> msg) -> Html msg
