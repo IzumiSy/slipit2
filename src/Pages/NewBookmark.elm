@@ -20,7 +20,6 @@ import Json.Decode as Decode
 import Pages
 import Pages.FB.User as FBUser
 import Pages.Layout as Layout
-import Pages.NewBookmark.FB as NewBookmarkFB
 import Pages.NewBookmark.PageInfo as PageInfo exposing (PageInfo)
 import Pages.NewBookmark.Url as Url exposing (Url)
 import Route
@@ -92,7 +91,7 @@ update msg model =
             ( model, Cmd.none )
 
         StartFetchingPageInfo ->
-            ( model, model.pageInfo |> PageInfo.fetchFromRemote model.flag PageInfoFetched )
+            ( model, model.pageInfo |> PageInfo.fetch model.flag PageInfoFetched )
 
         PageInfoFetched result ->
             case result of
@@ -222,7 +221,14 @@ subscriptions =
 ------ Port ------
 
 
-port createsNewBookmark : ( NewBookmarkFB.Bookmark, FBUser.User ) -> Cmd msg
+type alias NewBookmark =
+    { title : String
+    , description : String
+    , url : String
+    }
+
+
+port createsNewBookmark : ( NewBookmark, FBUser.User ) -> Cmd msg
 
 
 port creatingNewBookmarkSucceeded : (Decode.Value -> msg) -> Sub msg

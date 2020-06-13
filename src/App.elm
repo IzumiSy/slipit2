@@ -1,4 +1,4 @@
-port module App exposing (init, subscriptions, update)
+port module App exposing (init, main, subscriptions, update)
 
 import App.Model as Model
 import Bookmark exposing (Bookmark)
@@ -16,7 +16,7 @@ import Pages.FB.User as FBUser
 import Pages.Layout as Layout
 import Pages.Loading as Loading
 import Pages.NewBookmark as NewBookmark
-import Pages.NewBookmark.Url as NewBookmarkUrl exposing (Url)
+import Pages.NewBookmark.Url as NewBookmarkUrl
 import Pages.NotFound as NotFound
 import Pages.ResetPassword as ResetPassword
 import Pages.SignIn as SignIn
@@ -424,7 +424,7 @@ main : Program Model.Flag Model Msg
 main =
     Browser.application
         { init = init
-        , view = \model -> view model |> Layout.asDocument
+        , view = Layout.asDocument << view -- \model -> view model |> Layout.asDocument
         , update = update
         , subscriptions = subscriptions
         , onUrlChange = UrlChanged

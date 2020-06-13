@@ -30,8 +30,8 @@ type alias Model =
 
 
 type Msg
-    = SetEmail String
-    | SetPassword String
+    = SetEmail Email
+    | SetPassword Password
     | StartsLoggingIn
     | LoggingInFailed (Result Decode.Error FBAuthError.Error)
 
@@ -43,17 +43,17 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SetPassword value ->
-            ( { model | password = Password.new value }, Cmd.none )
+        SetPassword password ->
+            ( { model | password = password }, Cmd.none )
 
-        SetEmail value ->
-            ( { model | email = Email.new value }, Cmd.none )
+        SetEmail email ->
+            ( { model | email = email }, Cmd.none )
 
         StartsLoggingIn ->
             ( { model | session = model.session |> Session.mapAsLoggingIn }
             , startsLoggingIn
-                { password = model.password |> Password.unwrap
-                , email = model.email |> Email.unwrap
+                { password = Password.toString model.password
+                , email = Email.toString model.email
                 }
             )
 
@@ -91,8 +91,28 @@ init flag session =
 ------ View ------
 
 
+viewEmail : Model -> Html Msg
+viewEmail { email, session } =
+    Email.view
+        SetEmail
+        [ class "siimple-input siimple-input--fluid"
+        , disabled <| Session.isLoggingIn session
+        ]
+        email
+
+
+viewPassword : Model -> Html Msg
+viewPassword { password, session } =
+    Password.view
+        SetPassword
+        [ class "siimple-input siimple-input--fluid"
+        , disabled <| Session.isLoggingIn session
+        ]
+        password
+
+
 view : Model -> Layout.View Msg
-view { flag, email, password, error, session } =
+view ({ flag, error, session } as model) =
     Layout.new
         { title = "Sign In"
         , body =
@@ -115,29 +135,11 @@ view { flag, email, password, error, session } =
                                     |> Maybe.withDefault (div [] [])
                                 , div [ class "siimple-form-field" ]
                                     [ div [ class "siimple-form-field-label" ] [ text "E-mail" ]
-                                    , input
-                                        [ type_ "email"
-                                        , class "siimple-input siimple-input--fluid"
-                                        , placeholder "Your email"
-                                        , required True
-                                        , email |> Email.unwrap |> value
-                                        , onInput SetEmail
-                                        , session |> Session.isLoggingIn |> disabled
-                                        ]
-                                        []
+                                    , viewEmail model
                                     ]
                                 , div [ class "siimple-form-field" ]
                                     [ div [ class "siimple-form-field-label" ] [ text "Password" ]
-                                    , input
-                                        [ type_ "password"
-                                        , class "siimple-input siimple-input--fluid"
-                                        , placeholder "Your password"
-                                        , required True
-                                        , password |> Password.unwrap |> value
-                                        , onInput SetPassword
-                                        , session |> Session.isLoggingIn |> disabled
-                                        ]
-                                        []
+                                    , viewPassword model
                                     ]
                                 , div [ class "siimple-form-field" ]
                                     [ button
@@ -192,13 +194,7 @@ subscriptions =
 ------ Port ------
 
 
-type alias LoginPayload =
-    { email : String
-    , password : String
-    }
-
-
-port startsLoggingIn : LoginPayload -> Cmd msg
+port startsLoggingIn : { email : String, password : String } -> Cmd msg
 
 
 port loggingInFailed : (Decode.Value -> msg) -> Sub msg

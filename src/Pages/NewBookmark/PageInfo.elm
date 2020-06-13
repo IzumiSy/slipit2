@@ -1,6 +1,6 @@
 module Pages.NewBookmark.PageInfo exposing
     ( PageInfo
-    , fetchFromRemote
+    , fetch
     , fromUrl
     , mapDescription
     , mapTitle
@@ -79,8 +79,8 @@ toDescription (PageInfo { description }) =
     description
 
 
-fetchFromRemote : Model.Flag -> (Result Http.Error PageInfo -> msg) -> PageInfo -> Cmd msg
-fetchFromRemote { functionUrl } msg (PageInfo { url }) =
+fetch : Model.Flag -> (Result Http.Error PageInfo -> msg) -> PageInfo -> Cmd msg
+fetch { functionUrl } msg (PageInfo { url }) =
     url
         |> Url.unwrap
         |> Result.map
