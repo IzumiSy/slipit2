@@ -113,19 +113,19 @@ update msg model =
                             ]
                         |> Tuple.first
                         |> (\nextModel ->
-                                if isSubmittable nextModel then
-                                    ( nextModel
-                                    , createsNewBookmark
+                                ( nextModel
+                                , if isSubmittable nextModel then
+                                    createsNewBookmark
                                         ( { url = Url.unwrap nextModel.url
                                           , title = Title.unwrap nextModel.title
                                           , description = Description.unwrap nextModel.description
                                           }
                                         , User.uid currentUser
                                         )
-                                    )
 
-                                else
-                                    ( nextModel, Cmd.none )
+                                  else
+                                    Cmd.none
+                                )
                            )
 
                 _ ->
