@@ -26,7 +26,9 @@ type Error
 
 new : String -> Description
 new value =
-    Description <| Field.init value validator
+    value
+        |> Field.init validator
+        |> Description
 
 
 empty : Description

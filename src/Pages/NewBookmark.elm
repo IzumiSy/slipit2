@@ -24,6 +24,7 @@ import Pages.NewBookmark.Url as Url exposing (Url)
 import Route
 import Session exposing (Session)
 import String.Interpolate exposing (interpolate)
+import Update.Extra as ExUpdate
 import User as User
 
 
@@ -51,12 +52,23 @@ init url title description flag session =
     )
 
 
+isSubmittable : Model -> Bool
+isSubmittable { url, title, description } =
+    Nothing
+        |> Maybe.andThen (\_ -> Title.error title)
+        |> Maybe.andThen (\_ -> Description.error description)
+        |> Maybe.andThen (\_ -> Url.error url)
+        |> Maybe.andThen (\_ -> Just False)
+        |> Maybe.withDefault True
+
+
 
 -- update
 
 
 type Msg
     = SetUrl Url
+    | UrlBlurred
     | SetTitle Title
     | TitleBlurred
     | SetDescription Description
@@ -75,6 +87,9 @@ update msg model =
         SetUrl value ->
             ( { model | url = value }, Cmd.none )
 
+        UrlBlurred ->
+            ( { model | url = Url.blur model.url }, Cmd.none )
+
         SetTitle value ->
             ( { model | title = value }, Cmd.none )
 
@@ -90,15 +105,28 @@ update msg model =
         CreatesNewbookmark ->
             case Session.toUserData model.session of
                 Just { currentUser } ->
-                    ( model
-                    , createsNewBookmark
-                        ( { url = Url.unwrap model.url
-                          , title = Title.unwrap model.title
-                          , description = Description.unwrap model.description
-                          }
-                        , User.uid currentUser
-                        )
-                    )
+                    ( model, Cmd.none )
+                        |> ExUpdate.sequence update
+                            [ UrlBlurred
+                            , TitleBlurred
+                            , DescriptionBlurred
+                            ]
+                        |> Tuple.first
+                        |> (\nextModel ->
+                                if isSubmittable nextModel then
+                                    ( nextModel
+                                    , createsNewBookmark
+                                        ( { url = Url.unwrap nextModel.url
+                                          , title = Title.unwrap nextModel.title
+                                          , description = Description.unwrap nextModel.description
+                                          }
+                                        , User.uid currentUser
+                                        )
+                                    )
+
+                                else
+                                    ( nextModel, Cmd.none )
+                           )
 
                 _ ->
                     ( model, Cmd.none )
@@ -132,7 +160,7 @@ update msg model =
 
 
 view : Model -> Layout.View Msg
-view { url, title, description } =
+view ({ url, title, description } as model) =
     Layout.new
         { title = "New Bookmark"
         , body =
@@ -143,7 +171,7 @@ view { url, title, description } =
                         [ div []
                             [ label []
                                 [ text "url:"
-                                , Url.view SetUrl url
+                                , Url.view SetUrl UrlBlurred url
                                 ]
                             ]
                         , div []
@@ -163,14 +191,14 @@ view { url, title, description } =
                                 [ button
                                     [ type_ "button"
                                     , onClick PrefetchesPage
-                                    , disabled <| not <| Url.isValid url
+                                    , disabled <| not <| isSubmittable model
                                     ]
                                     [ text "fetch" ]
                                 ]
                             , div []
                                 [ button
                                     [ type_ "submit"
-                                    , disabled <| not <| Url.isValid url
+                                    , disabled <| not <| isSubmittable model
                                     ]
                                     [ text "create" ]
                                 ]

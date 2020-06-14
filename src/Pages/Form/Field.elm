@@ -28,8 +28,8 @@ type Field err
     | Invalid (Common err) err
 
 
-init : String -> (String -> Result ( String, err ) String) -> Field err
-init value validator =
+init : (String -> Result ( String, err ) String) -> String -> Field err
+init validator value =
     Partial
         { value = value
         , validator = validator

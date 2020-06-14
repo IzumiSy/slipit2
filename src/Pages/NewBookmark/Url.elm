@@ -1,67 +1,85 @@
 module Pages.NewBookmark.Url exposing
     ( Url
-    , isValid
+    , blur
+    , empty
+    , error
     , new
     , unwrap
     , view
     )
 
 import Html
-import Html.Attributes exposing (placeholder, required, value)
-import Html.Events exposing (onInput)
+import Html.Attributes exposing (placeholder, required)
+import Pages.Form.Field as Field
 import Url as BuiltinUrl
 
 
-
--- なぜわざわざ組み込みのUrl型をラップしたオリジナルのUrl型を使っているかというと
--- ビルトインのものは常にValidなURL文字列のみしか保持できない構造になっているため
--- このUrl型では不正なURL文字列の場合にはプリミティブのString型でURLを保持できるようにしている
--- 入力過程の状態を保持するためには不完全なURL文字列も受け入れる必要がある
-
-
 type Url
-    = Valid BuiltinUrl.Url
-    | Invalid String
+    = Url (Field.Field Error)
+
+
+type Error
+    = InvalidUrl
+    | MustNotBeBlank
+    | LengthTooLong
 
 
 new : String -> Url
 new value =
     value
-        |> BuiltinUrl.fromString
-        |> Maybe.map Valid
-        |> Maybe.withDefault (Invalid value)
+        |> Field.init validator
+        |> Url
+
+
+empty : Url
+empty =
+    new ""
 
 
 unwrap : Url -> String
-unwrap url =
-    case url of
-        Valid validUrl ->
-            BuiltinUrl.toString validUrl
-
-        Invalid value ->
-            value
+unwrap (Url value) =
+    Field.toString value
 
 
-isValid : Url -> Bool
-isValid url =
-    case url of
-        Valid _ ->
-            True
+blur : Url -> Url
+blur (Url value) =
+    Url <| Field.blur value
 
-        Invalid _ ->
-            False
+
+error : Url -> Maybe Error
+error (Url value) =
+    Field.error value
 
 
 
 -- view
 
 
-view : (Url -> msg) -> Url -> Html.Html msg
-view onInput_ value_ =
-    Html.input
+view : (Url -> msg) -> msg -> Url -> Html.Html msg
+view onInput onBlur (Url value) =
+    Field.input
+        (onInput << Url)
+        onBlur
         [ placeholder "URL"
         , required True
-        , value <| unwrap value_
-        , onInput (onInput_ << new)
         ]
-        []
+        value
+
+
+
+-- internals
+
+
+validator : String -> Result ( String, Error ) String
+validator value =
+    if String.isEmpty value then
+        Err ( value, MustNotBeBlank )
+
+    else if String.length value > 100 then
+        Err ( value, LengthTooLong )
+
+    else
+        value
+            |> BuiltinUrl.fromString
+            |> Maybe.map (\_ -> Ok value)
+            |> Maybe.withDefault (Err ( value, InvalidUrl ))
