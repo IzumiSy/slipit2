@@ -58,7 +58,9 @@ init url title description flag session =
 type Msg
     = SetUrl Url
     | SetTitle Title
+    | TitleBlurred
     | SetDescription Description
+    | DescriptionBlurred
     | CreatesNewbookmark
     | CreatingNewBookmarkSucceeded (Result Decode.Error Bookmark)
     | CreatingNewBookmarkFailed (Result Decode.Error String)
@@ -76,8 +78,14 @@ update msg model =
         SetTitle value ->
             ( { model | title = value }, Cmd.none )
 
+        TitleBlurred ->
+            ( { model | title = Title.blur model.title }, Cmd.none )
+
         SetDescription value ->
             ( { model | description = value }, Cmd.none )
+
+        DescriptionBlurred ->
+            ( { model | description = Description.blur model.description }, Cmd.none )
 
         CreatesNewbookmark ->
             case Session.toUserData model.session of
@@ -132,9 +140,24 @@ view { url, title, description } =
                 [ div [ class "siimple-grid-row" ]
                     [ p [] [ text "New bookmark" ]
                     , Html.form [ Pages.onSubmitWithPrevented CreatesNewbookmark ]
-                        [ div [] [ label [] [ text "url:", Url.view SetUrl url ] ]
-                        , div [] [ label [] [ text "title:", Title.view SetTitle title ] ]
-                        , div [] [ label [] [ text "description:", Description.view SetDescription description ] ]
+                        [ div []
+                            [ label []
+                                [ text "url:"
+                                , Url.view SetUrl url
+                                ]
+                            ]
+                        , div []
+                            [ label []
+                                [ text "title:"
+                                , Title.view SetTitle TitleBlurred title
+                                ]
+                            ]
+                        , div []
+                            [ label []
+                                [ text "description:"
+                                , Description.view SetDescription DescriptionBlurred description
+                                ]
+                            ]
                         , div []
                             [ div []
                                 [ button

@@ -1,49 +1,65 @@
 module Pages.NewBookmark.Title exposing
     ( Title
+    , blur
     , decode
     , empty
+    , error
     , new
     , unwrap
     , view
     )
 
 import Html
-import Html.Attributes exposing (placeholder, value)
-import Html.Events exposing (onInput)
+import Html.Attributes exposing (placeholder)
 import Json.Decode as Decode
+import Pages.Form.Field as Field
 
 
 type Title
-    = Title String
+    = Title (Field.Field Error)
+
+
+type Error
+    = MustNotBeBlank
+    | LengthTooLong
 
 
 new : String -> Title
-new =
-    Title
-
-
-unwrap : Title -> String
-unwrap (Title value) =
-    value
+new value =
+    Title <| Field.init value validator
 
 
 empty : Title
 empty =
-    Title ""
+    new ""
+
+
+unwrap : Title -> String
+unwrap (Title value) =
+    Field.toString value
+
+
+blur : Title -> Title
+blur (Title value) =
+    Title <| Field.blur value
+
+
+error : Title -> Maybe Error
+error (Title value) =
+    Field.error value
 
 
 
 -- view
 
 
-view : (Title -> msg) -> Title -> Html.Html msg
-view onInput_ (Title value_) =
-    Html.input
-        [ placeholder "Title"
-        , value value_
-        , onInput (onInput_ << Title)
-        ]
-        []
+view : (Title -> msg) -> msg -> Title -> Html.Html msg
+view onInput onBlur (Title value) =
+    Field.input
+        (onInput << Title)
+        onBlur
+        [ placeholder "Title" ]
+        value
 
 
 
@@ -52,4 +68,20 @@ view onInput_ (Title value_) =
 
 decode : Decode.Decoder Title
 decode =
-    Decode.andThen (Decode.succeed << Title) Decode.string
+    Decode.andThen (Decode.succeed << new) Decode.string
+
+
+
+-- internals
+
+
+validator : String -> Result ( String, Error ) String
+validator value =
+    if String.isEmpty value then
+        Err ( value, MustNotBeBlank )
+
+    else if String.length value > 100 then
+        Err ( value, LengthTooLong )
+
+    else
+        Ok value

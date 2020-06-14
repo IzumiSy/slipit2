@@ -1,4 +1,11 @@
-module Pages.Form.Field exposing (Field, blur, init, input)
+module Pages.Form.Field exposing
+    ( Field
+    , blur
+    , error
+    , init
+    , input
+    , toString
+    )
 
 import Html exposing (Html)
 import Html.Attributes exposing (value)
@@ -29,41 +36,6 @@ init value validator =
         }
 
 
-
--- view
-
-
-input : (Field err -> msg) -> msg -> Field err -> Html msg
-input onInputMsg onBlurMsg field =
-    let
-        onInputHandler =
-            \value ->
-                onInputMsg <|
-                    case field of
-                        Partial { validator } ->
-                            Partial
-                                { value = value
-                                , validator = validator
-                                }
-
-                        Valid { validator } ->
-                            value
-                                |> validator
-                                |> mapResult field
-
-                        Invalid { validator } _ ->
-                            value
-                                |> validator
-                                |> mapResult field
-    in
-    Html.input
-        [ value <| toString field
-        , onBlur onBlurMsg
-        , onInput onInputHandler
-        ]
-        []
-
-
 blur : Field err -> Field err
 blur field =
     case field of
@@ -74,6 +46,64 @@ blur field =
 
         _ ->
             field
+
+
+toString : Field err -> String
+toString field =
+    case field of
+        Partial { value } ->
+            value
+
+        Valid { value } ->
+            value
+
+        Invalid { value } _ ->
+            value
+
+
+error : Field err -> Maybe err
+error field =
+    case field of
+        Invalid _ err ->
+            Just err
+
+        _ ->
+            Nothing
+
+
+
+-- view
+
+
+input : (Field err -> msg) -> msg -> List (Html.Attribute msg) -> Field err -> Html msg
+input onInputMsg onBlurMsg attrs field =
+    Html.input
+        (List.append attrs
+            [ value <| toString field
+            , onBlur onBlurMsg
+            , onInput
+                (\value ->
+                    onInputMsg <|
+                        case field of
+                            Partial { validator } ->
+                                Partial
+                                    { value = value
+                                    , validator = validator
+                                    }
+
+                            Valid { validator } ->
+                                value
+                                    |> validator
+                                    |> mapResult field
+
+                            Invalid { validator } _ ->
+                                value
+                                    |> validator
+                                    |> mapResult field
+                )
+            ]
+        )
+        []
 
 
 
@@ -107,16 +137,3 @@ mapResult field result =
                 , validator = validator_
                 }
                 err
-
-
-toString : Field err -> String
-toString field =
-    case field of
-        Partial { value } ->
-            value
-
-        Valid { value } ->
-            value
-
-        Invalid { value } _ ->
-            value

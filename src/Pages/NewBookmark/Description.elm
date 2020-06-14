@@ -1,49 +1,65 @@
 module Pages.NewBookmark.Description exposing
     ( Description
+    , blur
     , decode
     , empty
+    , error
     , new
     , unwrap
     , view
     )
 
 import Html
-import Html.Attributes exposing (placeholder, value)
-import Html.Events exposing (onInput)
+import Html.Attributes exposing (placeholder)
 import Json.Decode as Decode
+import Pages.Form.Field as Field
 
 
 type Description
-    = Description String
+    = Description (Field.Field Error)
+
+
+type Error
+    = MustNotBeBlank
+    | LengthTooLong
 
 
 new : String -> Description
-new =
-    Description
+new value =
+    Description <| Field.init value validator
 
 
 empty : Description
 empty =
-    Description ""
+    new ""
 
 
 unwrap : Description -> String
 unwrap (Description value) =
-    value
+    Field.toString value
+
+
+blur : Description -> Description
+blur (Description value) =
+    Description <| Field.blur value
+
+
+error : Description -> Maybe Error
+error (Description value) =
+    Field.error value
 
 
 
 -- view
 
 
-view : (Description -> msg) -> Description -> Html.Html msg
-view onInput_ (Description value_) =
-    Html.input
-        [ placeholder "Description"
-        , value value_
-        , onInput (onInput_ << Description)
-        ]
-        []
+view : (Description -> msg) -> msg -> Description -> Html.Html msg
+view onInput onBlur (Description value) =
+    Field.input
+        (onInput << Description)
+        onBlur
+        [ placeholder "Description" ]
+        value
 
 
 
@@ -52,4 +68,20 @@ view onInput_ (Description value_) =
 
 decode : Decode.Decoder Description
 decode =
-    Decode.andThen (Decode.succeed << Description) Decode.string
+    Decode.andThen (Decode.succeed << new) Decode.string
+
+
+
+-- internals
+
+
+validator : String -> Result ( String, Error ) String
+validator value =
+    if String.isEmpty value then
+        Err ( value, MustNotBeBlank )
+
+    else if String.length value > 200 then
+        Err ( value, LengthTooLong )
+
+    else
+        Ok value
