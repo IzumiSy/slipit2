@@ -4,6 +4,7 @@ import App.Model as Model
 import Bookmarks
 import Browser
 import Browser.Navigation as Nav
+import Flag
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode
@@ -30,8 +31,8 @@ import User as User
 
 
 type Model
-    = WaitForLoggingIn Model.Flag Session (Maybe Route.Routes)
-    | NotFound Model.Flag Session
+    = WaitForLoggingIn Flag.Flag Session (Maybe Route.Routes)
+    | NotFound Flag.Flag Session
     | SignIn SignIn.Model
     | SignUp SignUp.Model
     | ResetPassword ResetPassword.Model
@@ -39,11 +40,17 @@ type Model
     | NewBookmark NewBookmark.Model
 
 
-init : Model.Flag -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init flag url navKey =
-    ( WaitForLoggingIn flag (Session.init url navKey) (Route.fromUrl url)
-    , Cmd.none
-    )
+init : Decode.Value -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init value url navKey =
+    value
+        |> Decode.decodeValue Flag.decode
+        |> Result.map identity
+        |> Result.withDefault Flag.empty
+        |> (\flag ->
+                ( WaitForLoggingIn flag (Session.init url navKey) (Route.fromUrl url)
+                , Cmd.none
+                )
+           )
 
 
 initPage : Model.Modelable a -> Maybe Route.Routes -> ( Model, Cmd Msg )
@@ -108,7 +115,7 @@ toSession page =
             model.session
 
 
-toFlag : Model -> Model.Flag
+toFlag : Model -> Flag.Flag
 toFlag page =
     case page of
         WaitForLoggingIn flag _ _ ->
@@ -403,7 +410,7 @@ decode =
 -- main
 
 
-main : Program Model.Flag Model Msg
+main : Program Decode.Value Model Msg
 main =
     Browser.application
         { init = init

@@ -1,16 +1,11 @@
-module App.Model exposing (Flag, Modelable)
+module App.Model exposing (Modelable)
 
+import Flag
 import Session
-
-
-type alias Flag =
-    { functionUrl : String
-    , logoImagePath : String
-    }
 
 
 type alias Modelable a =
     { a
-        | flag : Flag
+        | flag : Flag.Flag
         , session : Session.Session
     }

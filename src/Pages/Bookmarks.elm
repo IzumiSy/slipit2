@@ -14,6 +14,7 @@ import Bookmark.Description as Description
 import Bookmark.Title as Title
 import Bookmark.Url as Url
 import Bookmarks exposing (Bookmarks)
+import Flag
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -31,7 +32,7 @@ type alias Model =
     Model.Modelable {}
 
 
-init : Model.Flag -> Session -> ( Model, Cmd msg )
+init : Flag.Flag -> Session -> ( Model, Cmd msg )
 init flag session =
     ( { flag = flag
       , session = session

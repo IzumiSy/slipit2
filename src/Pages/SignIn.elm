@@ -1,6 +1,8 @@
 port module Pages.SignIn exposing (Model, Msg, init, subscriptions, update, view)
 
 import App.Model as Model
+import Flag
+import Flag.Logo as Logo
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Json.Decode as Decode
@@ -24,7 +26,7 @@ type alias Model =
         }
 
 
-init : Model.Flag -> Session -> ( Model, Cmd Msg )
+init : Flag.Flag -> Session -> ( Model, Cmd Msg )
 init flag session =
     ( { email = Email.empty
       , password = Password.empty
@@ -113,7 +115,7 @@ view ({ flag, error, session } as model) =
                     , div [ class "siimple-grid-col siimple-grid-col--4 siimple-grid-col--xl-6 siimple-grid-col--md-10 siimple-grid-col--sm-12" ]
                         [ div [ class "login" ]
                             [ h2 [ class "login-header" ]
-                                [ img [ class "image", src flag.logoImagePath ] []
+                                [ Logo.view flag.logo
                                 , div [ class "content centered-xs" ]
                                     [ text "Log in to Slip.it"
                                     , h5 [] [ text "Your online bookmarks never be social." ]

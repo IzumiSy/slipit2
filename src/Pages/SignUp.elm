@@ -1,6 +1,7 @@
 module Pages.SignUp exposing (Model, Msg, init, update, view)
 
 import App.Model as Model
+import Flag
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Pages.Form.Email as Email exposing (Email)
@@ -10,7 +11,7 @@ import Session exposing (Session)
 
 
 
--- Model
+-- model
 
 
 type alias Model =
@@ -20,29 +21,7 @@ type alias Model =
         }
 
 
-
--- Msg
-
-
-type Msg
-    = SetEmail String
-    | SetPassword String
-
-
-
--- Update
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    ( model, Cmd.none )
-
-
-
--- Init
-
-
-init : Model.Flag -> Session -> ( Model, Cmd Msg )
+init : Flag.Flag -> Session -> ( Model, Cmd Msg )
 init flag session =
     ( { email = Email.empty
       , password = Password.empty
@@ -54,7 +33,21 @@ init flag session =
 
 
 
--- View
+-- update
+
+
+type Msg
+    = SetEmail String
+    | SetPassword String
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    ( model, Cmd.none )
+
+
+
+-- view
 
 
 view : Model -> Layout.View Msg

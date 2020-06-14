@@ -10,12 +10,13 @@ port module Pages.NewBookmark exposing
 import App.Header as AppHeader
 import App.Model as Model
 import Bookmark exposing (Bookmark)
+import Flag
+import Flag.Function as Function
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Json.Decode as Decode
-import Json.Decode.Pipeline as Pipeline
 import Pages
 import Pages.Layout as Layout
 import Pages.NewBookmark.Description as Description exposing (Description)
@@ -23,7 +24,7 @@ import Pages.NewBookmark.Title as Title exposing (Title)
 import Pages.NewBookmark.Url as Url exposing (Url)
 import Route
 import Session exposing (Session)
-import String.Interpolate exposing (interpolate)
+import Task
 import Update.Extra as ExUpdate
 import User as User
 
@@ -40,7 +41,7 @@ type alias Model =
         }
 
 
-init : Url -> Title -> Description -> Model.Flag -> Session -> ( Model, Cmd Msg )
+init : Url -> Title -> Description -> Flag.Flag -> Session -> ( Model, Cmd Msg )
 init url title description flag session =
     ( { flag = flag
       , session = session
@@ -77,7 +78,7 @@ type Msg
     | CreatingNewBookmarkSucceeded (Result Decode.Error Bookmark)
     | CreatingNewBookmarkFailed (Result Decode.Error String)
     | PrefetchesPage
-    | PagePrefetched (Result Http.Error Page)
+    | PagePrefetched (Result Http.Error Function.Result_)
     | GotAppHeaderMsg AppHeader.Msg
 
 
@@ -140,7 +141,11 @@ update msg model =
             ( model, Cmd.none )
 
         PrefetchesPage ->
-            ( model, fetch PagePrefetched model )
+            ( model
+            , model.flag.function
+                |> Function.run model.url
+                |> Task.attempt PagePrefetched
+            )
 
         PagePrefetched result ->
             case result of
@@ -207,28 +212,6 @@ view ({ url, title, description } as model) =
                     ]
                 ]
             ]
-        }
-
-
-
--- http
-
-
-type alias Page =
-    { title : Title
-    , description : Description
-    }
-
-
-fetch : (Result Http.Error Page -> msg) -> Model -> Cmd msg
-fetch msg { flag, url } =
-    Http.get
-        { url = interpolate "{0}?url={1}" [ flag.functionUrl, Url.unwrap url ]
-        , expect =
-            Decode.succeed Page
-                |> Pipeline.required "title" Title.decode
-                |> Pipeline.required "description" Description.decode
-                |> Http.expectJson msg
         }
 
 

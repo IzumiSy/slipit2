@@ -2,6 +2,7 @@ module Pages.ResetPassword exposing (Model, Msg, init, update, view)
 
 import App.Header as AppHeader
 import App.Model as Model
+import Flag
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Pages.Form.Email as Email exposing (Email)
@@ -10,37 +11,14 @@ import Session exposing (Session)
 
 
 
--- Model
+-- model
 
 
 type alias Model =
     Model.Modelable { email : Email }
 
 
-
--- Msg
-
-
-type Msg
-    = SetEmail String
-
-
-
--- Update
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        SetEmail _ ->
-            ( model, Cmd.none )
-
-
-
--- Init
-
-
-init : Model.Flag -> Session -> ( Model, Cmd Msg )
+init : Flag.Flag -> Session -> ( Model, Cmd Msg )
 init flag session =
     ( { email = Email.empty
       , flag = flag
@@ -51,7 +29,22 @@ init flag session =
 
 
 
--- View
+-- update
+
+
+type Msg
+    = SetEmail String
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        SetEmail _ ->
+            ( model, Cmd.none )
+
+
+
+-- view
 
 
 view : Model -> Layout.View msg
