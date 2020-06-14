@@ -10,7 +10,7 @@ import Pages
 import Pages.Form.Email as Email exposing (Email)
 import Pages.Form.Password as Password exposing (Password)
 import Pages.Layout as Layout
-import Pages.SignIn.FB.AuthError as FBAuthError
+import Pages.SignIn.Error as Error
 import Session exposing (Session)
 
 
@@ -22,7 +22,7 @@ type alias Model =
     Model.Modelable
         { email : Email
         , password : Password
-        , error : FBAuthError.Error
+        , error : Error.Error
         }
 
 
@@ -30,7 +30,7 @@ init : Flag.Flag -> Session -> ( Model, Cmd Msg )
 init flag session =
     ( { email = Email.empty
       , password = Password.empty
-      , error = FBAuthError.init
+      , error = Error.init
       , flag = flag
       , session = session
       }
@@ -46,7 +46,7 @@ type Msg
     = SetEmail Email
     | SetPassword Password
     | StartsLoggingIn
-    | LoggingInFailed (Result Decode.Error FBAuthError.Error)
+    | LoggingInFailed (Result Decode.Error Error.Error)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -123,7 +123,7 @@ view ({ flag, error, session } as model) =
                                 ]
                             , Html.form [ Pages.onSubmitWithPrevented StartsLoggingIn, class "siimple-form login-fields" ]
                                 [ error
-                                    |> FBAuthError.toMessage
+                                    |> Error.message
                                     |> Maybe.map (\message -> div [ class "siimple-alert siimple-alert--warning" ] [ text message ])
                                     |> Maybe.withDefault (div [] [])
                                 , div [ class "siimple-form-field" ]
@@ -179,7 +179,7 @@ view ({ flag, error, session } as model) =
 subscriptions : Sub Msg
 subscriptions =
     Sub.batch
-        [ loggingInFailed (LoggingInFailed << Decode.decodeValue FBAuthError.decoder)
+        [ loggingInFailed (LoggingInFailed << Decode.decodeValue Error.decoder)
         ]
 
 
