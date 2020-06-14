@@ -15,13 +15,14 @@ import Pages.Loading as Loading
 import Pages.NewBookmark as NewBookmark
 import Pages.NewBookmark.Description as Description
 import Pages.NewBookmark.Title as Title
-import Pages.NewBookmark.Url as NewBookmarkUrl
+import Pages.NewBookmark.Url as NewUrl
 import Pages.NotFound as NotFound
 import Pages.ResetPassword as ResetPassword
 import Pages.SignIn as SignIn
 import Pages.SignUp as SignUp
 import Route
 import Session exposing (Session)
+import Update.Extra as ExUpdate
 import Url
 import User as User
 
@@ -60,34 +61,38 @@ initPage { flag, session } maybeRoute =
             ( NotFound flag session, Cmd.none )
 
         Just Route.Bookmarks ->
-            Bookmarks.init flag session
+            session
+                |> Bookmarks.init flag
                 |> Tuple.mapFirst Bookmarks
-                |> Tuple.mapSecond (Cmd.map GotBookmarksMsg)
+                |> ExUpdate.mapCmd GotBookmarksMsg
 
         Just (Route.NewBookmark maybeUrl maybeTitle maybeDescription) ->
-            NewBookmark.init
-                (maybeUrl |> Maybe.withDefault "" |> NewBookmarkUrl.new)
-                (maybeTitle |> Maybe.map Title.new |> Maybe.withDefault Title.empty)
-                (maybeDescription |> Maybe.map Description.new |> Maybe.withDefault Description.empty)
-                flag
-                session
+            session
+                |> NewBookmark.init
+                    (maybeUrl |> Maybe.map NewUrl.new |> Maybe.withDefault NewUrl.empty)
+                    (maybeTitle |> Maybe.map Title.new |> Maybe.withDefault Title.empty)
+                    (maybeDescription |> Maybe.map Description.new |> Maybe.withDefault Description.empty)
+                    flag
                 |> Tuple.mapFirst NewBookmark
-                |> Tuple.mapSecond (Cmd.map GotNewBookmarkMsg)
+                |> ExUpdate.mapCmd GotNewBookmarkMsg
 
         Just Route.ResetPassword ->
-            ResetPassword.init flag session
+            session
+                |> ResetPassword.init flag
                 |> Tuple.mapFirst ResetPassword
-                |> Tuple.mapSecond (Cmd.map GotResetPasswordMsg)
+                |> ExUpdate.mapCmd GotResetPasswordMsg
 
         Just Route.SignIn ->
-            SignIn.init flag session
+            session
+                |> SignIn.init flag
                 |> Tuple.mapFirst SignIn
-                |> Tuple.mapSecond (Cmd.map GotSignInMsg)
+                |> ExUpdate.mapCmd GotSignInMsg
 
         Just Route.SignUp ->
-            SignUp.init flag session
+            session
+                |> SignUp.init flag
                 |> Tuple.mapFirst SignUp
-                |> Tuple.mapSecond (Cmd.map GotSignUpMsg)
+                |> ExUpdate.mapCmd GotSignUpMsg
 
 
 toSession : Model -> Session
