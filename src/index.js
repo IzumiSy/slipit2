@@ -54,7 +54,8 @@ firebase.auth().onAuthStateChanged(fbUser => {
       app.ports.loggedIn.send(userData);
     })
     .catch(err => {
-      // TODO: あとでつくる
+      console.error(err)
+      app.ports.loggedOut.send(null);
     });
 });
 
