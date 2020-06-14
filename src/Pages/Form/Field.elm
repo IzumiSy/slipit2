@@ -1,7 +1,7 @@
 module Pages.Form.Field exposing (Field, blur, init, input)
 
 import Html exposing (Html)
-import Html.Attributes exposing (class, type_, value)
+import Html.Attributes exposing (value)
 import Html.Events exposing (onBlur, onInput)
 
 

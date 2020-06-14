@@ -10,10 +10,6 @@ import Html.Attributes as Attributes
 import Json.Decode as Decode
 
 
-
--- APIからのレスポンスのみで用いられるバリデーションのないURL型
-
-
 type Url
     = Url String
 
