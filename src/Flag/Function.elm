@@ -80,18 +80,11 @@ runnerResolver =
                     Err (Http.BadStatus metadata.statusCode)
 
                 Http.GoodStatus_ _ body ->
-                    let
-                        result =
-                            Decode.decodeString
-                                (Decode.succeed Result_
-                                    |> Pipeline.required "title" Title.decode
-                                    |> Pipeline.required "description" Description.decode
-                                )
-                                body
-                    in
-                    case result of
-                        Ok value ->
-                            Ok value
-
-                        Err err ->
-                            Err (Http.BadBody (Decode.errorToString err))
+                    body
+                        |> Decode.decodeString
+                            (Decode.succeed Result_
+                                |> Pipeline.required "title" Title.decode
+                                |> Pipeline.required "description" Description.decode
+                            )
+                        |> Result.mapError
+                            (\err -> Http.BadBody (Decode.errorToString err))

@@ -70,7 +70,7 @@ view onInput onBlur (Description value) =
 
 decode : Decode.Decoder Description
 decode =
-    Decode.andThen (Decode.succeed << new) Decode.string
+    Decode.andThen (Decode.succeed << new << Maybe.withDefault "") (Decode.nullable Decode.string)
 
 
 
