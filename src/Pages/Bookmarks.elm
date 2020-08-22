@@ -88,7 +88,10 @@ view model =
                             [ header bookmarks
                             , div
                                 [ class "siimple-grid-row" ]
-                                (Bookmarks.map viewBookmarkCard bookmarks)
+                                (bookmarks
+                                    |> Bookmarks.toListOrdered
+                                    |> Bookmarks.map viewBookmarkCard
+                                )
                             ]
                     )
                 |> Maybe.withDefault (div [] [ text "loading..." ])

@@ -10,7 +10,7 @@ module Pages.NewBookmark.Description exposing
     )
 
 import Html
-import Html.Attributes exposing (placeholder)
+import Html.Attributes exposing (class, placeholder)
 import Json.Decode as Decode
 import Pages.Form.Field as Field
 
@@ -57,7 +57,13 @@ error (Description value) =
 
 view : (Description -> msg) -> msg -> Description -> Html.Html msg
 view onInput onBlur (Description value) =
-    Field.input (onInput << Description) onBlur [ placeholder "Description" ] value
+    Field.input
+        (onInput << Description)
+        onBlur
+        [ placeholder "Description"
+        , class "siimple-input siimple-input--fluid"
+        ]
+        value
 
 
 

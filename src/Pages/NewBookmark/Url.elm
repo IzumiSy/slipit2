@@ -9,7 +9,7 @@ module Pages.NewBookmark.Url exposing
     )
 
 import Html
-import Html.Attributes exposing (placeholder, required)
+import Html.Attributes exposing (class, placeholder, required)
 import Pages.Form.Field as Field
 import Url as BuiltinUrl
 
@@ -57,7 +57,14 @@ error (Url value) =
 
 view : (Url -> msg) -> msg -> Url -> Html.Html msg
 view onInput onBlur (Url value) =
-    Field.input (onInput << Url) onBlur [ placeholder "URL", required True ] value
+    Field.input
+        (onInput << Url)
+        onBlur
+        [ placeholder "URL"
+        , required True
+        , class "siimple-input siimple-input--fluid"
+        ]
+        value
 
 
 

@@ -10,7 +10,7 @@ module Pages.NewBookmark.Title exposing
     )
 
 import Html
-import Html.Attributes exposing (placeholder)
+import Html.Attributes exposing (class, placeholder)
 import Json.Decode as Decode
 import Pages.Form.Field as Field
 
@@ -57,7 +57,13 @@ error (Title value) =
 
 view : (Title -> msg) -> msg -> Title -> Html.Html msg
 view onInput onBlur (Title value) =
-    Field.input (onInput << Title) onBlur [ placeholder "Title" ] value
+    Field.input
+        (onInput << Title)
+        onBlur
+        [ placeholder "Title"
+        , class "siimple-input siimple-input--fluid"
+        ]
+        value
 
 
 

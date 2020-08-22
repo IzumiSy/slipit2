@@ -10,6 +10,8 @@ port module Pages.NewBookmark exposing
 import App.Header as AppHeader
 import App.Model as Model
 import Bookmark exposing (Bookmark)
+import Bookmark.Title as BookmarkTitle
+import Bookmarks
 import Flag
 import Flag.Function as Function
 import Html exposing (..)
@@ -24,6 +26,7 @@ import Pages.NewBookmark.Title as Title exposing (Title)
 import Pages.NewBookmark.Url as Url exposing (Url)
 import Route
 import Session exposing (Session)
+import String.Interpolate exposing (interpolate)
 import Task
 import Update.Extra as ExUpdate
 import User as User
@@ -165,48 +168,55 @@ update msg model =
 
 
 view : Model -> Layout.View Msg
-view ({ url, title, description } as model) =
+view ({ url, title, description, session } as model) =
     Layout.new
         { title = "New Bookmark"
         , body =
             [ div [ class "main-container siimple-grid" ]
-                [ div [ class "siimple-grid-row" ]
-                    [ p [] [ text "New bookmark" ]
-                    , Html.form [ Pages.onSubmitWithPrevented CreatesNewbookmark ]
-                        [ div []
-                            [ label []
-                                [ text "url:"
-                                , Url.view SetUrl UrlBlurred url
-                                ]
+                [ Html.form
+                    [ Pages.onSubmitWithPrevented CreatesNewbookmark ]
+                    [ div [ class "siimple-form" ]
+                        [ div [ class "siimple-form-title" ] [ text "New bookmark" ]
+                        , session
+                            |> Session.toUserData
+                            |> Maybe.map .bookmarks
+                            |> Maybe.andThen (Bookmarks.find url)
+                            |> Maybe.map
+                                (\bookmark ->
+                                    div [ class "siimple-alert siimple-alert--warning" ]
+                                        [ text <|
+                                            interpolate
+                                                "\"{0}\" is already bookmarked!"
+                                                [ BookmarkTitle.unwrap <| Bookmark.title bookmark ]
+                                        ]
+                                )
+                            |> Maybe.withDefault (div [] [])
+                        , div [ class "siimple-form-field" ]
+                            [ div [ class "siimple-form-field-label" ] [ text "url" ]
+                            , Url.view SetUrl UrlBlurred url
                             ]
-                        , div []
-                            [ label []
-                                [ text "title:"
-                                , Title.view SetTitle TitleBlurred title
-                                ]
+                        , div [ class "siimple-form-field" ]
+                            [ div [ class "siimple-form-field-label" ] [ text "title" ]
+                            , Title.view SetTitle TitleBlurred title
                             ]
-                        , div []
-                            [ label []
-                                [ text "description:"
-                                , Description.view SetDescription DescriptionBlurred description
-                                ]
+                        , div [ class "siimple-form-field" ]
+                            [ div [ class "siimple-form-field-label" ] [ text "description" ]
+                            , Description.view SetDescription DescriptionBlurred description
                             ]
-                        , div []
-                            [ div []
-                                [ button
-                                    [ type_ "button"
-                                    , onClick PrefetchesPage
-                                    , disabled <| not <| isSubmittable model
-                                    ]
-                                    [ text "fetch" ]
+                        , div [ class "siimple-form-field" ]
+                            [ button
+                                [ type_ "button"
+                                , onClick PrefetchesPage
+                                , disabled <| not <| isSubmittable model
+                                , class "siimple-btn siimple--mr-2 siimple-grid-col--2"
                                 ]
-                            , div []
-                                [ button
-                                    [ type_ "submit"
-                                    , disabled <| not <| isSubmittable model
-                                    ]
-                                    [ text "create" ]
+                                [ text "fetch" ]
+                            , button
+                                [ type_ "submit"
+                                , disabled <| not <| isSubmittable model
+                                , class "siimple-btn siimple-btn--blue siimple-grid-col--2"
                                 ]
+                                [ text "create" ]
                             ]
                         ]
                     ]
