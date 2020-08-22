@@ -57,11 +57,7 @@ error (Description value) =
 
 view : (Description -> msg) -> msg -> Description -> Html.Html msg
 view onInput onBlur (Description value) =
-    Field.input
-        (onInput << Description)
-        onBlur
-        [ placeholder "Description" ]
-        value
+    Field.input (onInput << Description) onBlur [ placeholder "Description" ] value
 
 
 
