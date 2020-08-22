@@ -57,13 +57,7 @@ error (Url value) =
 
 view : (Url -> msg) -> msg -> Url -> Html.Html msg
 view onInput onBlur (Url value) =
-    Field.input
-        (onInput << Url)
-        onBlur
-        [ placeholder "URL"
-        , required True
-        ]
-        value
+    Field.input (onInput << Url) onBlur [ placeholder "URL", required True ] value
 
 
 

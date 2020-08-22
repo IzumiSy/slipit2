@@ -57,11 +57,7 @@ error (Title value) =
 
 view : (Title -> msg) -> msg -> Title -> Html.Html msg
 view onInput onBlur (Title value) =
-    Field.input
-        (onInput << Title)
-        onBlur
-        [ placeholder "Title" ]
-        value
+    Field.input (onInput << Title) onBlur [ placeholder "Title" ] value
 
 
 
@@ -70,7 +66,7 @@ view onInput onBlur (Title value) =
 
 decode : Decode.Decoder Title
 decode =
-    Decode.andThen (Decode.succeed << new) Decode.string
+    Decode.andThen (Decode.succeed << new << Maybe.withDefault "") (Decode.nullable Decode.string)
 
 
 
