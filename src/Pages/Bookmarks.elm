@@ -113,7 +113,7 @@ header bookmarks =
                 [ class "siimple--clearfix" ]
                 [ div
                     [ class "siimple--float-left" ]
-                    [ h2 [] [ text (interpolate "Bookmarks ({0})" [ bookmarkCount ]) ]
+                    [ div [ class "siimple-h3" ] [ text (interpolate "Bookmarks ({0})" [ bookmarkCount ]) ]
                     ]
                 , div
                     [ class "siimple--float-right" ]
@@ -132,7 +132,7 @@ viewBookmarkCard : Bookmark -> Html msg
 viewBookmarkCard bookmark =
     div [ class "siimple-grid-col siimple-grid-col--3 siimple-grid-col--lg-4 siimple-grid-col--md-6 siimple-grid-col--xs-12" ]
         [ a [ class "bookmark-item siimple-card", Url.href <| Bookmark.url bookmark ]
-            [ div [ class "siimple-card-body" ]
+            [ div [ class "bookmark-item-body siimple-card-body" ]
                 [ div [ class "siimple-card-title" ] [ Title.text <| Bookmark.title bookmark ]
                 , div [ class "siimple-card-subtitle" ] [ Url.text <| Bookmark.url bookmark ]
                 , Description.text <| Bookmark.description bookmark
