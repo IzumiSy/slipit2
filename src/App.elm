@@ -368,21 +368,10 @@ subscriptions page =
     Sub.batch <|
         [ loggedOut LoggedOut
         , loggedIn (LoggedIn << Decode.decodeValue decode)
+        , Sub.map GotBookmarksMsg Bookmarks.subscriptions
+        , Sub.map GotSignInMsg SignIn.subscriptions
+        , Sub.map GotNewBookmarkMsg NewBookmark.subscriptions
         ]
-            ++ List.singleton
-                (case page of
-                    SignIn _ ->
-                        Sub.map GotSignInMsg SignIn.subscriptions
-
-                    NewBookmark _ ->
-                        Sub.map GotNewBookmarkMsg NewBookmark.subscriptions
-
-                    Bookmarks _ ->
-                        Sub.map GotBookmarksMsg Bookmarks.subscriptions
-
-                    _ ->
-                        Sub.none
-                )
 
 
 
