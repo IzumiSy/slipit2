@@ -364,8 +364,8 @@ view page =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions page =
-    Sub.batch <|
+subscriptions _ =
+    Sub.batch
         [ loggedOut LoggedOut
         , loggedIn (LoggedIn << Decode.decodeValue decode)
         , Sub.map GotBookmarksMsg Bookmarks.subscriptions
