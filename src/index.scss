@@ -100,6 +100,16 @@ h2.login-header {
   }
 }
 
+.bookmark-item {
+  text-decoration: none
+}
+
 .bookmark-item-body {
   height: 150px;
+}
+
+.siimple-card-subtitle {
+  text-overflow: ellipsis;
+  overflow: auto;
+  white-space: nowrap;
 }
