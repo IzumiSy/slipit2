@@ -35,7 +35,10 @@ type alias Model =
 init : Flag.Flag -> Session -> ( Model, Cmd msg )
 init flag session =
     ( { flag = flag
-      , session = session
+      , session =
+            flag.cachedBookmarks
+                |> Maybe.map (\bookmarks -> Session.mapBookmarks bookmarks session)
+                |> Maybe.withDefault session
       }
     , fetchAllBookmarks ()
     )
