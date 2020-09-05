@@ -18,7 +18,8 @@ const app = Elm.App.init({
   node: document.getElementById("main"),
   flags: {
     functionUrl: process.env.FUNCTION_URL,
-    logoImagePath: logoImage
+    logoImagePath: logoImage,
+    bookmarks: JSON.parse(localStorage.getItem("bookmarks"))
   }
 });
 
