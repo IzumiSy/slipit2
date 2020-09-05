@@ -1,12 +1,14 @@
 module Bookmark.Title exposing
     ( Title
     , decode
+    , encode
     , text
     , unwrap
     )
 
 import Html
 import Json.Decode as Decode
+import Json.Encode as Encode
 
 
 type Title
@@ -38,3 +40,12 @@ text =
 decode : Decode.Decoder Title
 decode =
     Decode.andThen (Decode.succeed << Title) Decode.string
+
+
+
+-- encoder
+
+
+encode : Title -> Encode.Value
+encode (Title value) =
+    Encode.string value

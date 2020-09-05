@@ -1,11 +1,13 @@
 module Bookmark.Description exposing
     ( Description
     , decode
+    , encode
     , text
     )
 
 import Html
 import Json.Decode as Decode
+import Json.Encode as Encode
 
 
 type Description
@@ -28,3 +30,12 @@ text (Description value) =
 decode : Decode.Decoder Description
 decode =
     Decode.andThen (Decode.succeed << Description) Decode.string
+
+
+
+-- encoder
+
+
+encode : Description -> Encode.Value
+encode (Description value) =
+    Encode.string value

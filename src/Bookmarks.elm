@@ -1,9 +1,10 @@
-module Bookmarks exposing
+port module Bookmarks exposing
     ( Bookmarks
     , Ordered
     , decode
     , find
     , map
+    , persistToCache
     , size
     , toListOrdered
     )
@@ -12,6 +13,7 @@ import Bookmark exposing (Bookmark)
 import Bookmark.Url as Url
 import Dict
 import Json.Decode as Decode
+import Json.Encode as Encode
 import Pages.NewBookmark.Url as NewBookmarkUrl
 
 
@@ -63,6 +65,16 @@ map cb (Ordered bookmarks) =
     List.map cb bookmarks
 
 
+{-| Cacheへの永続化インターフェイス
+-}
+persistToCache : Bookmarks -> Cmd msg
+persistToCache (Bookmarks bookmarks) =
+    bookmarks
+        |> Dict.values
+        |> Encode.list Bookmark.encoder
+        |> persistToCacheInternal
+
+
 
 -- encoder
 
@@ -77,3 +89,10 @@ decode =
                 << Dict.fromList
                 << List.map (\bookmark -> ( Url.unwrap <| Bookmark.url bookmark, bookmark ))
             )
+
+
+
+-- ports
+
+
+port persistToCacheInternal : Encode.Value -> Cmd msg

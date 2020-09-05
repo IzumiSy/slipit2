@@ -2,6 +2,7 @@ module Bookmark exposing
     ( Bookmark
     , decoder
     , description
+    , encoder
     , title
     , url
     )
@@ -12,6 +13,7 @@ import Bookmark.Title as Title exposing (Title)
 import Bookmark.Url as Url exposing (Url)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Json.Encode as Encode
 
 
 type Bookmark
@@ -44,3 +46,13 @@ decoder =
         |> Pipeline.required "url" Url.decode
         |> Pipeline.required "title" Title.decode
         |> Pipeline.required "description" Description.decode
+
+
+encoder : Bookmark -> Encode.Value
+encoder (Bookmark id url_ title_ description_) =
+    Encode.object
+        [ ( "id", Id.encode id )
+        , ( "url", Url.encode url_ )
+        , ( "title", Title.encode title_ )
+        , ( "description", Description.encode description_ )
+        ]

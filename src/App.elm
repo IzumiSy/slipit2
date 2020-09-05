@@ -45,7 +45,6 @@ init : Decode.Value -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init value url navKey =
     value
         |> Decode.decodeValue Flag.decode
-        |> Result.map identity
         |> Result.withDefault Flag.empty
         |> (\flag ->
                 ( WaitForLoggingIn flag (Session.init url navKey) (Route.fromUrl url)

@@ -61,14 +61,14 @@ update msg model =
             AppHeader.update pageMsg model
 
         FetchedAllBookmarks result ->
-            ( result
+            result
                 |> Result.map
                     (\bookmarks ->
-                        { model | session = Session.mapBookmarks bookmarks model.session }
+                        ( { model | session = Session.mapBookmarks bookmarks model.session }
+                        , Bookmarks.persistToCache bookmarks
+                        )
                     )
-                |> Result.withDefault model
-            , Cmd.none
-            )
+                |> Result.withDefault ( model, Cmd.none )
 
 
 

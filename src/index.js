@@ -110,3 +110,7 @@ app.ports.fetchAllBookmarks.subscribe(() => {
     }
   });
 });
+
+app.ports.persistToCacheInternal.subscribe(bookmarks => {
+  localStorage.setItem("bookmarks", JSON.stringify(bookmarks))
+})

@@ -1,6 +1,7 @@
 module Bookmark.Url exposing
     ( Url
     , decode
+    , encode
     , href
     , text
     , unwrap
@@ -9,6 +10,7 @@ module Bookmark.Url exposing
 import Html
 import Html.Attributes as Attributes
 import Json.Decode as Decode
+import Json.Encode as Encode
 
 
 type Url
@@ -41,3 +43,12 @@ text (Url value) =
 decode : Decode.Decoder Url
 decode =
     Decode.andThen (Decode.succeed << Url) Decode.string
+
+
+
+-- encoder
+
+
+encode : Url -> Encode.Value
+encode (Url value) =
+    Encode.string value
