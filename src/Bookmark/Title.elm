@@ -15,7 +15,11 @@ type Title
 
 unwrap : Title -> String
 unwrap (Title value) =
-    value
+    if String.isEmpty value then
+        "(No title)"
+
+    else
+        value
 
 
 
@@ -23,8 +27,8 @@ unwrap (Title value) =
 
 
 text : Title -> Html.Html msg
-text (Title value) =
-    Html.text value
+text =
+    Html.text << unwrap
 
 
 
