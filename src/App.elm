@@ -174,7 +174,7 @@ update msg model =
                         Browser.Internal url ->
                             ( model
                             , Nav.pushUrl
-                                (model |> toSession |> Session.toNavKey)
+                                (Session.toNavKey <| toSession model)
                                 (Url.toString url)
                             )
 
@@ -204,8 +204,8 @@ update msg model =
                                 |> Session.mapAsLoggedIn bookmarks currentUser
                                 |> updateSession model
                             , maybeNextRoute
-                                |> Maybe.map (Route.replaceUrl (session |> Session.toNavKey))
-                                |> Maybe.withDefault (Route.replaceUrl (session |> Session.toNavKey) Route.Bookmarks)
+                                |> Maybe.map (Route.replaceUrl (Session.toNavKey session))
+                                |> Maybe.withDefault (Route.replaceUrl (Session.toNavKey session) Route.Bookmarks)
                             )
 
                         Err _ ->
@@ -264,8 +264,8 @@ logInGuard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 logInGuard ( page, cmd ) =
     let
         toBookmarksIfNotLoggedIn =
-            if page |> toSession |> Session.isLoggedIn then
-                ( page, Route.replaceUrl (page |> toSession |> Session.toNavKey) Route.Bookmarks )
+            if Session.isLoggedIn <| toSession page then
+                ( page, Route.replaceUrl (Session.toNavKey <| toSession page) Route.Bookmarks )
 
             else
                 ( page, cmd )
@@ -281,11 +281,11 @@ logInGuard ( page, cmd ) =
             toBookmarksIfNotLoggedIn
 
         _ ->
-            if page |> toSession |> Session.isLoggedIn then
+            if Session.isLoggedIn <| toSession page then
                 ( page, cmd )
 
             else
-                ( page, Route.replaceUrl (page |> toSession |> Session.toNavKey) Route.SignIn )
+                ( page, Route.replaceUrl (Session.toNavKey <| toSession page) Route.SignIn )
 
 
 updateWith :
@@ -336,24 +336,29 @@ view page =
             NotFound.view
 
         ResetPassword model ->
-            ResetPassword.view model
+            model
+                |> ResetPassword.view
                 |> Layout.mapMsg GotResetPasswordMsg
 
         SignIn model ->
-            SignIn.view model
+            model
+                |> SignIn.view
                 |> Layout.mapMsg GotSignInMsg
 
         SignUp model ->
-            SignUp.view model
+            model
+                |> SignUp.view
                 |> Layout.mapMsg GotSignUpMsg
 
         Bookmarks model ->
-            Bookmarks.view model
+            model
+                |> Bookmarks.view
                 |> Layout.withHeader (toSession page) Bookmarks.GotAppHeaderMsg
                 |> Layout.mapMsg GotBookmarksMsg
 
         NewBookmark model ->
-            NewBookmark.view model
+            model
+                |> NewBookmark.view 
                 |> Layout.withHeader (toSession page) NewBookmark.GotAppHeaderMsg
                 |> Layout.mapMsg GotNewBookmarkMsg
 
@@ -394,7 +399,8 @@ port loggedOut : (() -> msg) -> Sub msg
 
 decode : Decode.Decoder InitialData
 decode =
-    Decode.succeed InitialData
+    InitialData
+        |> Decode.succeed 
         |> Pipeline.required "bookmarks" Bookmarks.decode
         |> Pipeline.required "currentUser" User.decode
 
