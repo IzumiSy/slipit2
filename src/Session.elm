@@ -15,18 +15,24 @@ module Session exposing
 
 import Bookmarks exposing (Bookmarks)
 import Browser.Navigation as Nav
+import Toasts
 import Url
 import User as User
 
 
 
--- ページを横断してユーザーのログイン状態を保持する型
--- 現在のブックマーク一覧とログイン中のユーザーはキャッシュして持っておいて損はないので毎回取らずにセッションに載せる方式にしている
+{- ページを横断してユーザーのログイン状態を保持する型
+
+   現在のブックマーク一覧とログイン中のユーザーに関しては
+   キャッシュして持っておき毎回ネットワーク越しの取得処理を行わない
+
+-}
 
 
 type alias UserData =
     { bookmarks : Bookmarks
     , currentUser : User.User
+    , toasts : Toasts.Toasts
     }
 
 
@@ -66,10 +72,22 @@ mapAsLoggedIn : Bookmarks -> User.User -> Session -> Session
 mapAsLoggedIn bookmarks user session =
     case session of
         NotLoggedIn url navKey ->
-            LoggedIn url navKey { bookmarks = bookmarks, currentUser = user }
+            LoggedIn
+                url
+                navKey
+                { bookmarks = bookmarks
+                , currentUser = user
+                , toasts = Toasts.init
+                }
 
         LoggingIn url navKey ->
-            LoggedIn url navKey { bookmarks = bookmarks, currentUser = user }
+            LoggedIn
+                url
+                navKey
+                { bookmarks = bookmarks
+                , currentUser = user
+                , toasts = Toasts.init
+                }
 
         LoggedIn _ _ _ ->
             session
@@ -84,8 +102,8 @@ mapBookmarks bookmarks session =
         LoggingIn _ _ ->
             session
 
-        LoggedIn url navKey { currentUser } ->
-            LoggedIn url navKey { bookmarks = bookmarks, currentUser = currentUser }
+        LoggedIn url navKey userData ->
+            LoggedIn url navKey { userData | bookmarks = bookmarks }
 
 
 toNavKey : Session -> Nav.Key
