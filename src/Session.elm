@@ -1,6 +1,8 @@
 module Session exposing
     ( Msg(..)
+    , Ops(..)
     , Session
+    , Sessionable
     , UserData
     , init
     , isLoggedIn
@@ -9,10 +11,11 @@ module Session exposing
     , mapAsLoggingIn
     , mapAsNotLoggedIn
     , mapBookmarks
-    , toCmd
+    , runOps
     , toNavKey
     , toUserData
     , update
+    , updateWithMsg
     )
 
 import Bookmarks exposing (Bookmarks)
@@ -44,21 +47,61 @@ type Session
     | LoggedIn Url.Url Nav.Key UserData
 
 
-{-| アプリケーション全体の動きを制御するためのMsg
+type alias Sessionable a =
+    { a | session : Session }
+
+
+init : Url.Url -> Nav.Key -> Session
+init url navKey =
+    NotLoggedIn url navKey
+
+
+{-| アプリケーション全体の動きを制御するメッセージ
 -}
-type Msg
+type Ops
     = NoOp
-    | AddToast
+    | AddToast Toasts.Toast
+    | UnknownError String
 
 
-toCmd : Msg -> Cmd msg
-toCmd msg =
-    case msg of
-        NoOp ->
-            Cmd.none
+runOps : Ops -> Session -> ( Session, Cmd Msg )
+runOps ops session =
+    case session of
+        LoggedIn _ _ { toasts } ->
+            case ops of
+                AddToast toast ->
+                    toasts
+                        |> Toasts.add toast ToastsMsg
+                        |> Tuple.mapFirst (\nextToasts -> mapToasts nextToasts session)
 
-        AddToast ->
-            Cmd.none
+                _ ->
+                    ( session, Cmd.none )
+
+        _ ->
+            ( session, Cmd.none )
+
+
+type Msg
+    = ToastsMsg Toasts.Msg
+
+
+updateWithMsg : Msg -> Session -> ( Session, Cmd Msg )
+updateWithMsg msg session =
+    case session of
+        LoggedIn _ _ { toasts } ->
+            case msg of
+                ToastsMsg subMsg ->
+                    toasts
+                        |> Toasts.update ToastsMsg subMsg
+                        |> Tuple.mapFirst (\nextToasts -> mapToasts nextToasts session)
+
+        _ ->
+            ( session, Cmd.none )
+
+
+update : Session -> Sessionable a -> Sessionable a
+update newSession model =
+    { model | session = newSession }
 
 
 mapAsNotLoggedIn : Session -> Session
@@ -125,6 +168,19 @@ mapBookmarks bookmarks session =
             LoggedIn url navKey { userData | bookmarks = bookmarks }
 
 
+mapToasts : Toasts.Toasts -> Session -> Session
+mapToasts toasts session =
+    case session of
+        NotLoggedIn _ _ ->
+            session
+
+        LoggingIn _ _ ->
+            session
+
+        LoggedIn url navKey userData ->
+            LoggedIn url navKey { userData | toasts = toasts }
+
+
 toNavKey : Session -> Nav.Key
 toNavKey session =
     case session of
@@ -172,17 +228,3 @@ isLoggingIn session =
 
         LoggedIn _ _ _ ->
             False
-
-
-type alias Sessionable a =
-    { a | session : Session }
-
-
-update : Session -> Sessionable a -> Sessionable a
-update newSession model =
-    { model | session = newSession }
-
-
-init : Url.Url -> Nav.Key -> Session
-init url navKey =
-    NotLoggedIn url navKey

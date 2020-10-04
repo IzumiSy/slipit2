@@ -27,6 +27,7 @@ import Route
 import Session exposing (Session)
 import String.Interpolate exposing (interpolate)
 import Task
+import Toasts
 import User as User
 
 
@@ -82,7 +83,7 @@ type Msg
     | PagePrefetched (Result Http.Error Function.Result_)
 
 
-update : Msg -> Model -> ( Model, Cmd Msg, Session.Msg )
+update : Msg -> Model -> ( Model, Cmd Msg, Session.Ops )
 update msg model =
     case msg of
         SetUrl value ->
@@ -135,10 +136,13 @@ update msg model =
                 _ ->
                     ( model, Cmd.none, Session.NoOp )
 
-        CreatingNewBookmarkSucceeded _ ->
+        CreatingNewBookmarkSucceeded result ->
             ( model
             , Route.replaceUrl (Session.toNavKey model.session) Route.Bookmarks
-            , Session.NoOp
+            , result
+                |> Result.toMaybe
+                |> Maybe.map (Session.AddToast << Toasts.Added)
+                |> Maybe.withDefault Session.NoOp
             )
 
         CreatingNewBookmarkFailed _ ->
