@@ -73,16 +73,16 @@ renderer : Toast -> Html msg
 renderer toast =
     case toast of
         Added _ ->
-            Defaults.view <| Defaults.Success "Added!" "yo!"
+            Defaults.view <| Defaults.Success "Success" "New bookmark has Just been added!"
 
         Removed _ ->
-            Defaults.view <| Defaults.Success "Removed!" "yo!"
+            Defaults.view <| Defaults.Success "Success" "Bookmark has just been removed!"
 
         Updated _ ->
-            Defaults.view <| Defaults.Success "Updated!" "yo!"
+            Defaults.view <| Defaults.Success "Success" "Bookmark has just been updated!"
 
         Error err ->
-            Defaults.view <| Defaults.Error "Error!" err
+            Defaults.view <| Defaults.Error "Error" err
 
 
 config : Toasty.Config msg
