@@ -1,7 +1,7 @@
 module Toasts exposing (Toasts, init, view)
 
 import Bookmark exposing (Bookmark)
-import Html exposing (Html, div)
+import Html exposing (Html, div, text)
 import Toasty
 
 
@@ -14,8 +14,14 @@ import Toasty
 -}
 
 
+type Toast
+    = Added Bookmark
+    | Removed Bookmark
+    | Updated Bookmark
+
+
 type Toasts
-    = Toasts (Toasty.Stack Bookmark)
+    = Toasts (Toasty.Stack Toast)
 
 
 init : Toasts
@@ -27,18 +33,26 @@ init =
 -- view
 
 
-view : (Toasty.Msg Bookmark -> msg) -> Toasts -> Html msg
-view msg (Toasts toasty) =
-    Toasty.view config renderer msg toasty
+view : (Toasty.Msg Toast -> msg) -> Toasts -> Html msg
+view msg (Toasts toast) =
+    Toasty.view config renderer msg toast
 
 
 
 -- internals
 
 
-renderer : Bookmark -> Html msg
-renderer _ =
-    div [] []
+renderer : Toast -> Html msg
+renderer toast =
+    case toast of
+        Added _ ->
+            div [] [ text "added!" ]
+
+        Removed _ ->
+            div [] [ text "edited!" ]
+
+        Updated _ ->
+            div [] [ text "updated!" ]
 
 
 config : Toasty.Config msg
