@@ -76,13 +76,20 @@ runOps ops session =
                         |> Toasts.add toast ToastsMsg
                         |> Tuple.mapFirst (\nextToasts -> mapToasts nextToasts session)
 
-                _ ->
+                UnknownError err ->
+                    toasts
+                        |> Toasts.add (Toasts.Error err) ToastsMsg
+                        |> Tuple.mapFirst (\nextToasts -> mapToasts nextToasts session)
+
+                NoOp ->
                     ( session, Cmd.none )
 
         _ ->
             ( session, Cmd.none )
 
 
+{-| 特定のページに依存しないアプリケーション全体のグローバルな動作に関するMsg型
+-}
 type Msg
     = ToastsMsg Toasts.Msg
 
