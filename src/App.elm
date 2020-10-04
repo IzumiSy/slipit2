@@ -232,27 +232,27 @@ update msg model =
                 ( GotSignInMsg pageMsg, SignIn pageModel ) ->
                     pageModel
                         |> SignIn.update pageMsg
-                        |> updateWith SignIn GotSignInMsg
+                        |> pageUpdateWith SignIn GotSignInMsg
 
                 ( GotSignUpMsg pageMsg, SignUp pageModel ) ->
                     pageModel
                         |> SignUp.update pageMsg
-                        |> updateWith SignUp GotSignUpMsg
+                        |> pageUpdateWith SignUp GotSignUpMsg
 
                 ( GotResetPasswordMsg pageMsg, ResetPassword pageModel ) ->
                     pageModel
                         |> ResetPassword.update pageMsg
-                        |> updateWith ResetPassword GotResetPasswordMsg
+                        |> pageUpdateWith ResetPassword GotResetPasswordMsg
 
                 ( GotBookmarksMsg pageMsg, Bookmarks pageModel ) ->
                     pageModel
                         |> Bookmarks.update pageMsg
-                        |> updateWith Bookmarks GotBookmarksMsg
+                        |> pageUpdateWith Bookmarks GotBookmarksMsg
 
                 ( GotNewBookmarkMsg pageMsg, NewBookmark pageModel ) ->
                     pageModel
                         |> NewBookmark.update pageMsg
-                        |> updateWith NewBookmark GotNewBookmarkMsg
+                        |> pageUpdateWith NewBookmark GotNewBookmarkMsg
 
                 ( _, _ ) ->
                     ( model, Cmd.none )
@@ -288,13 +288,26 @@ logInGuard ( page, cmd ) =
                 ( page, Route.replaceUrl (Session.toNavKey <| toSession page) Route.SignIn )
 
 
-updateWith :
+{-| 特定のpageモジュールに閉じたupdateに対して使われる更新ヘルパ関数
+-}
+pageUpdateWith :
     (Model.Modelable pageModel -> model)
     -> (pageMsg -> msg)
     -> ( Model.Modelable pageModel, Cmd pageMsg )
     -> ( model, Cmd msg )
-updateWith toModel toMsg ( subModel, subCmd ) =
+pageUpdateWith toModel toMsg ( subModel, subCmd ) =
     ( toModel subModel, Cmd.map toMsg subCmd )
+
+
+{-| アプリケーション全体への副作用(Session.Msg)を含んでる場合に使われる更新ヘルパ関数
+-}
+appUpdateWith :
+    (Model.Modelable pageModel -> model)
+    -> (pageMsg -> msg)
+    -> ( Model.Modelable pageModel, Cmd pageMsg, Session.Msg )
+    -> ( model, Cmd msg )
+appUpdateWith toModel toMsg ( subModel, subCmd, sessionMsg ) =
+    ( toModel subModel, Cmd.batch [ Cmd.map toMsg subCmd, Session.toCmd sessionMsg ] )
 
 
 updateSession : Model -> Session -> Model
@@ -358,7 +371,7 @@ view page =
 
         NewBookmark model ->
             model
-                |> NewBookmark.view 
+                |> NewBookmark.view
                 |> Layout.withHeader (toSession page) NewBookmark.GotAppHeaderMsg
                 |> Layout.mapMsg GotNewBookmarkMsg
 
@@ -400,7 +413,7 @@ port loggedOut : (() -> msg) -> Sub msg
 decode : Decode.Decoder InitialData
 decode =
     InitialData
-        |> Decode.succeed 
+        |> Decode.succeed
         |> Pipeline.required "bookmarks" Bookmarks.decode
         |> Pipeline.required "currentUser" User.decode
 

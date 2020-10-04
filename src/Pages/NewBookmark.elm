@@ -28,7 +28,6 @@ import Route
 import Session exposing (Session)
 import String.Interpolate exposing (interpolate)
 import Task
-import Update.Extra as ExUpdate
 import User as User
 
 
@@ -85,79 +84,84 @@ type Msg
     | GotAppHeaderMsg AppHeader.Msg
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg, Session.Msg )
 update msg model =
     case msg of
         SetUrl value ->
-            ( { model | url = value }, Cmd.none )
+            ( { model | url = value }, Cmd.none, Session.NoOp )
 
         UrlBlurred ->
-            ( { model | url = Url.blur model.url }, Cmd.none )
+            ( { model | url = Url.blur model.url }, Cmd.none, Session.NoOp )
 
         SetTitle value ->
-            ( { model | title = value }, Cmd.none )
+            ( { model | title = value }, Cmd.none, Session.NoOp )
 
         TitleBlurred ->
-            ( { model | title = Title.blur model.title }, Cmd.none )
+            ( { model | title = Title.blur model.title }, Cmd.none, Session.NoOp )
 
         SetDescription value ->
-            ( { model | description = value }, Cmd.none )
+            ( { model | description = value }, Cmd.none, Session.NoOp )
 
         DescriptionBlurred ->
-            ( { model | description = Description.blur model.description }, Cmd.none )
+            ( { model | description = Description.blur model.description }, Cmd.none, Session.NoOp )
 
         CreatesNewbookmark ->
             case Session.toUserData model.session of
                 Just { currentUser } ->
-                    ( model, Cmd.none )
-                        |> ExUpdate.sequence update
-                            [ UrlBlurred
-                            , TitleBlurred
-                            , DescriptionBlurred
-                            ]
-                        |> Tuple.first
-                        |> (\nextModel ->
-                                ( nextModel
-                                , if isSubmittable nextModel then
-                                    createsNewBookmark
-                                        ( { url = Url.unwrap nextModel.url
-                                          , title = Title.unwrap nextModel.title
-                                          , description = Description.unwrap nextModel.description
-                                          }
-                                        , User.uid currentUser
-                                        )
+                    let
+                        {- 一度も入力フォーカスに入らずにボタンがクリックされる可能性があるため
+                           ボタンのクリック時にも再度各入力フォームの中身をblur関数でバリデーションしておく
+                        -}
+                        validatedModel =
+                            { model
+                                | description = Description.blur model.description
+                                , url = Url.blur model.url
+                                , title = Title.blur model.title
+                            }
+                    in
+                    ( validatedModel
+                    , if isSubmittable validatedModel then
+                        createsNewBookmark
+                            ( { url = Url.unwrap validatedModel.url
+                              , title = Title.unwrap validatedModel.title
+                              , description = Description.unwrap validatedModel.description
+                              }
+                            , User.uid currentUser
+                            )
 
-                                  else
-                                    Cmd.none
-                                )
-                           )
+                      else
+                        Cmd.none
+                    , Session.NoOp
+                    )
 
                 _ ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Session.NoOp )
 
         CreatingNewBookmarkSucceeded _ ->
             ( model
             , Route.replaceUrl (Session.toNavKey model.session) Route.Bookmarks
+            , Session.NoOp
             )
 
         CreatingNewBookmarkFailed _ ->
-            ( model, Cmd.none )
+            ( model, Cmd.none, Session.NoOp )
 
         PrefetchesPage ->
             ( model
             , model.flag.function
                 |> Function.run model.url
                 |> Task.attempt PagePrefetched
+            , Session.NoOp
             )
 
         PagePrefetched result ->
             case result of
                 Ok { title, description } ->
-                    ( { model | title = title, description = description }, Cmd.none )
+                    ( { model | title = title, description = description }, Cmd.none, Session.NoOp )
 
                 Err _ ->
                     -- TODO: エラーを出す
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Session.NoOp )
 
         GotAppHeaderMsg pageMsg ->
             AppHeader.update pageMsg model
