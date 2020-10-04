@@ -16,10 +16,12 @@ module Session exposing
     , toUserData
     , update
     , updateWithMsg
+    , viewToasts
     )
 
 import Bookmarks exposing (Bookmarks)
 import Browser.Navigation as Nav
+import Html exposing (Html, div)
 import Toasts
 import Url
 import User as User
@@ -228,3 +230,17 @@ isLoggingIn session =
 
         LoggedIn _ _ _ ->
             False
+
+
+
+-- view
+
+
+viewToasts : (Msg -> msg) -> Session -> Html msg
+viewToasts sessionMsg session =
+    case session of
+        LoggedIn _ _ { toasts } ->
+            Toasts.view (ToastsMsg >> sessionMsg) toasts
+
+        _ ->
+            div [] []

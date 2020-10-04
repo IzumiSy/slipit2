@@ -159,6 +159,7 @@ type Msg
     | GotResetPasswordMsg ResetPassword.Msg
     | GotBookmarksMsg Bookmarks.Msg
     | GotNewBookmarkMsg NewBookmark.Msg
+    | GotSessionMsg Session.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -249,9 +250,24 @@ update msg model =
                     |> pageUpdateWith Bookmarks GotBookmarksMsg
 
             ( GotNewBookmarkMsg pageMsg, NewBookmark pageModel ) ->
-                pageModel
-                    |> NewBookmark.update pageMsg
-                    |> appUpdateWith NewBookmark GotNewBookmarkMsg
+                let
+                    ( nextModel, nextCmd, sessionOps ) =
+                        NewBookmark.update pageMsg pageModel
+
+                    ( nextSession, sessionCmd ) =
+                        Session.runOps sessionOps (toSession model)
+
+                    ( nextModel2, cmd ) =
+                        pageUpdateWith NewBookmark GotNewBookmarkMsg ( Session.update nextSession nextModel, nextCmd )
+                in
+                ( nextModel2, Cmd.batch [ cmd, Cmd.map GotSessionMsg sessionCmd ] )
+
+            ( GotSessionMsg subMsg, page ) ->
+                let
+                    ( nextSession, sessionCmd ) =
+                        Session.updateWithMsg subMsg (toSession page)
+                in
+                ( updateSession model nextSession, Cmd.map GotSessionMsg sessionCmd )
 
             ( _, _ ) ->
                 ( model, Cmd.none )
@@ -291,15 +307,24 @@ pageUpdateWith toModel toMsg ( subModel, subCmd ) =
     ( toModel subModel, Cmd.map toMsg subCmd )
 
 
-{-| アプリケーション全体への副作用(Session.Msg)を含んでる場合に使われる更新ヘルパ関数
+{-| アプリケーション全体への副作用(Session.Ops)を含んでる場合に使われる更新ヘルパ関数
 -}
 appUpdateWith :
     (Model.Modelable pageModel -> model)
     -> (pageMsg -> msg)
-    -> ( Model.Modelable pageModel, Cmd pageMsg, Session.Msg )
-    -> ( model, Cmd msg )
-appUpdateWith toModel toMsg ( subModel, subCmd, sessionMsg ) =
-    ( toModel subModel, Cmd.batch [ Cmd.map toMsg subCmd, Session.toCmd sessionMsg ] )
+    -> Session
+    -> ( Model.Modelable pageModel, Cmd pageMsg, Session.Ops )
+    -> ( Session, model, Cmd msg )
+appUpdateWith toModel toMsg session ( subModel, subCmd, sessionOps ) =
+    let
+        ( nextSession, sessionCmd ) =
+            Session.runOps sessionOps session
+    in
+    ( nextSession
+    , toModel subModel
+      -- , Cmd.batch [ Cmd.map toMsg subCmd, Cmd.map GotSessionMsg sessionCmd ]
+    , Cmd.map toMsg subCmd
+    )
 
 
 updateSession : Model -> Session -> Model
@@ -418,7 +443,7 @@ main : Program Decode.Value Model Msg
 main =
     Browser.application
         { init = init
-        , view = Layout.asDocument << view
+        , view = Layout.asDocument GotSessionMsg << view
         , update = update
         , subscriptions = subscriptions
         , onUrlChange = UrlChanged

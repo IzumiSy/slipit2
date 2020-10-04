@@ -5,6 +5,7 @@ require("firebase/auth");
 require("firebase/firestore");
 require("siimple");
 require("./index.scss");
+require("./Toasty.css")
 const logoImage = require("../logo_small.png");
 
 firebase.initializeApp({
@@ -87,7 +88,11 @@ app.ports.createsNewBookmark.subscribe(([newBookmark, uid]) => {
     .collection("bookmarks")
     .doc(bookmarkId)
     .set(newBookmark)
-    .then(_ => app.ports.creatingNewBookmarkSucceeded.send(newBookmark))
+    .then(_ => 
+      app.ports.creatingNewBookmarkSucceeded.send(
+        Object.assign(newBookmark, { id: bookmarkId })
+      )
+    )
     .catch(fbError => {
       console.warn(fbError);
       app.ports.createNewBookmarkFailed.send({

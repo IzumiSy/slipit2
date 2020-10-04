@@ -9,8 +9,10 @@ module Toasts exposing
     )
 
 import Bookmark exposing (Bookmark)
-import Html exposing (Html, div, text)
+import Html exposing (Html)
+import Html.Attributes exposing (class, style)
 import Toasty
+import Toasty.Defaults as Defaults
 
 
 
@@ -26,6 +28,7 @@ type Toast
     = Added Bookmark
     | Removed Bookmark
     | Updated Bookmark
+    | Error String
 
 
 type Toasts
@@ -44,7 +47,7 @@ type Msg
 add : Toast -> (Msg -> msg) -> Toasts -> ( Toasts, Cmd msg )
 add toast toMsg (Toasts value) =
     Tuple.mapFirst (\{ toasties } -> Toasts toasties) <|
-        Toasty.addToast config (Msg >> toMsg) toast ( { toasties = value }, Cmd.none )
+        Toasty.addToastIfUnique config (Msg >> toMsg) toast ( { toasties = value }, Cmd.none )
 
 
 update : (Msg -> msg) -> Msg -> Toasts -> ( Toasts, Cmd msg )
@@ -57,9 +60,9 @@ update toMsg (Msg msg) (Toasts value) =
 -- view
 
 
-view : (Toasty.Msg Toast -> msg) -> Toasts -> Html msg
+view : (Msg -> msg) -> Toasts -> Html msg
 view msg (Toasts toast) =
-    Toasty.view config renderer msg toast
+    Toasty.view config renderer (Msg >> msg) toast
 
 
 
@@ -70,17 +73,29 @@ renderer : Toast -> Html msg
 renderer toast =
     case toast of
         Added _ ->
-            div [] [ text "added!" ]
+            Defaults.view <| Defaults.Success "Added!" "yo!"
 
         Removed _ ->
-            div [] [ text "edited!" ]
+            Defaults.view <| Defaults.Success "Removed!" "yo!"
 
         Updated _ ->
-            div [] [ text "updated!" ]
+            Defaults.view <| Defaults.Success "Updated!" "yo!"
+
+        Error err ->
+            Defaults.view <| Defaults.Error "Error!" err
 
 
 config : Toasty.Config msg
 config =
-    Toasty.config
-        |> Toasty.transitionOutDuration 100
-        |> Toasty.delay 8000
+    Defaults.config
+        |> Toasty.itemAttrs
+            [ style "margin" "1.5em 1.5em 0 1.5em"
+            , style "max-height" "100px"
+            , style "transition" "max-height 0.6s, margin-top 0.6s"
+            ]
+        |> Toasty.transitionOutDuration 700
+        |> Toasty.transitionOutAttrs
+            [ class "animated fadeOutRightBig"
+            , style "max-height" "0"
+            , style "margin-top" "0.75em"
+            ]

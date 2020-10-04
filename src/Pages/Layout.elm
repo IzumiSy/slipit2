@@ -58,8 +58,8 @@ withHeader session view =
             WithHeader session document
 
 
-asDocument : View msg -> Browser.Document msg
-asDocument view =
+asDocument : (Session.Msg -> msg) -> View msg -> Browser.Document msg
+asDocument sessionMsg view =
     case view of
         Plain document ->
             document
@@ -71,7 +71,8 @@ asDocument view =
                     [ AppHeader.view
                     , div
                         [ class "siimple-content siimple-content--extra-large" ]
-                        [ div [ class "siimple-grid" ] body
+                        [ Session.viewToasts sessionMsg session
+                        , div [ class "siimple-grid" ] body
                         ]
                     ]
                 }

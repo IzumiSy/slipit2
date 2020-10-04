@@ -80,7 +80,7 @@ type Msg
     | CreatingNewBookmarkSucceeded (Result Decode.Error Bookmark)
     | CreatingNewBookmarkFailed (Result Decode.Error String)
     | PrefetchesPage
-    | PagePrefetched (Result Http.Error Function.Result_)
+    | PagePrefetched (Result Function.Error Function.Result_)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg, Session.Ops )
@@ -161,9 +161,8 @@ update msg model =
                 Ok { title, description } ->
                     ( { model | title = title, description = description }, Cmd.none, Session.NoOp )
 
-                Err _ ->
-                    -- TODO: エラーを出す
-                    ( model, Cmd.none, Session.NoOp )
+                Err err ->
+                    ( model, Cmd.none, Session.AddToast <| Toasts.Error <| Function.errorToString err )
 
 
 

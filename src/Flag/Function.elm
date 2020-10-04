@@ -1,8 +1,10 @@
 module Flag.Function exposing
-    ( Function
+    ( Error
+    , Function
     , Result_
     , decode
     , empty
+    , errorToString
     , run
     )
 
@@ -31,7 +33,7 @@ type alias Result_ =
     }
 
 
-run : Url -> Function -> Task Http.Error Result_
+run : Url -> Function -> Task Error Result_
 run url function =
     case function of
         Available functionUrl ->
@@ -45,8 +47,29 @@ run url function =
                 }
 
         Unavailable ->
-            -- TODO: Service Unavailable的なエラーにしたい
-            Task.fail Http.NetworkError
+            Task.fail UnavailableError
+
+
+errorToString : Error -> String
+errorToString err =
+    case err of
+        BadUrl ->
+            "URL is invalid"
+
+        Timeout ->
+            "Request timeout"
+
+        NetworkError ->
+            "Network error"
+
+        BadStatus code ->
+            "HTTP error: " ++ String.fromInt code
+
+        BadBody reason ->
+            "Error: " ++ reason
+
+        UnavailableError ->
+            "URL fetching unavailable"
 
 
 
@@ -62,22 +85,31 @@ decode =
 -- internals
 
 
-runnerResolver : Http.Resolver Http.Error Result_
+type Error
+    = BadUrl
+    | Timeout
+    | NetworkError
+    | BadBody String
+    | BadStatus Int
+    | UnavailableError
+
+
+runnerResolver : Http.Resolver Error Result_
 runnerResolver =
     Http.stringResolver <|
         \response ->
             case response of
-                Http.BadUrl_ url_ ->
-                    Err (Http.BadUrl url_)
+                Http.BadUrl_ _ ->
+                    Err BadUrl
 
                 Http.Timeout_ ->
-                    Err Http.Timeout
+                    Err Timeout
 
                 Http.NetworkError_ ->
-                    Err Http.NetworkError
+                    Err NetworkError
 
                 Http.BadStatus_ metadata _ ->
-                    Err (Http.BadStatus metadata.statusCode)
+                    Err <| BadStatus metadata.statusCode
 
                 Http.GoodStatus_ _ body ->
                     body
@@ -86,5 +118,4 @@ runnerResolver =
                                 |> Pipeline.required "title" Title.decode
                                 |> Pipeline.required "description" Description.decode
                             )
-                        |> Result.mapError
-                            (\err -> Http.BadBody (Decode.errorToString err))
+                        |> Result.mapError (BadBody << Decode.errorToString)
