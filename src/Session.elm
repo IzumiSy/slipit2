@@ -1,5 +1,6 @@
 module Session exposing
-    ( Session
+    ( Msg(..)
+    , Session
     , UserData
     , init
     , isLoggedIn
@@ -8,6 +9,7 @@ module Session exposing
     , mapAsLoggingIn
     , mapAsNotLoggedIn
     , mapBookmarks
+    , toCmd
     , toNavKey
     , toUserData
     , update
@@ -40,6 +42,23 @@ type Session
     = NotLoggedIn Url.Url Nav.Key
     | LoggingIn Url.Url Nav.Key
     | LoggedIn Url.Url Nav.Key UserData
+
+
+{-| アプリケーション全体の動きを制御するためのMsg
+-}
+type Msg
+    = NoOp
+    | AddToast
+
+
+toCmd : Msg -> Cmd msg
+toCmd msg =
+    case msg of
+        NoOp ->
+            Cmd.none
+
+        AddToast ->
+            Cmd.none
 
 
 mapAsNotLoggedIn : Session -> Session
