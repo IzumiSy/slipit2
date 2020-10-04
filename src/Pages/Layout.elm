@@ -20,7 +20,7 @@ import Session
 
 type View msg
     = Plain (Browser.Document msg)
-    | WithHeader Session.Session (AppHeader.Msg -> msg) (Browser.Document msg)
+    | WithHeader Session.Session (Browser.Document msg)
 
 
 new : Browser.Document msg -> View msg
@@ -34,10 +34,9 @@ new { title, body } =
 mapMsg : (a -> msg) -> View a -> View msg
 mapMsg toMsg view =
     case view of
-        WithHeader session toHeaderMsg { title, body } ->
+        WithHeader session { title, body } ->
             WithHeader
                 session
-                (\msg -> msg |> toHeaderMsg |> toMsg)
                 { title = title
                 , body = List.map (Html.map toMsg) body
                 }
@@ -49,14 +48,14 @@ mapMsg toMsg view =
                 }
 
 
-withHeader : Session.Session -> (AppHeader.Msg -> msg) -> View msg -> View msg
-withHeader session toHeaderMsg view =
+withHeader : Session.Session -> View msg -> View msg
+withHeader session view =
     case view of
         Plain document ->
-            WithHeader session toHeaderMsg document
+            WithHeader session document
 
-        WithHeader _ _ document ->
-            WithHeader session toHeaderMsg document
+        WithHeader _ document ->
+            WithHeader session document
 
 
 asDocument : View msg -> Browser.Document msg
@@ -65,11 +64,11 @@ asDocument view =
         Plain document ->
             document
 
-        WithHeader session toMsg { title, body } ->
+        WithHeader session { title, body } ->
             if Session.isLoggedIn session then
                 { title = title
                 , body =
-                    [ AppHeader.view toMsg
+                    [ AppHeader.view
                     , div
                         [ class "siimple-content siimple-content--extra-large" ]
                         [ div [ class "siimple-grid" ] body

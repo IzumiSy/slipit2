@@ -7,7 +7,6 @@ port module Pages.NewBookmark exposing
     , view
     )
 
-import App.Header as AppHeader
 import App.Model as Model
 import Bookmark exposing (Bookmark)
 import Bookmark.Title as BookmarkTitle
@@ -81,7 +80,6 @@ type Msg
     | CreatingNewBookmarkFailed (Result Decode.Error String)
     | PrefetchesPage
     | PagePrefetched (Result Http.Error Function.Result_)
-    | GotAppHeaderMsg AppHeader.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg, Session.Msg )
@@ -162,9 +160,6 @@ update msg model =
                 Err _ ->
                     -- TODO: エラーを出す
                     ( model, Cmd.none, Session.NoOp )
-
-        GotAppHeaderMsg pageMsg ->
-            AppHeader.update pageMsg model
 
 
 

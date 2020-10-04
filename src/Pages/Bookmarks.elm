@@ -7,7 +7,6 @@ port module Pages.Bookmarks exposing
     , view
     )
 
-import App.Header as AppHeader
 import App.Model as Model
 import Bookmark exposing (Bookmark)
 import Bookmark.Description as Description
@@ -50,7 +49,6 @@ init flag session =
 
 type Msg
     = Noop
-    | GotAppHeaderMsg AppHeader.Msg
     | FetchedAllBookmarks (Result Decode.Error Bookmarks)
 
 
@@ -59,9 +57,6 @@ update msg model =
     case msg of
         Noop ->
             ( model, Cmd.none )
-
-        GotAppHeaderMsg pageMsg ->
-            AppHeader.update pageMsg model
 
         FetchedAllBookmarks result ->
             result

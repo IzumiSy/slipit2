@@ -163,129 +163,121 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        updated =
-            case ( msg, model ) of
-                ( LinkClicked urlRequest, _ ) ->
-                    case urlRequest of
-                        Browser.External href ->
-                            ( model, Nav.load href )
+    logInGuard <|
+        case ( msg, model ) of
+            ( LinkClicked urlRequest, _ ) ->
+                case urlRequest of
+                    Browser.External href ->
+                        ( model, Nav.load href )
 
-                        Browser.Internal url ->
-                            ( model
-                            , Nav.pushUrl
-                                (Session.toNavKey <| toSession model)
-                                (Url.toString url)
-                            )
+                    Browser.Internal url ->
+                        ( model
+                        , Nav.pushUrl
+                            (Session.toNavKey <| toSession model)
+                            (Url.toString url)
+                        )
 
-                ( UrlChanged url, _ ) ->
-                    url
-                        |> Route.fromUrl
-                        |> initPage
-                            { flag = toFlag model
-                            , session = toSession model
-                            }
+            ( UrlChanged url, _ ) ->
+                url
+                    |> Route.fromUrl
+                    |> initPage
+                        { flag = toFlag model
+                        , session = toSession model
+                        }
 
-                ( LogsOut, _ ) ->
-                    ( model, logsOut () )
+            ( LogsOut, _ ) ->
+                ( model, logsOut () )
 
-                ( LoggedOut _, _ ) ->
-                    ( model
-                        |> toSession
-                        |> Session.mapAsNotLoggedIn
-                        |> updateSession model
-                    , Cmd.none
-                    )
+            ( LoggedOut _, _ ) ->
+                ( model
+                    |> toSession
+                    |> Session.mapAsNotLoggedIn
+                    |> updateSession model
+                , Cmd.none
+                )
 
-                ( LoggedIn result, WaitForLoggingIn _ session maybeNextRoute ) ->
-                    case result of
-                        Ok { bookmarks, currentUser } ->
-                            ( session
-                                |> Session.mapAsLoggedIn bookmarks currentUser
-                                |> updateSession model
-                            , maybeNextRoute
-                                |> Maybe.map (Route.replaceUrl (Session.toNavKey session))
-                                |> Maybe.withDefault (Route.replaceUrl (Session.toNavKey session) Route.Bookmarks)
-                            )
+            ( LoggedIn result, WaitForLoggingIn _ session maybeNextRoute ) ->
+                case result of
+                    Ok { bookmarks, currentUser } ->
+                        ( session
+                            |> Session.mapAsLoggedIn bookmarks currentUser
+                            |> updateSession model
+                        , maybeNextRoute
+                            |> Maybe.map (Route.replaceUrl (Session.toNavKey session))
+                            |> Maybe.withDefault (Route.replaceUrl (Session.toNavKey session) Route.Bookmarks)
+                        )
 
-                        Err _ ->
-                            ( model, Cmd.none )
+                    Err _ ->
+                        ( model, Cmd.none )
 
-                ( LoggedIn result, SignIn _ ) ->
-                    case result of
-                        Ok { bookmarks, currentUser } ->
-                            ( model
+            ( LoggedIn result, SignIn _ ) ->
+                case result of
+                    Ok { bookmarks, currentUser } ->
+                        ( model
+                            |> toSession
+                            |> Session.mapAsLoggedIn bookmarks currentUser
+                            |> updateSession model
+                        , Route.replaceUrl
+                            (model
                                 |> toSession
-                                |> Session.mapAsLoggedIn bookmarks currentUser
-                                |> updateSession model
-                            , Route.replaceUrl
-                                (model
-                                    |> toSession
-                                    |> Session.toNavKey
-                                )
-                                Route.Bookmarks
+                                |> Session.toNavKey
                             )
+                            Route.Bookmarks
+                        )
 
-                        Err _ ->
-                            ( model, Cmd.none )
+                    Err _ ->
+                        ( model, Cmd.none )
 
-                ( GotSignInMsg pageMsg, SignIn pageModel ) ->
-                    pageModel
-                        |> SignIn.update pageMsg
-                        |> pageUpdateWith SignIn GotSignInMsg
+            ( GotSignInMsg pageMsg, SignIn pageModel ) ->
+                pageModel
+                    |> SignIn.update pageMsg
+                    |> pageUpdateWith SignIn GotSignInMsg
 
-                ( GotSignUpMsg pageMsg, SignUp pageModel ) ->
-                    pageModel
-                        |> SignUp.update pageMsg
-                        |> pageUpdateWith SignUp GotSignUpMsg
+            ( GotSignUpMsg pageMsg, SignUp pageModel ) ->
+                pageModel
+                    |> SignUp.update pageMsg
+                    |> pageUpdateWith SignUp GotSignUpMsg
 
-                ( GotResetPasswordMsg pageMsg, ResetPassword pageModel ) ->
-                    pageModel
-                        |> ResetPassword.update pageMsg
-                        |> pageUpdateWith ResetPassword GotResetPasswordMsg
+            ( GotResetPasswordMsg pageMsg, ResetPassword pageModel ) ->
+                pageModel
+                    |> ResetPassword.update pageMsg
+                    |> pageUpdateWith ResetPassword GotResetPasswordMsg
 
-                ( GotBookmarksMsg pageMsg, Bookmarks pageModel ) ->
-                    pageModel
-                        |> Bookmarks.update pageMsg
-                        |> pageUpdateWith Bookmarks GotBookmarksMsg
+            ( GotBookmarksMsg pageMsg, Bookmarks pageModel ) ->
+                pageModel
+                    |> Bookmarks.update pageMsg
+                    |> pageUpdateWith Bookmarks GotBookmarksMsg
 
-                ( GotNewBookmarkMsg pageMsg, NewBookmark pageModel ) ->
-                    pageModel
-                        |> NewBookmark.update pageMsg
-                        |> pageUpdateWith NewBookmark GotNewBookmarkMsg
+            ( GotNewBookmarkMsg pageMsg, NewBookmark pageModel ) ->
+                pageModel
+                    |> NewBookmark.update pageMsg
+                    |> appUpdateWith NewBookmark GotNewBookmarkMsg
 
-                ( _, _ ) ->
-                    ( model, Cmd.none )
-    in
-    logInGuard updated
+            ( _, _ ) ->
+                ( model, Cmd.none )
 
 
 logInGuard : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 logInGuard ( page, cmd ) =
     let
-        toBookmarksIfNotLoggedIn =
-            if Session.isLoggedIn <| toSession page then
-                ( page, Route.replaceUrl (Session.toNavKey <| toSession page) Route.Bookmarks )
-
-            else
-                ( page, cmd )
+        toBookmarks =
+            ( page, Route.replaceUrl (Session.toNavKey <| toSession page) Route.Bookmarks )
     in
-    case page of
-        SignIn _ ->
-            toBookmarksIfNotLoggedIn
+    case ( page, Session.isLoggedIn <| toSession page ) of
+        ( SignIn _, True ) ->
+            toBookmarks
 
-        SignUp _ ->
-            toBookmarksIfNotLoggedIn
+        ( SignUp _, True ) ->
+            toBookmarks
 
-        ResetPassword _ ->
-            toBookmarksIfNotLoggedIn
+        ( ResetPassword _, True ) ->
+            toBookmarks
 
-        _ ->
-            if Session.isLoggedIn <| toSession page then
-                ( page, cmd )
+        ( _, False ) ->
+            ( page, Route.replaceUrl (Session.toNavKey <| toSession page) Route.SignIn )
 
-            else
-                ( page, Route.replaceUrl (Session.toNavKey <| toSession page) Route.SignIn )
+        ( _, _ ) ->
+            ( page, cmd )
 
 
 {-| 特定のpageモジュールに閉じたupdateに対して使われる更新ヘルパ関数
@@ -366,13 +358,13 @@ view page =
         Bookmarks model ->
             model
                 |> Bookmarks.view
-                |> Layout.withHeader (toSession page) Bookmarks.GotAppHeaderMsg
+                |> Layout.withHeader (toSession page)
                 |> Layout.mapMsg GotBookmarksMsg
 
         NewBookmark model ->
             model
                 |> NewBookmark.view
-                |> Layout.withHeader (toSession page) NewBookmark.GotAppHeaderMsg
+                |> Layout.withHeader (toSession page)
                 |> Layout.mapMsg GotNewBookmarkMsg
 
 
