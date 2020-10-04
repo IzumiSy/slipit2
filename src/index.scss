@@ -118,6 +118,15 @@ h2.login-header {
   white-space: nowrap;
 }
 
+.header-title {
+  line-height: initial;
+
+  & > sup {
+    font-size: 12px;
+    margin-left: 3px;
+  }
+}
+
 .bookmarks-header {
   margin-bottom: 0;
   line-height: 33px;
