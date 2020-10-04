@@ -113,10 +113,12 @@ header bookmarks =
         [ div
             [ class "siimple-grid-col siimple-grid-col--12" ]
             [ div
-                [ class "siimple--clearfix" ]
+                [ class "siimple--clearfix header-border" ]
                 [ div
                     [ class "siimple--float-left" ]
-                    [ div [ class "siimple-h3" ] [ text (interpolate "Bookmarks ({0})" [ bookmarkCount ]) ]
+                    [ div
+                        [ class "siimple-h3 bookmarks-header" ]
+                        [ text (interpolate "Bookmarks ({0})" [ bookmarkCount ]) ]
                     ]
                 , div
                     [ class "siimple--float-right" ]
