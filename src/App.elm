@@ -250,17 +250,9 @@ update msg model =
                     |> pageUpdateWith Bookmarks GotBookmarksMsg
 
             ( GotNewBookmarkMsg pageMsg, NewBookmark pageModel ) ->
-                let
-                    ( nextModel, nextCmd, sessionOps ) =
-                        NewBookmark.update pageMsg pageModel
-
-                    ( nextSession, sessionCmd ) =
-                        Session.runOps sessionOps (toSession model)
-
-                    ( nextModel2, cmd ) =
-                        pageUpdateWith NewBookmark GotNewBookmarkMsg ( Session.update nextSession nextModel, nextCmd )
-                in
-                ( nextModel2, Cmd.batch [ cmd, Cmd.map GotSessionMsg sessionCmd ] )
+                pageModel
+                    |> NewBookmark.update pageMsg
+                    |> appUpdateWith NewBookmark GotNewBookmarkMsg (toSession model)
 
             ( GotSessionMsg subMsg, page ) ->
                 let
@@ -300,9 +292,9 @@ logInGuard ( page, cmd ) =
 -}
 pageUpdateWith :
     (Model.Modelable pageModel -> model)
-    -> (pageMsg -> msg)
+    -> (pageMsg -> Msg)
     -> ( Model.Modelable pageModel, Cmd pageMsg )
-    -> ( model, Cmd msg )
+    -> ( model, Cmd Msg )
 pageUpdateWith toModel toMsg ( subModel, subCmd ) =
     ( toModel subModel, Cmd.map toMsg subCmd )
 
@@ -311,20 +303,19 @@ pageUpdateWith toModel toMsg ( subModel, subCmd ) =
 -}
 appUpdateWith :
     (Model.Modelable pageModel -> model)
-    -> (pageMsg -> msg)
+    -> (pageMsg -> Msg)
     -> Session
     -> ( Model.Modelable pageModel, Cmd pageMsg, Session.Ops )
-    -> ( Session, model, Cmd msg )
+    -> ( model, Cmd Msg )
 appUpdateWith toModel toMsg session ( subModel, subCmd, sessionOps ) =
     let
         ( nextSession, sessionCmd ) =
             Session.runOps sessionOps session
+
+        ( nextModel, nextCmd ) =
+            pageUpdateWith toModel toMsg ( Session.update nextSession subModel, subCmd )
     in
-    ( nextSession
-    , toModel subModel
-      -- , Cmd.batch [ Cmd.map toMsg subCmd, Cmd.map GotSessionMsg sessionCmd ]
-    , Cmd.map toMsg subCmd
-    )
+    ( nextModel, Cmd.batch [ nextCmd, Cmd.map GotSessionMsg sessionCmd ] )
 
 
 updateSession : Model -> Session -> Model
