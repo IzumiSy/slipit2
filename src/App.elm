@@ -255,11 +255,11 @@ update msg model =
                     |> appUpdateWith NewBookmark GotNewBookmarkMsg (toSession model)
 
             ( GotSessionMsg subMsg, page ) ->
-                let
-                    ( nextSession, sessionCmd ) =
-                        Session.updateWithMsg subMsg (toSession page)
-                in
-                ( updateSession model nextSession, Cmd.map GotSessionMsg sessionCmd )
+                page
+                    |> toSession
+                    |> Session.updateWithMsg subMsg
+                    |> Tuple.mapFirst (updateSession model)
+                    |> ExUpdate.mapCmd GotSessionMsg
 
             ( _, _ ) ->
                 ( model, Cmd.none )
@@ -310,12 +310,13 @@ appUpdateWith :
 appUpdateWith toModel toMsg session ( subModel, subCmd, sessionOps ) =
     let
         ( nextSession, sessionCmd ) =
-            Session.runOps sessionOps session
+            ExUpdate.mapCmd GotSessionMsg <|
+                Session.runOps sessionOps session
 
-        ( nextModel, nextCmd ) =
+        ( nextModel, pageCmd ) =
             pageUpdateWith toModel toMsg ( Session.update nextSession subModel, subCmd )
     in
-    ( nextModel, Cmd.batch [ nextCmd, Cmd.map GotSessionMsg sessionCmd ] )
+    ( nextModel, Cmd.batch [ pageCmd, sessionCmd ] )
 
 
 updateSession : Model -> Session -> Model
