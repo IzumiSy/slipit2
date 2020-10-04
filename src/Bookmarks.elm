@@ -1,12 +1,10 @@
 port module Bookmarks exposing
     ( Bookmarks
-    , Ordered
     , decode
     , find
-    , map
     , persistToCache
     , size
-    , toListOrdered
+    , toList
     )
 
 import Bookmark exposing (Bookmark)
@@ -45,24 +43,9 @@ find url (Bookmarks bookmarks) =
     Dict.get (NewBookmarkUrl.unwrap url) bookmarks
 
 
-toListOrdered : Bookmarks -> Ordered
-toListOrdered (Bookmarks bookmarks) =
-    Ordered <| Dict.values bookmarks
-
-
-{-| 順序が保証されたList型のBookmarkを表現する型
-
-Bookmarks型は内部実装をDictにすることで検索処理の計算量を下げているので
-Viewにマッピングする際には明示的にtoListOrdered関数経由で敢えて順序があることを明示するようにしている
-
--}
-type Ordered
-    = Ordered (List Bookmark)
-
-
-map : (Bookmark -> a) -> Ordered -> List a
-map cb (Ordered bookmarks) =
-    List.map cb bookmarks
+toList : Bookmarks -> List Bookmark
+toList (Bookmarks bookmarks) =
+    Dict.values bookmarks
 
 
 {-| Cacheへの永続化インターフェイス

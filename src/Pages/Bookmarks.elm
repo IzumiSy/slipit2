@@ -92,8 +92,8 @@ view model =
                             , div
                                 [ class "siimple-grid-row" ]
                                 (bookmarks
-                                    |> Bookmarks.toListOrdered
-                                    |> Bookmarks.map viewBookmarkCard
+                                    |> Bookmarks.toList
+                                    |> List.map viewBookmarkCard
                                 )
                             ]
                     )
