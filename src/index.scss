@@ -106,6 +106,10 @@ h2.login-header {
 
 .bookmark-item-body {
   height: 150px;
+
+  &:hover {
+    transform: translateY(2px);
+  }
 }
 
 .siimple-card-subtitle {
