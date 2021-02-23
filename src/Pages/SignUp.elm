@@ -4,14 +4,21 @@ import App.Model as Model
 import Flag
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Pages.Form.Email as Email exposing (Email)
-import Pages.Form.Password as Password exposing (Password)
 import Pages.Layout as Layout
 import Session exposing (Session)
+import Typed exposing (Typed)
 
 
 
 -- model
+
+
+type alias Email =
+    Typed EmailType String Typed.ReadWrite
+
+
+type alias Password =
+    Typed PasswordType String Typed.ReadWrite
 
 
 type alias Model =
@@ -23,8 +30,8 @@ type alias Model =
 
 init : Flag.Flag -> Session -> ( Model, Cmd Msg )
 init flag session =
-    ( { email = Email.empty
-      , password = Password.empty
+    ( { email = Typed.new ""
+      , password = Typed.new ""
       , flag = flag
       , session = session
       }
@@ -37,8 +44,8 @@ init flag session =
 
 
 type Msg
-    = SetEmail String
-    | SetPassword String
+    = SetEmail Email
+    | SetPassword Password
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -56,3 +63,15 @@ view model =
         { title = "Sign Up"
         , body = [ div [] [ text "signup" ] ]
         }
+
+
+
+-- internals
+
+
+type EmailType
+    = EmailType
+
+
+type PasswordType
+    = PasswordType

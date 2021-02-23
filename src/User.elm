@@ -6,6 +6,19 @@ module User exposing
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Typed exposing (Typed)
+
+
+type alias Uid =
+    Typed UidType String Typed.ReadOnly
+
+
+type alias Email =
+    Typed EmailType String Typed.ReadOnly
+
+
+type alias DisplayName =
+    Typed DisplayNameType String Typed.ReadOnly
 
 
 
@@ -15,13 +28,13 @@ import Json.Decode.Pipeline as Pipeline
 
 type User
     = User
-        { uid : String
-        , email : String
-        , displayName : Maybe String
+        { uid : Uid
+        , email : Email
+        , displayName : Maybe DisplayName
         }
 
 
-uid : User -> String
+uid : User -> Uid
 uid (User user) =
     user.uid
 
@@ -40,6 +53,22 @@ decode =
                 , displayName = displayName
                 }
         )
-        |> Pipeline.required "uid" Decode.string
-        |> Pipeline.required "email" Decode.string
-        |> Pipeline.optional "displayName" (Decode.map Just Decode.string) Nothing
+        |> Pipeline.required "uid" (Typed.decode Decode.string)
+        |> Pipeline.required "email" (Typed.decode Decode.string)
+        |> Pipeline.optional "displayName" (Decode.map Just (Typed.decode Decode.string)) Nothing
+
+
+
+-- internals
+
+
+type UidType
+    = UidType
+
+
+type EmailType
+    = EmailType
+
+
+type DisplayNameType
+    = DisplayNameType

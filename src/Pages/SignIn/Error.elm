@@ -7,18 +7,27 @@ module Pages.SignIn.Error exposing
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Typed exposing (Typed)
+
+
+type alias Code =
+    Typed CodeType String Typed.ReadOnly
+
+
+type alias Message =
+    Typed MessageType String Typed.ReadOnly
 
 
 type alias Payload =
-    { code : String
-    , message : String
+    { code : Code
+    , message : Message
     }
 
 
 type Error
     = None
     | FBAuth Payload
-    | Other String
+    | Other Message
 
 
 init : Error
@@ -26,7 +35,7 @@ init =
     None
 
 
-message : Error -> Maybe String
+message : Error -> Maybe Message
 message error =
     case error of
         None ->
@@ -48,14 +57,22 @@ decoder =
 -- interals
 
 
+type CodeType
+    = CodeType
+
+
+type MessageType
+    = MessageType
+
+
 fbauthDecoder : Decode.Decoder Error
 fbauthDecoder =
     Decode.succeed Payload
-        |> Pipeline.required "code" Decode.string
-        |> Pipeline.required "message" Decode.string
+        |> Pipeline.required "code" (Typed.decode Decode.string)
+        |> Pipeline.required "message" (Typed.decode Decode.string)
         |> Decode.andThen (Decode.succeed << FBAuth)
 
 
 otherDecoder : Decode.Decoder Error
 otherDecoder =
-    Decode.andThen (Decode.succeed << Other) Decode.string
+    Decode.andThen (Decode.succeed << Other) (Typed.decode Decode.string)

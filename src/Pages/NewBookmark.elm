@@ -125,7 +125,7 @@ update msg model =
                               , title = Title.unwrap validatedModel.title
                               , description = Description.unwrap validatedModel.description
                               }
-                            , User.uid currentUser
+                            , Typed.value <| User.uid currentUser
                             )
 
                       else

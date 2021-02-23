@@ -5,17 +5,25 @@ import Flag
 import Flag.Logo as Logo
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onInput)
 import Json.Decode as Decode
 import Pages
-import Pages.Form.Email as Email exposing (Email)
-import Pages.Form.Password as Password exposing (Password)
 import Pages.Layout as Layout
 import Pages.SignIn.Error as Error
 import Session exposing (Session)
+import Typed exposing (Typed)
 
 
 
 -- model
+
+
+type alias Email =
+    Typed EmailType String Typed.ReadWrite
+
+
+type alias Password =
+    Typed PasswordType String Typed.ReadWrite
 
 
 type alias Model =
@@ -28,8 +36,8 @@ type alias Model =
 
 init : Flag.Flag -> Session -> ( Model, Cmd Msg )
 init flag session =
-    ( { email = Email.empty
-      , password = Password.empty
+    ( { email = Typed.new ""
+      , password = Typed.new ""
       , error = Error.init
       , flag = flag
       , session = session
@@ -61,8 +69,8 @@ update msg model =
         StartsLoggingIn ->
             ( { model | session = model.session |> Session.mapAsLoggingIn }
             , startsLoggingIn
-                { password = Password.toString model.password
-                , email = Email.toString model.email
+                { password = Typed.value model.password
+                , email = Typed.value model.email
                 }
             )
 
@@ -86,22 +94,30 @@ update msg model =
 
 viewEmail : Model -> Html Msg
 viewEmail { email, session } =
-    Email.view
-        SetEmail
-        [ class "siimple-input siimple-input--fluid"
+    Html.input
+        [ type_ "email"
+        , class "siimple-input siimple-input--fluid"
         , disabled <| Session.isLoggingIn session
+        , placeholder "Your email"
+        , required True
+        , value <| Typed.value email
+        , onInput (SetEmail << Typed.new)
         ]
-        email
+        []
 
 
 viewPassword : Model -> Html Msg
 viewPassword { password, session } =
-    Password.view
-        SetPassword
-        [ class "siimple-input siimple-input--fluid"
+    Html.input
+        [ type_ "password"
+        , class "siimple-input siimple-input--fluid"
         , disabled <| Session.isLoggingIn session
+        , placeholder "Your password"
+        , required True
+        , value <| Typed.value password
+        , onInput (SetPassword << Typed.new)
         ]
-        password
+        []
 
 
 view : Model -> Layout.View Msg
@@ -124,7 +140,7 @@ view ({ flag, error, session } as model) =
                             , Html.form [ Pages.onSubmitWithPrevented StartsLoggingIn, class "siimple-form login-fields" ]
                                 [ error
                                     |> Error.message
-                                    |> Maybe.map (\message -> div [ class "siimple-alert siimple-alert--warning" ] [ text message ])
+                                    |> Maybe.map (\message -> div [ class "siimple-alert siimple-alert--warning" ] [ text <| Typed.value message ])
                                     |> Maybe.withDefault (div [] [])
                                 , div [ class "siimple-form-field" ]
                                     [ div [ class "siimple-form-field-label" ] [ text "E-mail" ]
@@ -171,9 +187,12 @@ view ({ flag, error, session } as model) =
 
 
 
--- subscription
--- ログイン成功に関してはページをまたいでハンドリングする必要があるためApp.elm側でサブスクライブしている
--- 一方でログイン時のエラーはログイン画面でだけ必要なのでこちらにだけあればよい
+{- subscription
+
+   ログイン成功に関してはページをまたいでハンドリングする必要があるためApp.elm側でサブスクライブしている
+   一方でログイン時のエラーはログイン画面でだけ必要なのでこちらにだけあればよい
+
+-}
 
 
 subscriptions : Sub Msg
@@ -191,3 +210,15 @@ port startsLoggingIn : { email : String, password : String } -> Cmd msg
 
 
 port loggingInFailed : (Decode.Value -> msg) -> Sub msg
+
+
+
+-- internals
+
+
+type EmailType
+    = EmailType
+
+
+type PasswordType
+    = PasswordType
