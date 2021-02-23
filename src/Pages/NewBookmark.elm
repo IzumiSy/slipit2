@@ -9,7 +9,6 @@ port module Pages.NewBookmark exposing
 
 import App.Model as Model
 import Bookmark exposing (Bookmark)
-import Bookmark.Title as BookmarkTitle
 import Bookmarks
 import Flag
 import Flag.Function as Function
@@ -28,6 +27,7 @@ import Session exposing (Session)
 import String.Interpolate exposing (interpolate)
 import Task
 import Toasts
+import Typed
 import User as User
 
 
@@ -189,7 +189,7 @@ view ({ url, title, description, session } as model) =
                                         [ text <|
                                             interpolate
                                                 "\"{0}\" is already bookmarked!"
-                                                [ BookmarkTitle.unwrap <| Bookmark.title bookmark ]
+                                                [ Typed.value <| Bookmark.title bookmark ]
                                         ]
                                 )
                             |> Maybe.withDefault (div [] [])

@@ -9,9 +9,6 @@ port module Pages.Bookmarks exposing
 
 import App.Model as Model
 import Bookmark exposing (Bookmark)
-import Bookmark.Description as Description
-import Bookmark.Title as Title
-import Bookmark.Url as Url
 import Bookmarks exposing (Bookmarks)
 import Flag
 import Html exposing (..)
@@ -21,6 +18,7 @@ import Json.Decode as Decode
 import Pages.Layout as Layout
 import Session exposing (Session)
 import String.Interpolate exposing (interpolate)
+import Typed
 
 
 
@@ -131,11 +129,11 @@ header bookmarks =
 viewBookmarkCard : Bookmark -> Html msg
 viewBookmarkCard bookmark =
     div [ class "siimple-grid-col siimple-grid-col--3 siimple-grid-col--lg-4 siimple-grid-col--md-6 siimple-grid-col--xs-12" ]
-        [ a [ class "bookmark-item siimple-card", Url.href <| Bookmark.url bookmark ]
+        [ a [ class "bookmark-item siimple-card", href <| Typed.value <| Bookmark.url bookmark ]
             [ div [ class "bookmark-item-body siimple-card-body" ]
-                [ div [ class "siimple-card-title" ] [ Title.text <| Bookmark.title bookmark ]
-                , div [ class "siimple-card-subtitle" ] [ Url.text <| Bookmark.url bookmark ]
-                , Description.text <| Bookmark.description bookmark
+                [ div [ class "siimple-card-title" ] [ text <| Typed.value <| Bookmark.title bookmark ]
+                , div [ class "siimple-card-subtitle" ] [ text <| Typed.value <| Bookmark.url bookmark ]
+                , text <| Typed.value <| Bookmark.description bookmark
                 ]
             ]
         ]

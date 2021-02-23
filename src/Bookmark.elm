@@ -7,13 +7,26 @@ module Bookmark exposing
     , url
     )
 
-import Bookmark.Description as Description exposing (Description)
-import Bookmark.Id as Id exposing (Id)
-import Bookmark.Title as Title exposing (Title)
-import Bookmark.Url as Url exposing (Url)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
+import Typed exposing (Typed)
+
+
+type alias Id =
+    Typed IdType String Typed.ReadOnly
+
+
+type alias Url =
+    Typed UrlType String Typed.ReadOnly
+
+
+type alias Title =
+    Typed TitleType String Typed.ReadOnly
+
+
+type alias Description =
+    Typed DescriptionType String Typed.ReadOnly
 
 
 type Bookmark
@@ -30,7 +43,7 @@ description (Bookmark _ _ _ value) =
     value
 
 
-url : Bookmark -> Url.Url
+url : Bookmark -> Url
 url (Bookmark _ value _ _) =
     value
 
@@ -42,17 +55,37 @@ url (Bookmark _ value _ _) =
 decoder : Decode.Decoder Bookmark
 decoder =
     Decode.succeed Bookmark
-        |> Pipeline.required "id" Id.decode
-        |> Pipeline.required "url" Url.decode
-        |> Pipeline.required "title" Title.decode
-        |> Pipeline.required "description" Description.decode
+        |> Pipeline.required "id" (Typed.decode Decode.string)
+        |> Pipeline.required "url" (Typed.decode Decode.string)
+        |> Pipeline.required "title" (Typed.decode Decode.string)
+        |> Pipeline.required "description" (Typed.decode Decode.string)
 
 
 encoder : Bookmark -> Encode.Value
 encoder (Bookmark id url_ title_ description_) =
     Encode.object
-        [ ( "id", Id.encode id )
-        , ( "url", Url.encode url_ )
-        , ( "title", Title.encode title_ )
-        , ( "description", Description.encode description_ )
+        [ ( "id", Typed.encode Encode.string id )
+        , ( "url", Typed.encode Encode.string url_ )
+        , ( "title", Typed.encode Encode.string title_ )
+        , ( "description", Typed.encode Encode.string description_ )
         ]
+
+
+
+-- internals
+
+
+type IdType
+    = IdType
+
+
+type UrlType
+    = UrlType
+
+
+type TitleType
+    = TitleType
+
+
+type DescriptionType
+    = DescriptionType

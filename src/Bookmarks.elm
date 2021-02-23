@@ -8,11 +8,11 @@ port module Bookmarks exposing
     )
 
 import Bookmark exposing (Bookmark)
-import Bookmark.Url as Url
 import Dict
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Pages.NewBookmark.Url as NewBookmarkUrl
+import Typed
 
 
 
@@ -70,7 +70,7 @@ decode =
             (Decode.succeed
                 << Bookmarks
                 << Dict.fromList
-                << List.map (\bookmark -> ( Url.unwrap <| Bookmark.url bookmark, bookmark ))
+                << List.map (\bookmark -> ( Typed.value <| Bookmark.url bookmark, bookmark ))
             )
 
 
