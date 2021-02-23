@@ -42,7 +42,10 @@ exports.handler = (event, context, callback) => {
       return;
     }
 
-    const result = { title: "", description: "" };
+    const result = {
+      title: "(no title)",
+      description: "(no description)"
+    };
 
     try {
       const dom = HtmlParser.parse(body);
@@ -53,8 +56,13 @@ exports.handler = (event, context, callback) => {
         .map(x => x.rawAttributes)
         .filter(x => x.name == "description");
 
-      if ($title) result.title = $title.text;
-      if ($description.length) result.description = $description[0].content;
+      if ($title) {
+        result.title = $title.text;
+      }
+
+      if ($description.length) {
+        result.description = $description[0].content;
+      }
 
       callback(
         null,
