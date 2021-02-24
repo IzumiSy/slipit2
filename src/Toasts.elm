@@ -1,9 +1,11 @@
 module Toasts exposing
-    ( Msg
+    ( ErrorMessage
+    , Msg
     , Toast(..)
     , Toasts
     , add
     , init
+    , newError
     , update
     , view
     )
@@ -13,6 +15,7 @@ import Html exposing (Html)
 import Html.Attributes exposing (class, style)
 import Toasty
 import Toasty.Defaults as Defaults
+import Typed exposing (Typed)
 
 
 
@@ -24,11 +27,15 @@ import Toasty.Defaults as Defaults
 -}
 
 
+type alias ErrorMessage =
+    Typed ErrorMessageType String Typed.ReadWrite
+
+
 type Toast
     = Added Bookmark
     | Removed Bookmark
     | Updated Bookmark
-    | Error String
+    | Error ErrorMessage
 
 
 type Toasts
@@ -38,6 +45,11 @@ type Toasts
 init : Toasts
 init =
     Toasts Toasty.initialState
+
+
+newError : String -> ErrorMessage
+newError =
+    Typed.new
 
 
 type Msg
@@ -82,7 +94,7 @@ renderer toast =
             Defaults.view <| Defaults.Success "Success" "Bookmark has just been updated!"
 
         Error err ->
-            Defaults.view <| Defaults.Error "Error" err
+            Defaults.view <| Defaults.Error "Error" (Typed.value err)
 
 
 config : Toasty.Config msg
@@ -99,3 +111,7 @@ config =
             , style "max-height" "0"
             , style "margin-top" "0.75em"
             ]
+
+
+type ErrorMessageType
+    = ErrorMessageType

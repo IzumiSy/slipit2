@@ -162,7 +162,7 @@ update msg model =
                     ( { model | title = title, description = description }, Cmd.none, Session.NoOp )
 
                 Err err ->
-                    ( model, Cmd.none, Session.AddToast <| Toasts.Error <| Function.errorToString err )
+                    ( model, Cmd.none, Session.UnknownError <| Toasts.newError <| Function.errorToString err )
 
 
 

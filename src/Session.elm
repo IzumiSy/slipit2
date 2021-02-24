@@ -63,7 +63,7 @@ init url navKey =
 type Ops
     = NoOp
     | AddToast Toasts.Toast
-    | UnknownError String
+    | UnknownError Toasts.ErrorMessage
 
 
 runOps : Ops -> Session -> ( Session, Cmd Msg )
