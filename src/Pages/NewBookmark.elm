@@ -15,7 +15,6 @@ import Flag.Function as Function
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Http
 import Json.Decode as Decode
 import Pages
 import Pages.Layout as Layout
@@ -162,7 +161,7 @@ update msg model =
                     ( { model | title = title, description = description }, Cmd.none, Session.NoOp )
 
                 Err err ->
-                    ( model, Cmd.none, Session.UnknownError <| Toasts.newError <| Function.errorToString err )
+                    ( model, Cmd.none, Session.UnknownError <| Function.errorToString err )
 
 
 

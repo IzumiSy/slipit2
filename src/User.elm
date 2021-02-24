@@ -21,11 +21,11 @@ type alias DisplayName =
     Typed DisplayNameType String Typed.ReadOnly
 
 
+{-| Userのデータ構造を表現した型
 
--- Userのデータ構造を表現した型
--- TODO: Firebase Authenticationのデータ構造と結合してるのでどうにかしたい
+TODO: Firebase Authenticationのデータ構造と結合してるのでどうにかしたい
 
-
+-}
 type User
     = User
         { uid : Uid

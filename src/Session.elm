@@ -25,7 +25,7 @@ import Html exposing (Html, div)
 import Toasts
 import Url
 import User as User
-
+import Typed
 
 
 {- ページを横断してユーザーのログイン状態を保持する型
@@ -59,11 +59,14 @@ init url navKey =
 
 
 {-| アプリケーション全体の動きを制御するメッセージ
+
+UnknownErrorのペイロードはどんなメッセージでも与えられるよう意図的にStringにしている
+
 -}
 type Ops
     = NoOp
     | AddToast Toasts.Toast
-    | UnknownError Toasts.ErrorMessage
+    | UnknownError String
 
 
 runOps : Ops -> Session -> ( Session, Cmd Msg )
@@ -76,9 +79,9 @@ runOps ops session =
                         |> Toasts.add toast ToastsMsg
                         |> Tuple.mapFirst (\nextToasts -> mapToasts nextToasts session)
 
-                UnknownError err ->
+                UnknownError msg ->
                     toasts
-                        |> Toasts.add (Toasts.Error err) ToastsMsg
+                        |> Toasts.add (Toasts.Error <| Typed.new msg) ToastsMsg
                         |> Tuple.mapFirst (\nextToasts -> mapToasts nextToasts session)
 
                 NoOp ->
