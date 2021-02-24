@@ -3,6 +3,7 @@ module Pages.NewBookmark.Description exposing
     , blur
     , decode
     , empty
+    , encode
     , error
     , new
     , unwrap
@@ -12,6 +13,7 @@ module Pages.NewBookmark.Description exposing
 import Html
 import Html.Attributes exposing (class, placeholder)
 import Json.Decode as Decode
+import Json.Encode as Encode
 import Pages.Form.Field as Field
 
 
@@ -67,12 +69,17 @@ view onInput onBlur (Description value) =
 
 
 
--- decoder
+-- serialization
 
 
 decode : Decode.Decoder Description
 decode =
     Decode.andThen (Decode.succeed << new << Maybe.withDefault "") (Decode.nullable Decode.string)
+
+
+encode : Description -> Encode.Value
+encode =
+    Encode.string << unwrap
 
 
 

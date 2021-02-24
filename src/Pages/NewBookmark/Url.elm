@@ -2,6 +2,7 @@ module Pages.NewBookmark.Url exposing
     ( Url
     , blur
     , empty
+    , encode
     , error
     , new
     , unwrap
@@ -10,6 +11,7 @@ module Pages.NewBookmark.Url exposing
 
 import Html
 import Html.Attributes exposing (class, placeholder, required)
+import Json.Encode as Encode
 import Pages.Form.Field as Field
 import Url as BuiltinUrl
 
@@ -65,6 +67,15 @@ view onInput onBlur (Url value) =
         , class "siimple-input siimple-input--fluid"
         ]
         value
+
+
+
+-- serialization
+
+
+encode : Url -> Encode.Value
+encode =
+    Encode.string << unwrap
 
 
 

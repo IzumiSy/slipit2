@@ -6,7 +6,7 @@
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
-            "IzumiSy/elm-typed": "1.0.0",
+            "IzumiSy/elm-typed": "1.1.0",
             "NoRedInk/elm-json-decode-pipeline": "1.0.0",
             "ccapndave/elm-update-extra": "4.0.0",
             "elm/browser": "1.0.2",

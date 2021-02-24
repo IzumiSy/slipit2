@@ -16,6 +16,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
+import Json.Encode as Encode
 import Pages
 import Pages.Layout as Layout
 import Pages.NewBookmark.Description as Description exposing (Description)
@@ -119,13 +120,7 @@ update msg model =
                     in
                     ( validatedModel
                     , if isSubmittable validatedModel then
-                        createsNewBookmark
-                            ( { url = Url.unwrap validatedModel.url
-                              , title = Title.unwrap validatedModel.title
-                              , description = Description.unwrap validatedModel.description
-                              }
-                            , Typed.value <| User.uid currentUser
-                            )
+                        createsNewBookmark <| newBookmarkPayload model currentUser
 
                       else
                         Cmd.none
@@ -242,18 +237,21 @@ subscriptions =
 -- port
 
 
-type alias NewBookmark =
-    { title : String
-    , description : String
-    , url : String
-    }
+newBookmarkPayload : Model -> User.User -> Encode.Value
+newBookmarkPayload { url, title, description } user =
+    Encode.object
+        [ ( "bookmark"
+          , Encode.object
+                [ ( "title", Title.encode title )
+                , ( "description", Description.encode description )
+                , ( "url", Url.encode url )
+                ]
+          )
+        , ( "uid", Typed.encodeStrict User.UidType Encode.string (User.uid user) )
+        ]
 
 
-type alias UserId =
-    String
-
-
-port createsNewBookmark : ( NewBookmark, UserId ) -> Cmd msg
+port createsNewBookmark : Encode.Value -> Cmd msg
 
 
 port creatingNewBookmarkSucceeded : (Decode.Value -> msg) -> Sub msg

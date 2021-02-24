@@ -3,6 +3,7 @@ module Pages.NewBookmark.Title exposing
     , blur
     , decode
     , empty
+    , encode
     , error
     , new
     , unwrap
@@ -12,6 +13,7 @@ module Pages.NewBookmark.Title exposing
 import Html
 import Html.Attributes exposing (class, placeholder)
 import Json.Decode as Decode
+import Json.Encode as Encode
 import Pages.Form.Field as Field
 
 
@@ -67,12 +69,17 @@ view onInput onBlur (Title value) =
 
 
 
--- decoder
+-- serialization
 
 
 decode : Decode.Decoder Title
 decode =
     Decode.andThen (Decode.succeed << new << Maybe.withDefault "") (Decode.nullable Decode.string)
+
+
+encode : Title -> Encode.Value
+encode =
+    Encode.string << unwrap
 
 
 
