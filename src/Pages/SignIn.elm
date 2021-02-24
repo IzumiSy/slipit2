@@ -1,4 +1,11 @@
-port module Pages.SignIn exposing (Model, Msg, init, subscriptions, update, view)
+port module Pages.SignIn exposing
+    ( Model
+    , Msg
+    , init
+    , subscriptions
+    , update
+    , view
+    )
 
 import App.Model as Model
 import Flag
@@ -7,6 +14,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 import Json.Decode as Decode
+import Json.Encode as Encode
 import Pages
 import Pages.Layout as Layout
 import Pages.SignIn.Error as Error
@@ -68,10 +76,7 @@ update msg model =
 
         StartsLoggingIn ->
             ( { model | session = model.session |> Session.mapAsLoggingIn }
-            , startsLoggingIn
-                { password = Typed.value model.password
-                , email = Typed.value model.email
-                }
+            , startsLoggingIn <| newLoggingInPayload model
             )
 
         LoggingInFailed result ->
@@ -206,7 +211,15 @@ subscriptions =
 -- port
 
 
-port startsLoggingIn : { email : String, password : String } -> Cmd msg
+newLoggingInPayload : Model -> Encode.Value
+newLoggingInPayload { email, password } =
+    Encode.object
+        [ ( "email", Typed.encodeStrict EmailType Encode.string email )
+        , ( "password", Typed.encodeStrict PasswordType Encode.string password )
+        ]
+
+
+port startsLoggingIn : Encode.Value -> Cmd msg
 
 
 port loggingInFailed : (Decode.Value -> msg) -> Sub msg
