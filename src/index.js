@@ -1,12 +1,12 @@
-const firebase = require("firebase/app");
-const { Elm } = require("./App.elm");
-const MD5 = require("blueimp-md5");
-require("firebase/auth");
-require("firebase/firestore");
-require("siimple");
-require("./index.scss");
-require("./Toasty.css")
-const logoImage = require("../logo_small.png");
+import { Elm } from "./App.elm";
+import MD5 from "blueimp-md5";
+import firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/firestore";
+import "siimple";
+import logoImage from "../logo_small.png";
+import "./index.scss";
+import "./Toasty.css";
 
 firebase.initializeApp({
   apiKey: process.env.FB_API_KEY,
@@ -88,7 +88,7 @@ app.ports.createsNewBookmark.subscribe(([newBookmark, uid]) => {
     .collection("bookmarks")
     .doc(bookmarkId)
     .set(newBookmark)
-    .then(_ => 
+    .then(_ =>
       app.ports.creatingNewBookmarkSucceeded.send(
         Object.assign(newBookmark, { id: bookmarkId })
       )
