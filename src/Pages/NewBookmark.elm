@@ -55,16 +55,6 @@ init url title description flag session =
     )
 
 
-isSubmittable : Model -> Bool
-isSubmittable { url, title, description } =
-    Nothing
-        |> Maybe.andThen (\_ -> Title.error title)
-        |> Maybe.andThen (\_ -> Description.error description)
-        |> Maybe.andThen (\_ -> Url.error url)
-        |> Maybe.andThen (\_ -> Just False)
-        |> Maybe.withDefault True
-
-
 
 -- update
 
@@ -107,23 +97,12 @@ update msg model =
         CreatesNewbookmark ->
             case Session.toUserData model.session of
                 Just { currentUser } ->
-                    let
-                        {- 一度も入力フォーカスに入らずにボタンがクリックされる可能性があるため
-                           ボタンのクリック時にも再度各入力フォームの中身をblur関数でバリデーションしておく
-                        -}
-                        validatedModel =
-                            { model
-                                | description = Description.blur model.description
-                                , url = Url.blur model.url
-                                , title = Title.blur model.title
-                            }
-                    in
-                    ( validatedModel
-                    , if isSubmittable validatedModel then
-                        createsNewBookmark <| newBookmarkPayload model currentUser
-
-                      else
-                        Cmd.none
+                    ( model
+                    , model
+                        |> toValidatedModel
+                        |> Maybe.map (newBookmarkPayload currentUser)
+                        |> Maybe.map createsNewBookmark
+                        |> Maybe.withDefault Cmd.none
                     , Session.NoOp
                     )
 
@@ -165,6 +144,13 @@ update msg model =
 
 view : Model -> Layout.View Msg
 view ({ url, title, description, session } as model) =
+    let
+        isSubmittable =
+            model
+                |> toValidatedModel
+                |> Maybe.map (\_ -> True)
+                |> Maybe.withDefault False
+    in
     Layout.new
         { title = "New Bookmark"
         , body =
@@ -203,13 +189,13 @@ view ({ url, title, description, session } as model) =
                             [ button
                                 [ type_ "button"
                                 , onClick PrefetchesPage
-                                , disabled <| not <| isSubmittable model
+                                , disabled <| not isSubmittable
                                 , class "siimple-btn siimple--mr-2 siimple-grid-col--2"
                                 ]
                                 [ text "fetch" ]
                             , button
                                 [ type_ "submit"
-                                , disabled <| not <| isSubmittable model
+                                , disabled <| not isSubmittable
                                 , class "siimple-btn siimple-btn--blue siimple-grid-col--2"
                                 ]
                                 [ text "create" ]
@@ -237,8 +223,24 @@ subscriptions =
 -- port
 
 
-newBookmarkPayload : Model -> User.User -> Encode.Value
-newBookmarkPayload { url, title, description } user =
+{-| バリデーション済みであることを表現するデータ型
+-}
+type Validated
+    = Validated Model
+
+
+toValidatedModel : Model -> Maybe Validated
+toValidatedModel model =
+    model
+        |> (Validated >> Just)
+        |> Maybe.andThen (\_ -> Title.error <| Title.blur model.title)
+        |> Maybe.andThen (\_ -> Description.error <| Description.blur model.description)
+        |> Maybe.andThen (\_ -> Url.error <| Url.blur model.url)
+        |> Maybe.andThen (\_ -> Nothing)
+
+
+newBookmarkPayload : User.User -> Validated -> Encode.Value
+newBookmarkPayload user (Validated { url, title, description }) =
     Encode.object
         [ ( "bookmark"
           , Encode.object
