@@ -12,24 +12,12 @@ import Json.Decode.Pipeline as Pipeline
 import Typed exposing (Typed)
 
 
-type UidType
-    = UidType
-
-
 type alias Uid =
     Typed UidType String Typed.ReadOnly
 
 
-type EmailType
-    = EmailType
-
-
 type alias Email =
     Typed EmailType String Typed.ReadOnly
-
-
-type DisplayNameType
-    = DisplayNameType
 
 
 type alias DisplayName =
@@ -75,3 +63,15 @@ decode =
 
 
 -- internals
+
+
+type UidType
+    = UidType
+
+
+type EmailType
+    = EmailType
+
+
+type DisplayNameType
+    = DisplayNameType
