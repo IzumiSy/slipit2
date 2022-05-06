@@ -3,6 +3,7 @@
   "scripts": {
     "start": "NODE_ENV=development parcel src/index.html --log-level 4",
     "build": "parcel build src/index.html --out-dir public",
+    "serve": "firebase emulators:start --only hosting",
     "format": "prettier --write '{src,functions}/**/*.{js,html,scss}'",
     "clean": "rm -rf dist elm-stuff .cache",
     "firestore:rules:deploy": "firebase deploy --only firestore:rules"
