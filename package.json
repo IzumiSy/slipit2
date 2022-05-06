@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "start": "NODE_ENV=development parcel src/index.html --log-level 4",
+    "start": "NODE_ENV=development parcel src/index.html --log-level 4 --out-dir public",
     "build": "parcel build src/index.html --out-dir public",
     "serve": "firebase emulators:start --only hosting",
     "format": "prettier --write '{src,functions}/**/*.{js,html,scss}'",
