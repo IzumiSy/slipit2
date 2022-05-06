@@ -7,13 +7,15 @@ const functions = require("firebase-functions");
 exports.fetchTitle = functions.https.onRequest((req, resp) => {
   const targetUrl = req.query.url;
   if (!targetUrl || !UrlValidator.isUri(targetUrl)) {
-    resp.status(HttpStatus.BAD_REQUEST).send("Not a valid URL given")
+    resp.status(HttpStatus.BAD_REQUEST).send("Not a valid URL given");
     return;
   }
 
   request(targetUrl, (e, _, body) => {
     if (e) {
-      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).send("Internal server error")
+      resp
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send("Internal server error");
       return;
     }
 
@@ -39,9 +41,11 @@ exports.fetchTitle = functions.https.onRequest((req, resp) => {
         result.description = $description[0].content;
       }
 
-      resp.status(HttpStatus.OK).send(result)
+      resp.status(HttpStatus.OK).send(result);
     } catch (err) {
-      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).send("Internal server error")
+      resp
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send("Internal server error");
     }
   });
 });
