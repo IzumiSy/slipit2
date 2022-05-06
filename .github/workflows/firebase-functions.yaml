@@ -19,4 +19,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: cd functions && npm ci
-      - run: npx firebase deploy --only functions --project default --token ${{ secrets.FIREBASE_TOKEN }}
+      - name: Deploy
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only functions
+        env:
+          GCP_SA_KEY: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SLIPIT2_97E5C }}'
