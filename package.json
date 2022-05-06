@@ -1,7 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "start": "firebase emulators:start --only hosting",
+    "start": "concurrently -n \"build,serve\" -c \"blue,yellow\" \"npm run watch\" \"npm run serve\"",
+    "serve": "firebase emulators:start --only hosting",
     "watch": "parcel watch src/index.html --out-dir public --log-level 4",
     "build": "parcel build src/index.html --out-dir public",
     "format": "prettier --write '{src,functions}/**/*.{js,html,scss}'",
@@ -9,6 +10,7 @@
     "firestore:rules:deploy": "firebase deploy --only firestore:rules"
   },
   "devDependencies": {
+    "concurrently": "^7.1.0",
     "elm": "^0.19.1-5",
     "elm-format": "0.8.5",
     "elm-hot": "^1.1.0",
