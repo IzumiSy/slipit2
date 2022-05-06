@@ -7,6 +7,7 @@ on:
     paths:
       - firestore.indexes.json
       - firestore.rules
+  workflow_dispatch:
 
 jobs:
   deploy:
