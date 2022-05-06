@@ -17,4 +17,5 @@ jobs:
           node-version: 16
           cache: npm
       - run: npm ci
+      - run: cd functions && npm ci
       - run: npx firebase deploy --only functions --project default --token ${{ secrets.FIREBASE_TOKEN }}
