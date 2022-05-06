@@ -1,6 +1,6 @@
 .env
 .cache/
-dist/
+public/
 elm-stuff/
 node_modules/
 elm-package.json
