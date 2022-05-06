@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "start": "firebase emulators:start --only hosting",
-    "watch": "parcel watch src/index.html --out-dir public --log-level 4 ",
+    "watch": "parcel watch src/index.html --out-dir public --log-level 4",
     "build": "parcel build src/index.html --out-dir public",
     "format": "prettier --write '{src,functions}/**/*.{js,html,scss}'",
     "clean": "rm -rf dist elm-stuff .cache",
