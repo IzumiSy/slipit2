@@ -18,4 +18,4 @@ jobs:
           node-version: 16
           cache: npm
       - run: npm ci
-        run: firebase deploy --only firestore:rules --token ${{ secrets.FIREBASE_TOKEN }}
+        run: firebase deploy --only firestore:rules,firestore:indexes --token ${{ secrets.FIREBASE_TOKEN }}
