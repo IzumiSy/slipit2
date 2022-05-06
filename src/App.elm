@@ -281,6 +281,10 @@ logInGuard ( page, cmd ) =
         ( ResetPassword _, True ) ->
             toBookmarks
 
+        ( SignIn _, False ) ->
+            -- すでにサインインの画面にいる場合には画面遷移のループが発生しないよう何もしないでおく
+            ( page, cmd )
+
         ( _, False ) ->
             ( page, Route.replaceUrl (Session.toNavKey <| toSession page) Route.SignIn )
 
