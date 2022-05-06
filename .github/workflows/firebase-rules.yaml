@@ -1,0 +1,21 @@
+name: Deploy Firestore Rules on merge
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - firestore.indexes.json
+      - firestore.rules
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: npm
+      - run: npm ci
+        run: firebase deploy --only firestore:rules,firestore:indexes --token ${{ secrets.FIREBASE_TOKEN }}
