@@ -1,0 +1,20 @@
+name: Deploy Firebase Functions on merge
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "functions/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: npm
+      - run: npm ci
+      - run: npx firebase deploy --only functions --project default --token ${{ secrets.FIREBASE_TOKEN }}
