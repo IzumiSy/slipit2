@@ -3,13 +3,13 @@ const urlValidator = require("valid-url");
 const request = require("request");
 const HtmlParser = require("node-html-parser");
 
-withCorsAllowedOnDev = src => {
+withCorsAllowedOnDev = (src) => {
   // Allows CORS only for development environment
 
   const aca =
     process.env.NODE_ENV != "production"
       ? {
-          headers: { "Access-Control-Allow-Origin": "*" }
+          headers: { "Access-Control-Allow-Origin": "*" },
         }
       : {};
 
@@ -24,7 +24,7 @@ exports.handler = (event, context, callback) => {
       null,
       withCorsAllowedOnDev({
         statusCode: HttpStatus.BAD_REQUEST,
-        body: "Must be a valid URL"
+        body: "Must be a valid URL",
       })
     );
     return;
@@ -36,7 +36,7 @@ exports.handler = (event, context, callback) => {
         null,
         withCorsAllowedOnDev({
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          body: "Internal error"
+          body: "Internal error",
         })
       );
       return;
@@ -44,7 +44,7 @@ exports.handler = (event, context, callback) => {
 
     const result = {
       title: "(no title)",
-      description: "(no description)"
+      description: "(no description)",
     };
 
     try {
@@ -53,8 +53,8 @@ exports.handler = (event, context, callback) => {
       const $title = dom.querySelector("title");
       const $description = dom
         .querySelectorAll("meta")
-        .map(x => x.rawAttributes)
-        .filter(x => x.name == "description");
+        .map((x) => x.rawAttributes)
+        .filter((x) => x.name == "description");
 
       if ($title) {
         result.title = $title.text;
@@ -68,7 +68,7 @@ exports.handler = (event, context, callback) => {
         null,
         withCorsAllowedOnDev({
           statusCode: HttpStatus.OK,
-          body: JSON.stringify(result)
+          body: JSON.stringify(result),
         })
       );
     } catch (err) {
@@ -76,7 +76,7 @@ exports.handler = (event, context, callback) => {
         null,
         withCorsAllowedOnDev({
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          body: "Internal error"
+          body: "Internal error",
         })
       );
     }

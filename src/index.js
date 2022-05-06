@@ -8,7 +8,7 @@ import logoImage from "../logo_small.png";
 import "./index.scss";
 import "./Toasty.css";
 
-fetch('/__/firebase/init.json').then(async resp => {
+fetch("/__/firebase/init.json").then(async (resp) => {
   firebase.initializeApp(await resp.json());
 
   const app = Elm.App.init({
@@ -16,19 +16,15 @@ fetch('/__/firebase/init.json').then(async resp => {
     flags: {
       functionUrl: process.env.FUNCTION_URL,
       logoImagePath: logoImage,
-      bookmarks: JSON.parse(localStorage.getItem("bookmarks"))
-    }
+      bookmarks: JSON.parse(localStorage.getItem("bookmarks")),
+    },
   });
   const database = firebase.firestore();
 
-  const fetchAllBookmarks = userId =>
-    database
-      .collection("users")
-      .doc(userId)
-      .collection("bookmarks")
-      .get();
+  const fetchAllBookmarks = (userId) =>
+    database.collection("users").doc(userId).collection("bookmarks").get();
 
-  firebase.auth().onAuthStateChanged(fbUser => {
+  firebase.auth().onAuthStateChanged((fbUser) => {
     if (!fbUser) {
       app.ports.loggedOut.send(null);
       return;
@@ -37,21 +33,21 @@ fetch('/__/firebase/init.json').then(async resp => {
     fetchAllBookmarks(fbUser.uid)
       .then(({ docs }) => {
         const userData = {
-          bookmarks: docs.map(doc =>
+          bookmarks: docs.map((doc) =>
             Object.assign(doc.data(), {
-              id: doc.id
+              id: doc.id,
             })
           ),
           currentUser: {
             uid: fbUser.uid,
             email: fbUser.email,
-            displayName: fbUser.displayName
-          }
+            displayName: fbUser.displayName,
+          },
         };
         app.ports.loggedIn.send(userData);
       })
-      .catch(err => {
-        console.error(err)
+      .catch((err) => {
+        console.error(err);
         app.ports.loggedOut.send(null);
       });
   });
@@ -60,14 +56,14 @@ fetch('/__/firebase/init.json').then(async resp => {
     firebase
       .auth()
       .signOut()
-      .catch(err => console.error(err));
+      .catch((err) => console.error(err));
   });
 
-  app.ports.startsLoggingIn.subscribe(login => {
+  app.ports.startsLoggingIn.subscribe((login) => {
     firebase
       .auth()
       .signInWithEmailAndPassword(login.email, login.password)
-      .catch(error => {
+      .catch((error) => {
         app.ports.loggingInFailed.send(error);
       });
   });
@@ -83,36 +79,36 @@ fetch('/__/firebase/init.json').then(async resp => {
       .collection("bookmarks")
       .doc(bookmarkId)
       .set(bookmark)
-      .then(_ =>
+      .then((_) =>
         app.ports.creatingNewBookmarkSucceeded.send(
           Object.assign(bookmark, { id: bookmarkId })
         )
       )
-      .catch(fbError => {
+      .catch((fbError) => {
         console.warn(fbError);
         app.ports.createNewBookmarkFailed.send({
-          message: "Failed create new bookmark"
+          message: "Failed create new bookmark",
         });
       });
   });
 
   app.ports.fetchAllBookmarks.subscribe(() => {
-    firebase.auth().onAuthStateChanged(user => {
+    firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         fetchAllBookmarks(user.uid)
           .then(({ docs }) =>
             app.ports.allBookmarksFetched.send(
-              docs.map(doc => Object.assign(doc.data(), { id: doc.id }))
+              docs.map((doc) => Object.assign(doc.data(), { id: doc.id }))
             )
           )
-          .catch(err => {
+          .catch((err) => {
             // TODO: あとでつくる
           });
       }
     });
   });
 
-  app.ports.persistToCacheInternal.subscribe(bookmarks => {
-    localStorage.setItem("bookmarks", JSON.stringify(bookmarks))
-  })
-})
+  app.ports.persistToCacheInternal.subscribe((bookmarks) => {
+    localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+  });
+});
