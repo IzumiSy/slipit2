@@ -22,6 +22,7 @@ jobs:
       - name: Deploy
         uses: w9jds/firebase-action@master
         with:
-          args: deploy --only firestore:rules,firestore:indexes --project default
+          args: deploy --only firestore:rules,firestore:indexes
         env:
+          PROJECT_ID: default
           GCP_SA_KEY: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SLIPIT2_97E5C }}'
