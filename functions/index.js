@@ -5,8 +5,7 @@ const request = require("request");
 const functions = require("firebase-functions");
 
 exports.handler = functions.https.onRequest((req, resp) => {
-  const targetUrl = req.query.url; // event.queryStringParameters.url;
-
+  const targetUrl = req.query.url;
   if (!targetUrl || !UrlValidator.isUri(targetUrl)) {
     resp.status(HttpStatus.BAD_REQUEST).send("Not a valid URL given")
     return;
