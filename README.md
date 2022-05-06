@@ -1,5 +1,5 @@
 # Slip.it v2
-The serverless replacement of [Slip.it](https://github.com/IzumiSy/slipit) aiming at deploying on Netlify
+The serverless replacement of [Slip.it](https://github.com/IzumiSy/slipit) aiming at deploying on Firebase suite
 
 ## Setup
 ```bash
@@ -14,6 +14,10 @@ $ vi .env
 
 ## Run
 ```bash
+# only serving (build required)
+$ npm run serve
+
+# serve and compile
 $ npm start
 ```
 
@@ -21,13 +25,4 @@ $ npm start
 ```bash
 $ npm run build
 ```
-
-# Function
-
-## Run
-```bash
-$ npm run lambda:start
-```
-
-## Deploy
-This repository can be built automatically on Netlify from Github.
+`watch` command is also available.
