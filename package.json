@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "start": "concurrently -n \"build,serve\" -c \"blue,yellow\" \"npm run watch\" \"npm run serve\"",
-    "serve": "firebase emulators:start --only hosting",
+    "serve": "firebase emulators:start --only hosting,functions",
     "watch": "parcel watch src/index.html --out-dir public --log-level 4",
     "build": "parcel build src/index.html --out-dir public",
     "format": "prettier --write '{src,functions}/**/*.{js,html,scss}'",
