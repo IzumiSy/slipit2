@@ -10,7 +10,11 @@
   },
   "dependencies": {
     "firebase-admin": "^10.0.2",
-    "firebase-functions": "^3.18.0"
+    "firebase-functions": "^3.18.0",
+    "http-status-codes": "^2.2.0",
+    "node-html-parser": "^5.3.3",
+    "request": "^2.88.2",
+    "valid-url": "^1.0.9"
   },
   "devDependencies": {
     "eslint": "^8.9.0",
