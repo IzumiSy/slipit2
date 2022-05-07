@@ -7,6 +7,5 @@ elm-package.json
 
 # Firebase
 .firebase/
-.firebaserc
 firebase-debug.log
 ui-debug.log
