@@ -16,6 +16,7 @@ exports.fetchTitle = functions.https.onRequest((req, resp) => {
       resp
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .send("Internal server error");
+      console.error(e)
       return;
     }
 
@@ -41,11 +42,13 @@ exports.fetchTitle = functions.https.onRequest((req, resp) => {
         result.description = $description[0].content;
       }
 
+      console.info("Title fetch succeeded")
       resp.status(HttpStatus.OK).send(result);
     } catch (err) {
       resp
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .send("Internal server error");
+      console.error(e)
     }
   });
 });
