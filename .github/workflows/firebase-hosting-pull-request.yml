@@ -7,8 +7,7 @@ on:
   pull_request:
     types:
       - synchronize
-  paths:
-    exclude:
+    paths-ignore:
       - "functions/**"
 
 jobs:
