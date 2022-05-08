@@ -20,7 +20,6 @@ exports.fetchTitle = functions.https.onRequest((req, resp) => {
       return;
     }
 
-    // Set default values at first
     const result = {
       title: "(no title)",
       description: "(no description)",
