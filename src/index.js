@@ -1,28 +1,28 @@
-import { Elm } from "./App.elm";
-import MD5 from "blueimp-md5";
-import firebase from "firebase/app";
-import "firebase/auth";
-import "firebase/firestore";
-import "siimple";
-import logoImage from "../logo_small.png";
-import "./index.scss";
-import "./Toasty.css";
+import { Elm } from './App.elm';
+import MD5 from 'blueimp-md5';
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'firebase/firestore';
+import 'siimple';
+import logoImage from '../logo_small.png';
+import './index.scss';
+import './Toasty.css';
 
-fetch("/__/firebase/init.json").then(async (resp) => {
+fetch('/__/firebase/init.json').then(async (resp) => {
   firebase.initializeApp(await resp.json());
 
   const app = Elm.App.init({
-    node: document.getElementById("main"),
+    node: document.getElementById('main'),
     flags: {
       functionUrl: process.env.FUNCTION_URL,
       logoImagePath: logoImage,
-      bookmarks: JSON.parse(localStorage.getItem("bookmarks")),
+      bookmarks: JSON.parse(localStorage.getItem('bookmarks')),
     },
   });
   const database = firebase.firestore();
 
   const fetchAllBookmarks = (userId) =>
-    database.collection("users").doc(userId).collection("bookmarks").get();
+    database.collection('users').doc(userId).collection('bookmarks').get();
 
   firebase.auth().onAuthStateChanged((fbUser) => {
     if (!fbUser) {
@@ -74,9 +74,9 @@ fetch("/__/firebase/init.json").then(async (resp) => {
     const bookmarkId = MD5(bookmark.url);
 
     database
-      .collection("users")
+      .collection('users')
       .doc(uid)
-      .collection("bookmarks")
+      .collection('bookmarks')
       .doc(bookmarkId)
       .set(bookmark)
       .then((_) =>
@@ -87,7 +87,7 @@ fetch("/__/firebase/init.json").then(async (resp) => {
       .catch((fbError) => {
         console.warn(fbError);
         app.ports.createNewBookmarkFailed.send({
-          message: "Failed create new bookmark",
+          message: 'Failed create new bookmark',
         });
       });
   });
@@ -109,6 +109,6 @@ fetch("/__/firebase/init.json").then(async (resp) => {
   });
 
   app.ports.persistToCacheInternal.subscribe((bookmarks) => {
-    localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+    localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
   });
 });
